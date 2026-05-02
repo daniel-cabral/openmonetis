@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, not, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	cards,
@@ -7,7 +7,7 @@ import {
 	financialAccounts,
 	invoices,
 	payers,
-	type transactions,
+	transactions,
 } from "@/db/schema";
 import {
 	PAYMENT_METHODS,
@@ -201,6 +201,82 @@ export async function validateAllOwnership(
 		if (!checks[i]) return errors[i];
 	}
 	return null;
+}
+
+// ============================================================================
+// Card Limit Validation
+// ============================================================================
+
+const formatBRL = (value: number) =>
+	new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+
+export async function validateCardLimit({
+	userId,
+	cardId,
+	addAmount,
+	excludeTransactionIds = [],
+}: {
+	userId: string;
+	cardId: string;
+	addAmount: number;
+	excludeTransactionIds?: string[];
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+	if (addAmount <= 0) {
+		return { ok: true };
+	}
+
+	const card = await db.query.cards.findFirst({
+		columns: { limit: true },
+		where: and(eq(cards.id, cardId), eq(cards.userId, userId)),
+	});
+
+	if (!card) {
+		return { ok: false, error: "Cartão não encontrado." };
+	}
+
+	const limit = Number(card.limit);
+	if (!Number.isFinite(limit) || limit <= 0) {
+		return { ok: true };
+	}
+
+	const conditions = [
+		eq(transactions.userId, userId),
+		eq(transactions.cardId, cardId),
+		or(isNull(transactions.isSettled), eq(transactions.isSettled, false)),
+		or(
+			ne(transactions.condition, "Recorrente"),
+			sql`${transactions.purchaseDate} <= current_date`,
+		),
+	];
+
+	if (excludeTransactionIds.length > 0) {
+		conditions.push(not(inArray(transactions.id, excludeTransactionIds)));
+	}
+
+	const [row] = await db
+		.select({
+			total: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
+		})
+		.from(transactions)
+		.where(and(...conditions));
+
+	const sumAmount = Number(row?.total ?? 0);
+	const inUse = sumAmount < 0 ? Math.abs(sumAmount) : 0;
+	const available = Math.max(limit - inUse, 0);
+
+	if (addAmount > available + 0.005) {
+		return {
+			ok: false,
+			error: `Lançamento de ${formatBRL(addAmount)} excede o limite disponível do cartão (${formatBRL(
+				available,
+			)}).`,
+		};
+	}
+
+	return { ok: true };
 }
 
 // ============================================================================
@@ -415,6 +491,11 @@ export const toggleSettlementSchema = z.object({
 	value: z.boolean({
 		message: "Informe o status de pagamento.",
 	}),
+	paymentAccountId: uuidSchema("Conta de pagamento").nullable().optional(),
+	paymentDate: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/u, "Data de pagamento inválida.")
+		.optional(),
 });
 
 export type BaseInput = z.infer<typeof baseFields>;

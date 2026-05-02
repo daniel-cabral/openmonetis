@@ -7,11 +7,11 @@ export type Card = {
 	dueDay: string;
 	note: string | null;
 	logo: string | null;
-	limit: number | null;
+	limit: number;
 	accountId: string;
 	accountName: string;
 	limitInUse: number;
-	limitAvailable: number | null;
+	limitAvailable: number;
 };
 
 export type CardFormValues = {

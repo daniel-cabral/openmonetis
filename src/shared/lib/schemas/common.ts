@@ -32,6 +32,38 @@ export const optionalDecimalSchema = z.union([
 ]);
 
 /**
+ * Required positive decimal schema — accepts number or numeric string.
+ */
+export const requiredDecimalSchema = (fieldName: string = "valor") =>
+	z
+		.union([
+			z.number(),
+			z
+				.string()
+				.trim()
+				.min(1, `Informe o ${fieldName}.`)
+				.transform((value) => value.replace(",", ".")),
+		])
+		.transform((value, ctx) => {
+			const parsed = typeof value === "number" ? value : Number.parseFloat(value);
+			if (Number.isNaN(parsed)) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "Informe um valor numérico válido.",
+				});
+				return z.NEVER;
+			}
+			if (parsed <= 0) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: `Informe um ${fieldName} maior que zero.`,
+				});
+				return z.NEVER;
+			}
+			return parsed;
+		});
+
+/**
  * Day of month schema (1-31)
  */
 export const dayOfMonthSchema = z

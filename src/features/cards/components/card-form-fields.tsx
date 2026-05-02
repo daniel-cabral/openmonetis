@@ -112,12 +112,13 @@ export function CardFormFields({
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<Label htmlFor="card-limit">Limite (R$)</Label>
+				<Label htmlFor="card-limit">Limite</Label>
 				<CurrencyInput
 					id="card-limit"
 					value={values.limit}
 					onValueChange={(value) => onChange("limit", value)}
 					placeholder="R$ 0,00"
+					required
 				/>
 			</div>
 

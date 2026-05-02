@@ -118,6 +118,8 @@ export default async function Page({ params, searchParams }: PageProps) {
 				financialAccount.id === card.accountId,
 		)?.name ?? "Conta";
 
+	const limitAmount = Number(card.limit);
+
 	const cardDialogData: Card = {
 		id: card.id,
 		name: card.name,
@@ -127,19 +129,14 @@ export default async function Page({ params, searchParams }: PageProps) {
 		dueDay: card.dueDay,
 		note: card.note ?? null,
 		logo: card.logo,
-		limit:
-			card.limit !== null && card.limit !== undefined
-				? Number(card.limit)
-				: null,
+		limit: limitAmount,
 		accountId: card.accountId,
 		accountName,
 		limitInUse: 0,
-		limitAvailable: null,
+		limitAvailable: limitAmount,
 	};
 
 	const { totalAmount, invoiceStatus, paymentDate } = invoiceData;
-	const limitAmount =
-		card.limit !== null && card.limit !== undefined ? Number(card.limit) : null;
 
 	const periodLabel = `${monthName.charAt(0).toUpperCase()}${monthName.slice(
 		1,
@@ -163,6 +160,12 @@ export default async function Page({ params, searchParams }: PageProps) {
 					limitAmount={limitAmount}
 					invoiceStatus={invoiceStatus}
 					paymentDate={paymentDate}
+					defaultPaymentAccountId={card.accountId}
+					paymentAccountOptions={accountOptions.map((option) => ({
+						value: option.value,
+						label: option.label,
+						logo: option.logo ?? null,
+					}))}
 					logo={card.logo}
 					actions={
 						<CardDialog

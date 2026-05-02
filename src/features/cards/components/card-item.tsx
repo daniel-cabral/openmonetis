@@ -30,9 +30,9 @@ interface CardItemProps {
 	status: string;
 	closingDay: string;
 	dueDay: string;
-	limit: number | null;
-	limitInUse?: number | null;
-	limitAvailable?: number | null;
+	limit: number;
+	limitInUse?: number;
+	limitAvailable?: number;
 	accountName: string;
 	logo?: string | null;
 	note?: string | null;
@@ -61,30 +61,18 @@ export function CardItem({
 }: CardItemProps) {
 	void _accountName;
 
-	const limitTotal = limit ?? null;
 	const used =
 		limitInUse ??
-		(limitTotal !== null && limitAvailable != null
-			? Math.max(limitTotal - limitAvailable, 0)
-			: limitTotal !== null
-				? 0
-				: null);
+		(limitAvailable !== undefined ? Math.max(limit - limitAvailable, 0) : 0);
 
-	const available =
-		limitAvailable ??
-		(limitTotal !== null && used !== null
-			? Math.max(limitTotal - used, 0)
-			: null);
+	const available = limitAvailable ?? Math.max(limit - used, 0);
 
 	const usagePercent =
-		limitTotal && limitTotal > 0 && used !== null
-			? Math.min(Math.max((used / limitTotal) * 100, 0), 100)
-			: 0;
+		limit > 0 ? Math.min(Math.max((used / limit) * 100, 0), 100) : 0;
 
 	const logoPath = resolveLogoSrc(logo);
 	const brandAsset = resolveCardBrandAsset(brand);
 	const isInactive = status?.toLowerCase() === "inativo";
-	const hasMetrics = limitTotal !== null && used !== null && available !== null;
 
 	return (
 		<Card className="flex flex-col p-6 w-full">
@@ -174,54 +162,45 @@ export function CardItem({
 			</CardHeader>
 
 			<CardContent className="flex flex-1 flex-col gap-4 px-0">
-				{hasMetrics &&
-				available !== null &&
-				used !== null &&
-				limitTotal !== null ? (
-					<>
-						<div className="flex flex-col gap-0.5">
-							<span className="text-xs text-muted-foreground">Disponível</span>
-							<MoneyValues
-								amount={available}
-								className="text-xl font-semibold text-success"
-							/>
-						</div>
+				<div className="flex flex-col gap-0.5">
+					<span className="text-xs text-muted-foreground">
+						Limite disponível
+					</span>
+					<MoneyValues
+						amount={available}
+						className="text-xl font-semibold text-success"
+					/>
+				</div>
 
-						<div className="grid grid-cols-2 gap-2">
-							<div className="flex flex-col gap-0.5">
-								<span className="text-xs text-muted-foreground">
-									Limite total
-								</span>
-								<MoneyValues
-									amount={limitTotal}
-									className="text-sm font-semibold text-foreground"
-								/>
-							</div>
-							<div className="flex flex-col gap-0.5">
-								<span className="text-xs text-muted-foreground">Em uso</span>
-								<MoneyValues
-									amount={used}
-									className="text-sm font-semibold text-primary"
-								/>
-							</div>
-						</div>
+				<div className="grid grid-cols-2 gap-2">
+					<div className="flex flex-col gap-0.5">
+						<span className="text-xs text-muted-foreground">Limite total</span>
+						<MoneyValues
+							amount={limit}
+							className="text-sm font-semibold text-foreground"
+						/>
+					</div>
+					<div className="flex flex-col gap-0.5">
+						<span className="text-xs text-muted-foreground">
+							Limite utilizado
+						</span>
+						<MoneyValues
+							amount={used}
+							className="text-sm font-semibold text-destructive"
+						/>
+					</div>
+				</div>
 
-						<div className="flex flex-col gap-2">
-							<Progress
-								value={usagePercent}
-								className="h-2.5"
-								aria-label={`${usagePercent.toFixed(0)}% do limite utilizado`}
-							/>
-							<span className="text-xs text-muted-foreground">
-								{usagePercent.toFixed(1)}% utilizado
-							</span>
-						</div>
-					</>
-				) : (
-					<p className="text-sm text-muted-foreground">
-						Ainda não há limite registrado para este cartão.
-					</p>
-				)}
+				<div className="flex flex-col gap-2">
+					<Progress
+						value={usagePercent}
+						className="h-2.5"
+						aria-label={`${usagePercent.toFixed(0)}% do limite utilizado`}
+					/>
+					<span className="text-xs text-muted-foreground">
+						{usagePercent.toFixed(1)}% utilizado
+					</span>
+				</div>
 			</CardContent>
 
 			<CardFooter className="mt-auto flex flex-wrap gap-4 px-0 pt-2 text-sm">

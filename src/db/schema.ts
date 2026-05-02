@@ -301,7 +301,9 @@ export const cards = pgTable(
 		closingDay: text("dt_fechamento").notNull(),
 		dueDay: text("dt_vencimento").notNull(),
 		note: text("anotacao"),
-		limit: numeric("limite", { precision: 10, scale: 2 }),
+		limit: numeric("limite", { precision: 10, scale: 2 })
+			.notNull()
+			.default("0"),
 		brand: text("bandeira"),
 		logo: text("logo"),
 		status: text("status").notNull(),

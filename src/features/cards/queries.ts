@@ -12,9 +12,9 @@ type CardData = {
 	dueDay: string;
 	note: string | null;
 	logo: string | null;
-	limit: number | null;
+	limit: number;
 	limitInUse: number;
-	limitAvailable: number | null;
+	limitAvailable: number;
 	accountId: string;
 	accountName: string;
 };
@@ -96,15 +96,12 @@ async function fetchCardsByStatus(
 		dueDay: card.dueDay,
 		note: card.note,
 		logo: card.logo,
-		limit: card.limit ? Number(card.limit) : null,
+		limit: Number(card.limit),
 		limitInUse: (() => {
 			const total = usageMap.get(card.id) ?? 0;
 			return total < 0 ? Math.abs(total) : 0;
 		})(),
 		limitAvailable: (() => {
-			if (!card.limit) {
-				return null;
-			}
 			const total = usageMap.get(card.id) ?? 0;
 			const inUse = total < 0 ? Math.abs(total) : 0;
 			return Math.max(Number(card.limit) - inUse, 0);

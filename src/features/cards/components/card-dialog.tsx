@@ -154,13 +154,21 @@ export function CardDialog({
 		}
 
 		const rawLimit = normalizeDecimalInput(formState.limit);
+		const limitValue = rawLimit ? Number(rawLimit) : 0;
+		if (!Number.isFinite(limitValue) || limitValue <= 0) {
+			const message = "Informe um limite maior que zero.";
+			setErrorMessage(message);
+			toast.error(message);
+			return;
+		}
+
 		const payload: CardCreatePayload = {
 			name: formState.name.trim(),
 			brand: formState.brand,
 			status: formState.status,
 			closingDay: formState.closingDay,
 			dueDay: formState.dueDay,
-			limit: rawLimit ? Number(rawLimit) : null,
+			limit: limitValue,
 			note: formState.note.trim() || null,
 			logo: formState.logo,
 			accountId: formState.accountId,

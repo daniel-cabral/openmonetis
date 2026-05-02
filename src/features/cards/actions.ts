@@ -13,10 +13,10 @@ import { db } from "@/shared/lib/db";
 import {
 	dayOfMonthSchema,
 	noteSchema,
-	optionalDecimalSchema,
+	requiredDecimalSchema,
 	uuidSchema,
 } from "@/shared/lib/schemas/common";
-import { formatDecimalForDb } from "@/shared/utils/currency";
+import { formatDecimalForDbRequired } from "@/shared/utils/currency";
 import { normalizeFilePath } from "@/shared/utils/string";
 
 const cardBaseSchema = z.object({
@@ -35,7 +35,7 @@ const cardBaseSchema = z.object({
 	closingDay: dayOfMonthSchema,
 	dueDay: dayOfMonthSchema,
 	note: noteSchema,
-	limit: optionalDecimalSchema,
+	limit: requiredDecimalSchema("limite"),
 	logo: z
 		.string({ message: "Selecione um logo." })
 		.trim()
@@ -87,7 +87,7 @@ export async function createCardAction(
 			closingDay: data.closingDay,
 			dueDay: data.dueDay,
 			note: data.note ?? null,
-			limit: formatDecimalForDb(data.limit),
+			limit: formatDecimalForDbRequired(data.limit),
 			logo: logoFile,
 			accountId: data.accountId,
 			userId: user.id,
@@ -121,7 +121,7 @@ export async function updateCardAction(
 				closingDay: data.closingDay,
 				dueDay: data.dueDay,
 				note: data.note ?? null,
-				limit: formatDecimalForDb(data.limit),
+				limit: formatDecimalForDbRequired(data.limit),
 				logo: logoFile,
 				accountId: data.accountId,
 			})
