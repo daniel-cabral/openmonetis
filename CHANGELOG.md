@@ -5,6 +5,22 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.5.2] - 2026-05-04
+
+Esta versão traz melhorias visuais e de usabilidade em contas, lançamentos, orçamentos, cartões e anotações: novos tipos de conta, ícones no seletor, feedback visual de limite excedido nas progress bars e refinamentos nos ícones de tarefas em anotações.
+
+### Adicionado
+- Novos tipos de conta `"Dinheiro"` e `"Outros"` na lista padrão do diálogo de contas (issue #50).
+- Ícones por tipo de conta no seletor (Conta Corrente, Poupança, Carteira Digital, Investimento, Pré-Pago, Dinheiro, Outros).
+- Filtro automático: ao selecionar `"Dinheiro"` como forma de pagamento em lançamentos, o select de conta exibe apenas contas do tipo `"Dinheiro"`.
+- Sinal `+` no valor de transferências recebidas na tabela de lançamentos (mantém cor azul).
+
+### Alterado
+- Forma de pagamento de novas transferências entre contas alterada de `"Pix"` para `"Transferência bancária"`.
+- Progress bar de orçamentos excedidos agora exibe indicador e fundo na cor `destructive`.
+- Progress bar de cartões com 100% do limite utilizado agora exibe indicador e fundo na cor `destructive`.
+- Ícone de tarefa não concluída no card e no modal de detalhes de anotações substituído por `RiSubtractLine` (locais sem interação de marcação).
+
 ## [2.5.1] - 2026-05-04
 
 Versão de correção pontual focada na exibição do indicador de anexo nas tabelas de lançamentos da fatura do cartão. Em `/cards/[cardId]/invoice`, lançamentos com anexos não mostravam o ícone porque o fetcher dedicado da fatura não calculava o flag `hasAttachments`. A primeira tentativa de adicionar o EXISTS via `extras` na query relacional gerou SQL inválido (Drizzle re-aliasava `transactionAttachments.transactionId` para o alias da tabela externa). A correção definitiva troca o fetcher pela função compartilhada `fetchTransactionsWithRelations` de `features/transactions`, que já implementa o EXISTS corretamente via `select`.
