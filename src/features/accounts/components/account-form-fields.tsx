@@ -12,7 +12,10 @@ import {
 	SelectValue,
 } from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { StatusSelectContent } from "./account-select-items";
+import {
+	AccountTypeSelectContent,
+	StatusSelectContent,
+} from "./account-select-items";
 
 import type { AccountFormValues } from "./types";
 
@@ -54,12 +57,16 @@ export function AccountFormFields({
 					onValueChange={(value) => onChange("accountType", value)}
 				>
 					<SelectTrigger id="account-type" className="w-full">
-						<SelectValue placeholder="Selecione o tipo" />
+						<SelectValue placeholder="Selecione o tipo">
+							{values.accountType && (
+								<AccountTypeSelectContent label={values.accountType} />
+							)}
+						</SelectValue>
 					</SelectTrigger>
 					<SelectContent>
 						{accountTypes.map((type) => (
 							<SelectItem key={type} value={type}>
-								{type}
+								<AccountTypeSelectContent label={type} />
 							</SelectItem>
 						))}
 					</SelectContent>
