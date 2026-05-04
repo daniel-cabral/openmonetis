@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-openmonetis_db}
       POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
       PGDATA: /var/lib/postgresql/data
-    ports:
-      - "${DB_PORT:-5432}:5432"
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,8 +26,8 @@ services:
     image: felipegcoutinho/openmonetis:latest
     container_name: openmonetis_app
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-3000}:3000"
+    expose:
+      - "3000"
     env_file:
       - path: .env
         required: false
