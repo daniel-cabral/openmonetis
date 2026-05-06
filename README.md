@@ -507,7 +507,18 @@ openmonetis/
 │   │   └── auth/                  # Formulários de autenticação
 │   │
 │   ├── shared/                    # Código reutilizado entre features
-│   │   ├── components/            # UI compartilhada (shadcn/ui, navigation, skeletons...)
+│   │   ├── components/            # UI compartilhada
+│   │   │   ├── ui/                #   shadcn/ui primitives
+│   │   │   ├── navigation/        #   navbar, sidebar, breadcrumbs
+│   │   │   ├── brand/             #   logos do app
+│   │   │   ├── widgets/           #   widget-card e variantes
+│   │   │   ├── feedback/          #   empty-state, status-dot, payment-success
+│   │   │   ├── entity-avatar/     #   avatares de categoria/estabelecimento
+│   │   │   ├── month-picker/      #   seletor de período
+│   │   │   ├── logo-picker/       #   seletor de logos
+│   │   │   ├── calculator/        #   calculadora de cálculos rápidos
+│   │   │   ├── skeletons/         #   loading skeletons
+│   │   │   └── providers/         #   React context providers
 │   │   ├── hooks/                 # React hooks globais
 │   │   ├── lib/                   # Helpers de domínio (auth, db, payers, schemas, email...)
 │   │   └── utils/                 # Utilitários (currency, date, period, math, string...)
@@ -522,6 +533,22 @@ openmonetis/
 ├── docker-compose.yml             # Orquestração app + PostgreSQL
 └── proxy.ts                       # Middleware (auth + multi-domínio)
 ```
+
+### Estrutura interna de uma feature
+
+Toda feature em `src/features/<nome>/` segue o mesmo padrão:
+
+```
+<feature>/
+├── actions.ts        # Server Actions (entry point — barrel re-export quando há actions/)
+├── queries.ts        # Funções de leitura do banco (entry point)
+├── actions/          # (opcional) Server Actions divididas por domínio quando o volume cresce
+├── components/       # Componentes de UI da feature
+├── hooks/            # React hooks específicos da feature
+└── lib/              # Helpers, types, sub-queries e constantes
+```
+
+A regra é: `actions.ts` e `queries.ts` são as portas de entrada da feature. Tudo que é helper interno fica em `lib/`. Componentes e hooks ficam nas pastas com nome óbvio.
 
 ---
 
