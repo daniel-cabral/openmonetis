@@ -8,7 +8,7 @@
 
 > **⚠️ Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
 
-[![Version](https://img.shields.io/badge/version-2.5.1-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.5-blue?style=flat-square)](CHANGELOG.md)
 [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -61,7 +61,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 ### Funcionalidades
 
-💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas e transferências. Categorização, extratos detalhados e importação de extratos OFX e XLS/XLSX com detecção automática de categoria.
+💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas e transferências. Categorização, filtros combináveis, extratos detalhados e importação de extratos OFX e XLS/XLSX com detecção automática de categoria.
 
 📊 **Dashboard e relatórios** — Widgets interativos de métricas, gráficos de evolução, comparativos por categoria, tendências, uso de cartões, top estabelecimentos. Exportação em PDF e Excel.
 
@@ -85,7 +85,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
   <img src="./public/images/companion-preview-light.webp" alt="OpenMonetis Companion" width="300" height="600" />
 </p>
 
-⚙️ **Personalização** — Tema dark/light e modo privacidade.
+⚙️ **Personalização** — Tema dark/light, modo privacidade e changelog visual para acompanhar as novidades do app.
 
 ### Stack técnica
 
@@ -127,21 +127,20 @@ Só quer rodar o OpenMonetis. **Não precisa clonar o repositório nem instalar 
 # 1. Baixe o compose
 curl -fsSL https://raw.githubusercontent.com/felipegcoutinho/openmonetis/main/docker-compose.yml -o docker-compose.yml
 
-# 2. Suba tudo
+# 2. Crie um .en na mesma pasta.
+# .env mínimo recomendado para produção
+BETTER_AUTH_SECRET=gere-um-valor-com-openssl-rand-base64-32
+BETTER_AUTH_URL=http://seu-dominio.com
+
+# 3. Suba tudo
 docker compose up -d
 ```
 
 Acesse em: `http://localhost:3000`
 
-O banco sobe com credenciais padrão. Para personalizar (senha, Google OAuth, e-mail, IA...), crie um `.env` na mesma pasta **antes** de subir:
+O banco sobe com credenciais padrão. Para personalizar (senha, Google OAuth, e-mail, IA...), crie um `.env` na mesma pasta **antes** de subir.
 
-```bash
-# .env mínimo recomendado para produção
-BETTER_AUTH_SECRET=gere-um-valor-com-openssl-rand-base64-32
-BETTER_AUTH_URL=https://seu-dominio.com
-```
-
-Veja todas as variáveis disponíveis em [Variáveis de Ambiente](#-variáveis-de-ambiente).
+Mais sobre .env em [Variáveis de Ambiente](#-variáveis-de-ambiente).
 
 **Banco remoto (Supabase, Neon, Railway...):** defina `DATABASE_URL` no `.env` e suba só o app:
 
@@ -508,7 +507,18 @@ openmonetis/
 │   │   └── auth/                  # Formulários de autenticação
 │   │
 │   ├── shared/                    # Código reutilizado entre features
-│   │   ├── components/            # UI compartilhada (shadcn/ui, navigation, skeletons...)
+│   │   ├── components/            # UI compartilhada
+│   │   │   ├── ui/                #   shadcn/ui primitives
+│   │   │   ├── navigation/        #   navbar, sidebar, breadcrumbs
+│   │   │   ├── brand/             #   logos do app
+│   │   │   ├── widgets/           #   widget-card e variantes
+│   │   │   ├── feedback/          #   empty-state, status-dot, payment-success
+│   │   │   ├── entity-avatar/     #   avatares de categoria/estabelecimento
+│   │   │   ├── month-picker/      #   seletor de período
+│   │   │   ├── logo-picker/       #   seletor de logos
+│   │   │   ├── calculator/        #   calculadora de cálculos rápidos
+│   │   │   ├── skeletons/         #   loading skeletons
+│   │   │   └── providers/         #   React context providers
 │   │   ├── hooks/                 # React hooks globais
 │   │   ├── lib/                   # Helpers de domínio (auth, db, payers, schemas, email...)
 │   │   └── utils/                 # Utilitários (currency, date, period, math, string...)
@@ -523,6 +533,22 @@ openmonetis/
 ├── docker-compose.yml             # Orquestração app + PostgreSQL
 └── proxy.ts                       # Middleware (auth + multi-domínio)
 ```
+
+### Estrutura interna de uma feature
+
+Toda feature em `src/features/<nome>/` segue o mesmo padrão:
+
+```
+<feature>/
+├── actions.ts        # Server Actions (entry point — barrel re-export quando há actions/)
+├── queries.ts        # Funções de leitura do banco (entry point)
+├── actions/          # (opcional) Server Actions divididas por domínio quando o volume cresce
+├── components/       # Componentes de UI da feature
+├── hooks/            # React hooks específicos da feature
+└── lib/              # Helpers, types, sub-queries e constantes
+```
+
+A regra é: `actions.ts` e `queries.ts` são as portas de entrada da feature. Tudo que é helper interno fica em `lib/`. Componentes e hooks ficam nas pastas com nome óbvio.
 
 ---
 
@@ -560,12 +586,6 @@ Outras formas de contribuir: ⭐ estrela no repo, reportar bugs, melhorar docs, 
 - 📋 Crédito ao autor, indicar modificações, mesma licença
 
 Para o texto legal completo, consulte o arquivo [LICENSE](LICENSE) ou visite [creativecommons.org](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt).
-
----
-
-## 🙏 Agradecimentos
-
-[Next.js](https://nextjs.org/) · [Better Auth](https://better-auth.com/) · [Drizzle ORM](https://orm.drizzle.team/) · [shadcn/ui](https://ui.shadcn.com/) · [Biome](https://biomejs.dev/) · [Vercel](https://vercel.com/)
 
 ---
 

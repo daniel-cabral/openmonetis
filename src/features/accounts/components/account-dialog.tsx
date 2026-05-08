@@ -37,7 +37,9 @@ const DEFAULT_ACCOUNT_TYPES = [
 	"Conta Poupança",
 	"Carteira Digital",
 	"Conta Investimento",
+	"Dinheiro",
 	"Pré-Pago | VR/VA",
+	"Outros",
 ] as const;
 
 const DEFAULT_ACCOUNT_STATUS = ["Ativa", "Inativa"] as const;

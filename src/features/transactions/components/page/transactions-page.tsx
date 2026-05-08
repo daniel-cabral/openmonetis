@@ -1,5 +1,6 @@
 "use client";
 
+import { RiAddFill } from "@remixicon/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -18,10 +19,11 @@ import {
 	getPresignedUploadUrlAction,
 } from "@/features/transactions/actions/attachments";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
+import { Button } from "@/shared/components/ui/button";
 import type {
 	TransactionsExportContext,
 	TransactionsPaginationState,
-} from "../../export-types";
+} from "../../lib/export-types";
 import { AnticipateInstallmentsDialog } from "../dialogs/anticipate-installments-dialog/anticipate-installments-dialog";
 import { AnticipationHistoryDialog } from "../dialogs/anticipate-installments-dialog/anticipation-history-dialog";
 import {
@@ -115,7 +117,6 @@ export function TransactionsPage({
 	const [selectedTransaction, setSelectedTransaction] =
 		useState<TransactionItem | null>(null);
 	const [editOpen, setEditOpen] = useState(false);
-	const [createOpen, setCreateOpen] = useState(false);
 	const [copyOpen, setCopyOpen] = useState(false);
 	const [transactionToCopy, setTransactionToCopy] =
 		useState<TransactionItem | null>(null);
@@ -411,15 +412,6 @@ export function TransactionsPage({
 		setPendingMultipleDeleteData([]);
 	};
 
-	const [transactionTypeForCreate, setTransactionTypeForCreate] = useState<
-		"Despesa" | "Receita" | null
-	>(null);
-
-	const handleCreate = (type: "Despesa" | "Receita") => {
-		setTransactionTypeForCreate(type);
-		setCreateOpen(true);
-	};
-
 	const handleMassAdd = () => {
 		setMassAddOpen(true);
 	};
@@ -558,6 +550,57 @@ export function TransactionsPage({
 		setAnticipationHistoryOpen(true);
 	};
 
+	const createSlot = allowCreate ? (
+		<>
+			<TransactionDialog
+				mode="create"
+				payerOptions={payerOptions}
+				splitPayerOptions={splitPayerOptions}
+				defaultPayerId={defaultPayerId}
+				accountOptions={accountOptions}
+				cardOptions={cardOptions}
+				categoryOptions={categoryOptions}
+				estabelecimentos={estabelecimentos}
+				defaultPeriod={selectedPeriod}
+				defaultCardId={defaultCardId}
+				defaultPaymentMethod={defaultPaymentMethod}
+				lockCardSelection={lockCardSelection}
+				lockPaymentMethod={lockPaymentMethod}
+				defaultTransactionType="Receita"
+				maxSizeMb={attachmentMaxSizeMb}
+				trigger={
+					<Button className="w-full sm:w-auto">
+						<RiAddFill className="size-4" />
+						Nova Receita
+					</Button>
+				}
+			/>
+			<TransactionDialog
+				mode="create"
+				payerOptions={payerOptions}
+				splitPayerOptions={splitPayerOptions}
+				defaultPayerId={defaultPayerId}
+				accountOptions={accountOptions}
+				cardOptions={cardOptions}
+				categoryOptions={categoryOptions}
+				estabelecimentos={estabelecimentos}
+				defaultPeriod={selectedPeriod}
+				defaultCardId={defaultCardId}
+				defaultPaymentMethod={defaultPaymentMethod}
+				lockCardSelection={lockCardSelection}
+				lockPaymentMethod={lockPaymentMethod}
+				defaultTransactionType="Despesa"
+				maxSizeMb={attachmentMaxSizeMb}
+				trigger={
+					<Button className="w-full sm:w-auto">
+						<RiAddFill className="size-4" />
+						Nova Despesa
+					</Button>
+				}
+			/>
+		</>
+	) : null;
+
 	return (
 		<>
 			<TransactionsTable
@@ -571,7 +614,7 @@ export function TransactionsPage({
 				selectedPeriod={selectedPeriod}
 				pagination={pagination}
 				exportContext={exportContext}
-				onCreate={allowCreate ? handleCreate : undefined}
+				createSlot={createSlot}
 				onMassAdd={allowCreate ? handleMassAdd : undefined}
 				onEdit={handleEdit}
 				onCopy={handleCopy}
@@ -586,28 +629,6 @@ export function TransactionsPage({
 				onViewAnticipationHistory={handleViewAnticipationHistory}
 				isSettlementLoading={(id) => settlementLoadingId === id}
 			/>
-
-			{allowCreate ? (
-				<TransactionDialog
-					mode="create"
-					open={createOpen}
-					onOpenChange={setCreateOpen}
-					payerOptions={payerOptions}
-					splitPayerOptions={splitPayerOptions}
-					defaultPayerId={defaultPayerId}
-					accountOptions={accountOptions}
-					cardOptions={cardOptions}
-					categoryOptions={categoryOptions}
-					estabelecimentos={estabelecimentos}
-					defaultPeriod={selectedPeriod}
-					defaultCardId={defaultCardId}
-					defaultPaymentMethod={defaultPaymentMethod}
-					lockCardSelection={lockCardSelection}
-					lockPaymentMethod={lockPaymentMethod}
-					defaultTransactionType={transactionTypeForCreate ?? undefined}
-					maxSizeMb={attachmentMaxSizeMb}
-				/>
-			) : null}
 
 			<TransactionDialog
 				mode="create"

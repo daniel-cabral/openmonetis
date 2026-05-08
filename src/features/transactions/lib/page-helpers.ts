@@ -1,5 +1,5 @@
 import type { SQL } from "drizzle-orm";
-import { and, eq, ilike, isNotNull, or, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNotNull, or, sql } from "drizzle-orm";
 import {
 	cards,
 	type categories,
@@ -14,7 +14,7 @@ import {
 	SETTLED_FILTER_VALUES,
 	TRANSACTION_CONDITIONS,
 	TRANSACTION_TYPES,
-} from "@/features/transactions/constants";
+} from "@/features/transactions/lib/constants";
 import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
 import {
 	PAYER_ROLE_ADMIN,
@@ -32,16 +32,16 @@ export type ResolvedSearchParams =
 	| Record<string, string | string[] | undefined>
 	| undefined;
 
-export const TRANSACTIONS_DEFAULT_PAGE_SIZE = 30;
-export const TRANSACTIONS_PAGE_SIZE_OPTIONS = [5, 10, 20, 30, 40, 50, 100];
+const TRANSACTIONS_DEFAULT_PAGE_SIZE = 30;
+const TRANSACTIONS_PAGE_SIZE_OPTIONS = [5, 10, 20, 30, 40, 50, 100];
 
 export type TransactionSearchFilters = {
 	transactionFilter: string | null;
-	conditionFilter: string | null;
-	paymentFilter: string | null;
-	payerFilter: string | null;
-	categoryFilter: string | null;
-	accountCardFilter: string | null;
+	conditionFilters: string[];
+	paymentFilters: string[];
+	payerFilters: string[];
+	categoryFilters: string[];
+	accountCardFilters: string[];
 	searchFilter: string | null;
 	settledFilter: string | null;
 	attachmentFilter: string | null;
@@ -91,16 +91,16 @@ export type SlugMaps = {
 	card: Map<string, string>;
 };
 
-export type FilterOption = {
+type FilterOption = {
 	slug: string;
 	label: string;
 };
 
-export type AccountCardFilterOption = FilterOption & {
+type AccountCardFilterOption = FilterOption & {
 	kind: "conta" | "cartao";
 };
 
-export type TransactionOptionSets = {
+type TransactionOptionSets = {
 	payerOptions: SelectOption[];
 	splitPayerOptions: SelectOption[];
 	defaultPayerId: string | null;
@@ -123,15 +123,27 @@ export const getSingleParam = (
 	return Array.isArray(value) ? (value[0] ?? null) : value;
 };
 
+export const getMultiParam = (
+	params: ResolvedSearchParams,
+	key: string,
+): string[] => {
+	const value = params?.[key];
+	if (!value) {
+		return [];
+	}
+	const list = Array.isArray(value) ? value : [value];
+	return list.filter((item): item is string => Boolean(item));
+};
+
 export const extractTransactionSearchFilters = (
 	params: ResolvedSearchParams,
 ): TransactionSearchFilters => ({
 	transactionFilter: getSingleParam(params, "type"),
-	conditionFilter: getSingleParam(params, "condition"),
-	paymentFilter: getSingleParam(params, "payment"),
-	payerFilter: getSingleParam(params, "payer"),
-	categoryFilter: getSingleParam(params, "category"),
-	accountCardFilter: getSingleParam(params, "accountCard"),
+	conditionFilters: getMultiParam(params, "condition"),
+	paymentFilters: getMultiParam(params, "payment"),
+	payerFilters: getMultiParam(params, "payer"),
+	categoryFilters: getMultiParam(params, "category"),
+	accountCardFilters: getMultiParam(params, "accountCard"),
 	searchFilter: getSingleParam(params, "q"),
 	settledFilter: getSingleParam(params, "settled"),
 	attachmentFilter: getSingleParam(params, "hasAttachment"),
@@ -186,7 +198,7 @@ const createSlugGenerator = () => {
 	};
 };
 
-export const toOption = (
+const toOption = (
 	value: string,
 	label: string | null | undefined,
 	role?: string | null,
@@ -354,41 +366,63 @@ export const buildTransactionWhere = ({
 		where.push(eq(transactions.transactionType, typeValue));
 	}
 
-	const conditionValue =
-		conditionSlugToValue[filters.conditionFilter ?? ""] ?? null;
-	if (isValidCondition(conditionValue)) {
-		where.push(eq(transactions.condition, conditionValue));
+	const conditionValues = filters.conditionFilters
+		.map((slug) => conditionSlugToValue[slug] ?? null)
+		.filter(isValidCondition);
+	if (conditionValues.length > 0) {
+		where.push(inArray(transactions.condition, conditionValues));
 	}
 
-	const paymentValue = paymentSlugToValue[filters.paymentFilter ?? ""] ?? null;
-	if (isValidPaymentMethod(paymentValue)) {
-		where.push(eq(transactions.paymentMethod, paymentValue));
+	const paymentValues = filters.paymentFilters
+		.map((slug) => paymentSlugToValue[slug] ?? null)
+		.filter(isValidPaymentMethod);
+	if (paymentValues.length > 0) {
+		where.push(inArray(transactions.paymentMethod, paymentValues));
 	}
 
-	if (!payerId && filters.payerFilter) {
-		const id = slugMaps.payer.get(filters.payerFilter);
-		if (id) {
-			where.push(eq(transactions.payerId, id));
+	if (!payerId && filters.payerFilters.length > 0) {
+		const ids = filters.payerFilters
+			.map((slug) => slugMaps.payer.get(slug))
+			.filter((id): id is string => Boolean(id));
+		if (ids.length > 0) {
+			where.push(inArray(transactions.payerId, ids));
 		}
 	}
 
-	if (filters.categoryFilter) {
-		const id = slugMaps.category.get(filters.categoryFilter);
-		if (id) {
-			where.push(eq(transactions.categoryId, id));
+	if (filters.categoryFilters.length > 0) {
+		const ids = filters.categoryFilters
+			.map((slug) => slugMaps.category.get(slug))
+			.filter((id): id is string => Boolean(id));
+		if (ids.length > 0) {
+			where.push(inArray(transactions.categoryId, ids));
 		}
 	}
 
-	if (filters.accountCardFilter) {
-		const accountId = slugMaps.financialAccount.get(filters.accountCardFilter);
-		const relatedCardId = accountId
-			? null
-			: slugMaps.card.get(filters.accountCardFilter);
-		if (accountId) {
-			where.push(eq(transactions.accountId, accountId));
+	if (filters.accountCardFilters.length > 0) {
+		const accountIds: string[] = [];
+		const cardIds: string[] = [];
+		for (const slug of filters.accountCardFilters) {
+			const accountId = slugMaps.financialAccount.get(slug);
+			if (accountId) {
+				accountIds.push(accountId);
+				continue;
+			}
+			const cardId = slugMaps.card.get(slug);
+			if (cardId) {
+				cardIds.push(cardId);
+			}
 		}
-		if (!accountId && relatedCardId) {
-			where.push(eq(transactions.cardId, relatedCardId));
+		if (accountIds.length > 0 && cardIds.length > 0) {
+			where.push(
+				or(
+					inArray(transactions.accountId, accountIds),
+					inArray(transactions.cardId, cardIds),
+				) as SQL,
+			);
+		} else if (accountIds.length > 0) {
+			where.push(inArray(transactions.accountId, accountIds));
+		} else if (cardIds.length > 0) {
+			where.push(inArray(transactions.cardId, cardIds));
 		}
 	}
 

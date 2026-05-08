@@ -1,14 +1,14 @@
 "use server";
 
 import { z } from "zod";
-import { fetchAccountLancamentos } from "@/features/accounts/statement-queries";
-import type { TransactionsExportContext } from "@/features/transactions/export-types";
+import { fetchAccountTransactions } from "@/features/accounts/statement-queries";
+import type { TransactionsExportContext } from "@/features/transactions/lib/export-types";
 import {
 	buildSluggedFilters,
 	buildSlugMaps,
 	buildTransactionWhere,
 	mapTransactionsData,
-} from "@/features/transactions/page-helpers";
+} from "@/features/transactions/lib/page-helpers";
 import {
 	fetchTransactionFilterSources,
 	fetchTransactions,
@@ -25,11 +25,11 @@ const exportTransactionsSchema: z.ZodType<TransactionsExportContext> = z.object(
 		period: z.string().regex(/^\d{4}-\d{2}$/),
 		filters: z.object({
 			transactionFilter: z.string().nullable(),
-			conditionFilter: z.string().nullable(),
-			paymentFilter: z.string().nullable(),
-			payerFilter: z.string().nullable(),
-			categoryFilter: z.string().nullable(),
-			accountCardFilter: z.string().nullable(),
+			conditionFilters: z.array(z.string()),
+			paymentFilters: z.array(z.string()),
+			payerFilters: z.array(z.string()),
+			categoryFilters: z.array(z.string()),
+			accountCardFilters: z.array(z.string()),
 			searchFilter: z.string().nullable(),
 			settledFilter: z.string().nullable(),
 			attachmentFilter: z.string().nullable(),
@@ -66,7 +66,7 @@ export async function exportTransactionsDataAction(
 
 		const rows =
 			validated.source === "account-statement"
-				? await fetchAccountLancamentos(filters, validated.settledOnly ?? true)
+				? await fetchAccountTransactions(filters, validated.settledOnly ?? true)
 				: await fetchTransactions(filters);
 
 		return {

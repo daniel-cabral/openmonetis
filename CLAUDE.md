@@ -97,7 +97,7 @@ src/
 │   ├── api/
 │   ├── globals.css
 │   └── layout.tsx
-├── features/
+├── features/                      # cada feature segue: actions.ts, queries.ts, actions/, components/, hooks/, lib/
 │   ├── auth/
 │   ├── landing/
 │   ├── dashboard/
@@ -117,9 +117,12 @@ src/
 │   └── settings/
 ├── shared/
 │   ├── components/
-│   │   ├── ui/
-│   │   ├── navigation/
-│   │   ├── providers/
+│   │   ├── ui/                # shadcn/ui primitives
+│   │   ├── navigation/        # navbar, sidebar, breadcrumbs
+│   │   ├── providers/         # React context providers
+│   │   ├── brand/             # logos do app (logo, logo-icon, logo-text)
+│   │   ├── widgets/           # widget-card, widget-empty-state, expandable-widget-card
+│   │   ├── feedback/          # empty-state, status-dot, payment-success
 │   │   ├── month-picker/
 │   │   ├── logo-picker/
 │   │   ├── calculator/
@@ -134,33 +137,55 @@ src/
 │   │   ├── calculator/
 │   │   ├── categories/
 │   │   ├── email/
+│   │   ├── import/
 │   │   ├── installments/
 │   │   ├── invoices/
 │   │   ├── logo/
+│   │   ├── notifications/
 │   │   ├── payers/
 │   │   ├── schemas/
+│   │   ├── storage/
 │   │   ├── transfers/
 │   │   ├── types/
+│   │   ├── version/
 │   │   └── db.ts
 │   └── utils/
 │       ├── period/
+│       ├── calculator.ts
+│       ├── calendar.ts
+│       ├── category-colors.ts
 │       ├── currency.ts
 │       ├── date.ts
+│       ├── export-branding.ts
+│       ├── fetch-json.ts
 │       ├── financial-dates.ts
-│       ├── percentage.ts
-│       ├── category-colors.ts
-│       ├── calendar.ts
+│       ├── icons.tsx
+│       ├── id.ts
+│       ├── initials.ts
 │       ├── math.ts
 │       ├── number.ts
+│       ├── percentage.ts
 │       ├── string.ts
-│       ├── initials.ts
-│       ├── icons.tsx
-│       ├── export-branding.ts
-│       ├── ui.ts
-│       └── calculator.ts
+│       └── ui.ts
 └── db/
     └── schema.ts
 ```
+
+### Estrutura interna padrão de uma feature
+
+Toda feature em `src/features/<nome>/` segue:
+
+```text
+<feature>/
+├── actions.ts        # entry point de Server Actions (barrel quando há actions/)
+├── queries.ts        # entry point de leitura do banco
+├── actions/          # (opcional) Server Actions divididas por domínio quando o volume cresce
+├── components/       # componentes de UI da feature
+├── hooks/            # React hooks específicos da feature
+└── lib/              # helpers, types, sub-queries e constantes internas
+```
+
+`actions.ts` e `queries.ts` são as portas de entrada da feature. Tudo que é helper interno fica em `lib/`. Componentes e hooks ficam nas pastas com nome óbvio.
 
 ---
 
@@ -299,9 +324,11 @@ export async function fetchData(userId: string, period: string) {
 2. Criar a feature em `src/features/<feature>/`
 3. Separar:
    - `components/`
-   - `queries.ts`
-   - `actions.ts`
-   - `types.ts` ou `schemas.ts` quando fizer sentido
+   - `queries.ts` (entry point de leitura)
+   - `actions.ts` (entry point de Server Actions; vira barrel quando crescer e migrar para `actions/`)
+   - `lib/` para helpers internos, sub-queries por tópico, types e constantes da feature
+   - `types.ts` ou `schemas.ts` quando fizer sentido (alternativa a `lib/`)
+   - `hooks/` quando houver hooks específicos da feature
 4. Extrair para `src/shared/` tudo que for reutilizavel
 5. Atualizar navegacao e `revalidateForEntity()` se a feature tiver CRUD
 6. Rodar:

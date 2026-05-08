@@ -1,6 +1,5 @@
 "use client";
 import {
-	RiAddFill,
 	RiArrowLeftRightLine,
 	RiFileExcel2Line,
 	RiFlashlightFill,
@@ -16,12 +15,12 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import type {
 	TransactionsExportContext,
 	TransactionsPaginationState,
-} from "@/features/transactions/export-types";
-import { EmptyState } from "@/shared/components/empty-state";
+} from "@/features/transactions/lib/export-types";
+import { EmptyState } from "@/shared/components/feedback/empty-state";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import {
@@ -50,7 +49,7 @@ import { getTransactionColumns } from "./transactions-columns";
 import { TransactionsFilters } from "./transactions-filters";
 import { TransactionsPagination } from "./transactions-pagination";
 
-type LancamentosTableProps = {
+type TransactionsTableProps = {
 	data: TransactionItem[];
 	currentUserId: string;
 	noteAsColumn?: boolean;
@@ -61,7 +60,7 @@ type LancamentosTableProps = {
 	selectedPeriod?: string;
 	pagination?: TransactionsPaginationState;
 	exportContext?: TransactionsExportContext;
-	onCreate?: (type: "Despesa" | "Receita") => void;
+	createSlot?: ReactNode;
 	onMassAdd?: () => void;
 	onEdit?: (item: TransactionItem) => void;
 	onCopy?: (item: TransactionItem) => void;
@@ -90,7 +89,7 @@ export function TransactionsTable({
 	selectedPeriod,
 	pagination: serverPagination,
 	exportContext,
-	onCreate,
+	createSlot,
 	onMassAdd,
 	onEdit,
 	onCopy,
@@ -106,7 +105,7 @@ export function TransactionsTable({
 	isSettlementLoading,
 	showActions = true,
 	showFilters = true,
-}: LancamentosTableProps) {
+}: TransactionsTableProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -253,32 +252,15 @@ export function TransactionsTable({
 	};
 
 	const showTopControls =
-		Boolean(onCreate) || Boolean(onMassAdd) || showFilters;
+		Boolean(createSlot) || Boolean(onMassAdd) || showFilters;
 
 	return (
 		<TooltipProvider>
 			{showTopControls ? (
 				<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-					{onCreate || onMassAdd ? (
+					{createSlot || onMassAdd ? (
 						<div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-							{onCreate ? (
-								<>
-									<Button
-										onClick={() => onCreate("Receita")}
-										className="w-full sm:w-auto"
-									>
-										<RiAddFill className="size-4" />
-										Nova Receita
-									</Button>
-									<Button
-										onClick={() => onCreate("Despesa")}
-										className="w-full sm:w-auto"
-									>
-										<RiAddFill className="size-4" />
-										Nova Despesa
-									</Button>
-								</>
-							) : null}
+							{createSlot}
 							{onMassAdd ? (
 								<Tooltip>
 									<TooltipTrigger asChild>

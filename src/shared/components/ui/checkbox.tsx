@@ -22,8 +22,8 @@ function Checkbox({
 				data-slot="checkbox-indicator"
 				className="grid place-content-center text-current transition-none"
 			>
-				<RiCheckLine className="size-3.5 [[data-state=indeterminate]_&]:hidden" />
-				<RiSubtractLine className="size-3.5 hidden [[data-state=indeterminate]_&]:block" />
+				<RiCheckLine className="size-3.5 text-current [[data-state=indeterminate]_&]:hidden" />
+				<RiSubtractLine className="size-3.5 hidden text-current [[data-state=indeterminate]_&]:block" />
 			</CheckboxPrimitive.Indicator>
 		</CheckboxPrimitive.Root>
 	);

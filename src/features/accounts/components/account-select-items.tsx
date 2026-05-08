@@ -1,6 +1,18 @@
 "use client";
 
-import StatusDot from "@/shared/components/status-dot";
+import StatusDot from "@/shared/components/feedback/status-dot";
+import { getAccountTypeIcon } from "@/shared/utils/icons";
+
+export function AccountTypeSelectContent({ label }: { label: string }) {
+	const icon = getAccountTypeIcon(label);
+
+	return (
+		<span className="flex items-center gap-2">
+			{icon}
+			<span>{label}</span>
+		</span>
+	);
+}
 
 export function StatusSelectContent({ label }: { label: string }) {
 	const isActive = label === "Ativa";

@@ -1,6 +1,6 @@
 "use client";
 
-import { RiCheckLine } from "@remixicon/react";
+import { RiCheckLine, RiSubtractLine } from "@remixicon/react";
 import {
 	buildNoteDisplayTitle,
 	formatNoteCreatedAtLong,
@@ -69,7 +69,7 @@ export function NoteDetailsDialog({
 									{task.completed ? (
 										<RiCheckLine className="h-4 w-4 text-success" />
 									) : (
-										<div className="h-4 w-4 rounded-sm border border-input" />
+										<RiSubtractLine className="h-4 w-4 text-muted-foreground" />
 									)}
 								</div>
 								<span

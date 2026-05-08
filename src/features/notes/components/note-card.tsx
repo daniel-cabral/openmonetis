@@ -7,6 +7,7 @@ import {
 	RiFileList2Line,
 	RiInboxUnarchiveLine,
 	RiPencilLine,
+	RiSubtractLine,
 } from "@remixicon/react";
 import {
 	buildNoteDisplayTitle,
@@ -101,7 +102,7 @@ export function NoteCard({
 									{task.completed ? (
 										<RiCheckLine className="h-4 w-4 text-success" />
 									) : (
-										<div className="h-4 w-4 rounded-sm border border-input" />
+										<RiSubtractLine className="h-4 w-4 text-muted-foreground" />
 									)}
 								</div>
 								<span

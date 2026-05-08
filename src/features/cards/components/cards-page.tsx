@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { deleteCardAction } from "@/features/cards/actions";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
-import { EmptyState } from "@/shared/components/empty-state";
+import { EmptyState } from "@/shared/components/feedback/empty-state";
 import { Button } from "@/shared/components/ui/button";
 import { Card as UiCard } from "@/shared/components/ui/card";
 import {
@@ -174,14 +174,14 @@ export function CardsPage({
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 					<TabsList>
 						<TabsTrigger value="ativos">Ativos</TabsTrigger>
-						<TabsTrigger value="arquivados">Arquivados</TabsTrigger>
+						<TabsTrigger value="inativos">Inativos</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value="ativos" className="mt-4">
 						{renderCardList(orderedCards, false)}
 					</TabsContent>
 
-					<TabsContent value="arquivados" className="mt-4">
+					<TabsContent value="inativos" className="mt-4">
 						{renderCardList(orderedArchivedCards, true)}
 					</TabsContent>
 				</Tabs>

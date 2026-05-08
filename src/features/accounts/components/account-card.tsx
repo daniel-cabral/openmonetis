@@ -15,6 +15,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import { isAccountInactive } from "@/shared/lib/accounts/constants";
 import { cn } from "@/shared/utils/ui";
 
 interface AccountCardProps {
@@ -46,7 +47,7 @@ export function AccountCard({
 	onTransfer,
 	className,
 }: AccountCardProps) {
-	const isInactive = status?.toLowerCase() === "inativa";
+	const isInactive = isAccountInactive(status);
 
 	const balanceColor =
 		balance > 0
@@ -145,6 +146,7 @@ export function AccountCard({
 					<span className="text-xs text-muted-foreground">Saldo</span>
 					<MoneyValues
 						amount={balance}
+						showPositiveSign
 						className={cn("text-2xl font-semibold", balanceColor)}
 					/>
 				</div>

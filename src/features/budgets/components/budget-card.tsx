@@ -90,6 +90,7 @@ export function BudgetCard({ budget, onEdit, onRemove }: BudgetCardProps) {
 					<Progress
 						value={usagePercent}
 						className={cn("h-2.5", exceeded && "bg-destructive/20!")}
+						indicatorClassName={cn(exceeded && "bg-destructive")}
 						aria-label={`${usagePercent.toFixed(1)}% do orçamento utilizado`}
 					/>
 					<span className="text-xs text-muted-foreground">

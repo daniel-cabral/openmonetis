@@ -21,7 +21,7 @@ import type {
 	PAYMENT_METHODS,
 	TRANSACTION_CONDITIONS,
 	TRANSACTION_TYPES,
-} from "@/features/transactions/constants";
+} from "@/features/transactions/lib/constants";
 import {
 	buildInvoicePaymentNote,
 	INITIAL_BALANCE_CATEGORY_NAME,
@@ -46,6 +46,13 @@ import {
 } from "@/shared/lib/payers/constants";
 import { generateShareCode } from "@/shared/lib/payers/share-code";
 import { normalizeNameFromEmail } from "@/shared/lib/payers/utils";
+import {
+	TRANSFER_CATEGORY_NAME,
+	TRANSFER_CONDITION,
+	TRANSFER_ESTABLISHMENT_ENTRADA,
+	TRANSFER_ESTABLISHMENT_SAIDA,
+	TRANSFER_PAYMENT_METHOD,
+} from "@/shared/lib/transfers/constants";
 import {
 	addMonthsToDate,
 	buildDateOnlyStringFromPeriodDay,
@@ -844,9 +851,9 @@ async function main() {
 	await db.transaction(async (tx) => {
 		const extraPayerDefinitions = [
 			{
-				key: "marina",
-				name: "Marina Oliveira",
-				email: "marina.oliveira@exemplo.com",
+				key: "mario",
+				name: "Mario Oliveira",
+				email: "mario.oliveira@exemplo.com",
 				avatarUrl: preferredAvatar(["4825038.png", "4825051.png"]),
 				note: "Divide as despesas da casa e do mercado.",
 				isAutoSend: true,
@@ -855,7 +862,7 @@ async function main() {
 				key: "eduardo",
 				name: "Eduardo Lima",
 				email: "eduardo.lima@exemplo.com",
-				avatarUrl: preferredAvatar(["4825108.png", "4825123.png"]),
+				avatarUrl: preferredAvatar(["4825096.png", "4825123.png"]),
 				note: "Costuma rachar viagens e presentes em familia.",
 				isAutoSend: false,
 			},
@@ -887,22 +894,31 @@ async function main() {
 
 		const accountDefinitions = [
 			{
-				key: "nubank",
-				name: "Nubank",
-				accountType: ACCOUNT_TYPES.DIGITAL_WALLET,
-				status: ACCOUNT_STATUS.ACTIVE,
-				logo: preferredLogo(["nubank.png"], "nubank.png"),
-				note: "Conta principal para salario, mercado e despesas do dia a dia.",
-				initialBalance: "4200.00",
-			},
-			{
 				key: "itau",
 				name: "Itaú Personnalité",
 				accountType: ACCOUNT_TYPES.CHECKING,
 				status: ACCOUNT_STATUS.ACTIVE,
 				logo: preferredLogo(["itaupersonnalite.png", "itau.png"], "itau.png"),
-				note: "Conta de apoio para boletos, investimentos e pagamentos maiores.",
-				initialBalance: "1850.00",
+				note: "Conta principal onde cai o salário e saem boletos e investimentos.",
+				initialBalance: "8200.00",
+			},
+			{
+				key: "nubank",
+				name: "Nubank",
+				accountType: ACCOUNT_TYPES.DIGITAL_WALLET,
+				status: ACCOUNT_STATUS.ACTIVE,
+				logo: preferredLogo(["nubank.png"], "nubank.png"),
+				note: "Conta do dia a dia para mercado, transporte e despesas variáveis.",
+				initialBalance: "5500.00",
+			},
+			{
+				key: "inter",
+				name: "Banco Inter",
+				accountType: ACCOUNT_TYPES.CHECKING,
+				status: ACCOUNT_STATUS.ACTIVE,
+				logo: preferredLogo(["intermedium.png"], "intermedium.png"),
+				note: "Conta usada para reserva de emergência e investimentos curtos.",
+				initialBalance: "2300.00",
 			},
 			{
 				key: "mercado-pago",
@@ -910,8 +926,8 @@ async function main() {
 				accountType: ACCOUNT_TYPES.DIGITAL_WALLET,
 				status: ACCOUNT_STATUS.ACTIVE,
 				logo: preferredLogo(["mercadopago.png"], "mercadopago.png"),
-				note: "Carteira usada para corridas, pequenos gastos e pix instantaneo.",
-				initialBalance: "350.00",
+				note: "Carteira para corridas por aplicativo e pequenos pagamentos.",
+				initialBalance: "480.00",
 			},
 		] as const;
 
@@ -965,8 +981,8 @@ async function main() {
 				status: CARD_STATUS,
 				closingDay: "25",
 				dueDay: "03",
-				note: "Cartao principal para assinaturas, delivery e compras parceladas.",
-				limit: "12000.00",
+				note: "Cartão principal para assinaturas, delivery e compras parceladas.",
+				limit: "18995.50",
 				logo: preferredLogo(
 					["nubank-ultravioleta.png", "nubank.png"],
 					"nubank.png",
@@ -975,15 +991,27 @@ async function main() {
 			},
 			{
 				key: "itaucard",
-				name: "Pão de Açúcar Itaucard",
+				name: "Itaucard Visa Infinite",
 				brand: CARD_BRANDS.VISA,
 				status: CARD_STATUS,
 				closingDay: "15",
 				dueDay: "22",
-				note: "Cartao usado para mercado, compras maiores e viagens.",
-				limit: "8500.00",
-				logo: preferredLogo(["pao-acucar.png", "itau.png"], "itau.png"),
+				note: "Cartão usado para compras grandes, eletrônicos e viagens.",
+				limit: "30000.00",
+				logo: preferredLogo(["itau.png"], "itau.png"),
 				accountId: createdAccounts.itau,
+			},
+			{
+				key: "interblack",
+				name: "Inter Black",
+				brand: CARD_BRANDS.MASTERCARD,
+				status: CARD_STATUS,
+				closingDay: "10",
+				dueDay: "17",
+				note: "Cartão complementar para mercado e farmácia com cashback.",
+				limit: "15000.00",
+				logo: preferredLogo(["intermedium.png"], "intermedium.png"),
+				accountId: createdAccounts.inter,
 			},
 		] as const;
 
@@ -1020,43 +1048,71 @@ async function main() {
 
 		const noteDefinitions = [
 			{
-				title: "Planejar viagem de julho",
+				title: "Planejar viagem para Disney",
 				type: "nota" as const,
 				description:
-					"Separar hospedagem, passagens e gastos previstos da viagem para Salvador. Meta: manter tudo abaixo de R$ 4.500.",
+					"Separar passagens LATAM, hospedagem via Booking e ingressos. Meta: manter o pacote abaixo de R$ 18.000 dividido em 10x no Itaucard.",
 				tasks: null,
 				archived: false,
 			},
 			{
-				title: "Pendencias do apartamento",
+				title: "Pendências financeiras do mês",
 				type: "tarefa" as const,
 				description: null,
 				tasks: JSON.stringify([
 					{
 						id: randomUUID(),
-						text: "Revisar reajuste do aluguel",
+						text: "Revisar fatura do Itaucard antes do fechamento",
 						completed: true,
 					},
 					{
 						id: randomUUID(),
-						text: "Separar comprovantes do condominio",
+						text: "Migrar reserva de emergência para CDB do Inter",
 						completed: false,
 					},
 					{
 						id: randomUUID(),
-						text: "Confirmar vistoria do ar-condicionado",
+						text: "Cancelar trial do HBO Max se não usar",
+						completed: false,
+					},
+					{
+						id: randomUUID(),
+						text: "Pagar IPVA antes do vencimento",
 						completed: false,
 					},
 				]),
 				archived: false,
 			},
 			{
-				title: "Renegociar seguro do carro",
+				title: "Renegociar plano Vivo Fibra",
 				type: "nota" as const,
 				description:
-					"Pesquisar entre Porto, Azul e Youse antes do vencimento. Prioridade: franquia menor e assistencia 24h.",
+					"Comparar com Claro e TIM antes do reajuste anual. Verificar bônus de portabilidade e valor de instalação.",
 				tasks: null,
 				archived: false,
+			},
+			{
+				title: "Compras Black Friday 2025",
+				type: "tarefa" as const,
+				description: null,
+				tasks: JSON.stringify([
+					{
+						id: randomUUID(),
+						text: "Comprar iPhone 16 Pro na Apple",
+						completed: true,
+					},
+					{
+						id: randomUUID(),
+						text: "Smart TV Samsung 65 polegadas no Magazine Luiza",
+						completed: true,
+					},
+					{
+						id: randomUUID(),
+						text: "Notebook Dell XPS na Amazon",
+						completed: true,
+					},
+				]),
+				archived: true,
 			},
 		] as const;
 
@@ -1073,17 +1129,20 @@ async function main() {
 		summary.notes += noteDefinitions.length;
 
 		const budgetDefinitions = [
-			{ categoryName: "Mercado", baseAmount: 1500 },
-			{ categoryName: "Restaurantes", baseAmount: 480 },
-			{ categoryName: "Transporte", baseAmount: 620 },
-			{ categoryName: "Moradia", baseAmount: 3200 },
-			{ categoryName: "Lazer", baseAmount: 420 },
-			{ categoryName: "Assinaturas", baseAmount: 240 },
+			{ categoryName: "Mercado", baseAmount: 1100 },
+			{ categoryName: "Restaurantes", baseAmount: 380 },
+			{ categoryName: "Transporte", baseAmount: 700 },
+			{ categoryName: "Moradia", baseAmount: 3600 },
+			{ categoryName: "Lazer", baseAmount: 450 },
+			{ categoryName: "Assinaturas", baseAmount: 480 },
+			{ categoryName: "Saúde", baseAmount: 750 },
+			{ categoryName: "Delivery", baseAmount: 250 },
+			{ categoryName: "Vestuário", baseAmount: 350 },
 		] as const;
 
 		const budgetRows = periods.flatMap((period, index) =>
 			budgetDefinitions.map((budgetItem) => ({
-				amount: (budgetItem.baseAmount + index * 15).toFixed(2),
+				amount: (budgetItem.baseAmount + index * 10).toFixed(2),
 				period,
 				userId: targetUser.id,
 				categoryId: getCategoryId(budgetItem.categoryName),
@@ -1102,42 +1161,44 @@ async function main() {
 		);
 	};
 
+	// ── Receitas recorrentes ──
 	createRecords({
-		name: "Salário - OpenMonetis Labs",
-		amount: 7800,
+		name: "Globo",
+		amount: 9500,
 		purchaseDate: dateForPeriodDay(firstPeriod, 5),
 		transactionType: "Receita",
 		condition: "Recorrente",
 		paymentMethod: "Transferência bancária",
-		accountId: createdAccounts.nubank,
+		accountId: createdAccounts.itau,
 		categoryId: getCategoryId("Salário"),
 		payerId: adminPayer.id,
 		recurrenceCount: options.months,
-		note: "Salario mensal recebido via TED.",
+		note: "Salário mensal recebido via TED.",
 	});
 
+	// ── Despesas recorrentes (moradia, contas, assinaturas) ──
 	createRecords({
-		name: "Aluguel - Edifício Aurora",
-		amount: 2800,
+		name: "Loft",
+		amount: 3200,
 		purchaseDate: dateForPeriodDay(firstPeriod, 5),
 		transactionType: "Despesa",
 		condition: "Recorrente",
 		paymentMethod: "Pix",
-		accountId: createdAccounts.nubank,
+		accountId: createdAccounts.itau,
 		categoryId: getCategoryId("Moradia"),
 		payerId: adminPayer.id,
-		secondaryPayerId: createdPayers.marina,
+		secondaryPayerId: createdPayers.mario,
 		isSplit: true,
-		primarySplitAmount: 1400,
-		secondarySplitAmount: 1400,
+		primarySplitAmount: 1600,
+		secondarySplitAmount: 1600,
 		recurrenceCount: options.months,
 		dueDate: dateForPeriodDay(firstPeriod, 8),
-		note: "Despesa fixa dividida com Marina.",
+		note: "Aluguel do apartamento dividido com mario.",
 	});
 
 	createRecords({
 		name: "Vivo Fibra",
-		amount: 129.9,
+		amount: 139.9,
 		purchaseDate: dateForPeriodDay(firstPeriod, 2),
 		transactionType: "Despesa",
 		condition: "Recorrente",
@@ -1147,12 +1208,27 @@ async function main() {
 		payerId: adminPayer.id,
 		recurrenceCount: options.months,
 		dueDate: dateForPeriodDay(firstPeriod, 12),
-		note: "Internet da casa.",
+		note: "Internet 700 Mega da casa.",
 	});
 
 	createRecords({
-		name: "Conta de luz - Enel",
-		amount: 186.4,
+		name: "Vivo",
+		amount: 79.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 9),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "Plano celular pós-pago.",
+	});
+
+	createRecords({
+		name: "Enel",
+		amount: 195.4,
 		purchaseDate: dateForPeriodDay(firstPeriod, 3),
 		transactionType: "Despesa",
 		condition: "Recorrente",
@@ -1163,6 +1239,21 @@ async function main() {
 		recurrenceCount: options.months,
 		dueDate: dateForPeriodDay(firstPeriod, 18),
 		note: "Conta mensal de energia.",
+	});
+
+	createRecords({
+		name: "Sabesp",
+		amount: 95.6,
+		purchaseDate: dateForPeriodDay(firstPeriod, 4),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Boleto",
+		accountId: createdAccounts.itau,
+		categoryId: getCategoryId("Energia e água"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		dueDate: dateForPeriodDay(firstPeriod, 20),
+		note: "Conta mensal de água.",
 	});
 
 	createRecords({
@@ -1177,7 +1268,127 @@ async function main() {
 		payerId: adminPayer.id,
 		recurrenceCount: options.months,
 		cardMeta: createdCards.ultravioleta,
-		note: "Assinatura recorrente.",
+		note: "Plano padrão com anúncios.",
+	});
+
+	createRecords({
+		name: "Spotify",
+		amount: 34.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 8),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "Plano duo com mario.",
+	});
+
+	createRecords({
+		name: "Disney Plus",
+		amount: 33.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 12),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "Streaming Disney+.",
+	});
+
+	createRecords({
+		name: "HBO Max",
+		amount: 39.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 14),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "Streaming HBO Max.",
+	});
+
+	createRecords({
+		name: "YouTube",
+		amount: 28.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 7),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "YouTube Premium individual.",
+	});
+
+	createRecords({
+		name: "Amazon Prime",
+		amount: 14.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 10),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "Amazon Prime mensal.",
+	});
+
+	createRecords({
+		name: "OpenAI",
+		amount: 109.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 13),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "ChatGPT Plus.",
+	});
+
+	createRecords({
+		name: "Apple",
+		amount: 14.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 17),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "iCloud 200GB.",
+	});
+
+	createRecords({
+		name: "Notion",
+		amount: 49.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 19),
+		transactionType: "Despesa",
+		condition: "Recorrente",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Assinaturas"),
+		payerId: adminPayer.id,
+		recurrenceCount: options.months,
+		cardMeta: createdCards.ultravioleta,
+		note: "Notion plus mensal.",
 	});
 
 	createRecords({
@@ -1196,23 +1407,8 @@ async function main() {
 	});
 
 	createRecords({
-		name: "Spotify",
-		amount: 21.9,
-		purchaseDate: dateForPeriodDay(firstPeriod, 8),
-		transactionType: "Despesa",
-		condition: "Recorrente",
-		paymentMethod: "Cartão de crédito",
-		cardId: createdCards.ultravioleta.id,
-		categoryId: getCategoryId("Assinaturas"),
-		payerId: adminPayer.id,
-		recurrenceCount: options.months,
-		cardMeta: createdCards.ultravioleta,
-		note: "Assinatura premium individual.",
-	});
-
-	createRecords({
-		name: "Plano de saúde - Amil",
-		amount: 389,
+		name: "Amil",
+		amount: 489,
 		purchaseDate: dateForPeriodDay(firstPeriod, 4),
 		transactionType: "Despesa",
 		condition: "Recorrente",
@@ -1222,12 +1418,12 @@ async function main() {
 		payerId: adminPayer.id,
 		recurrenceCount: options.months,
 		dueDate: dateForPeriodDay(firstPeriod, 10),
-		note: "Plano coletivo com coparticipação.",
+		note: "Plano de saúde com coparticipação.",
 	});
 
 	createRecords({
-		name: "Seguro auto - Porto Seguro",
-		amount: 278.5,
+		name: "Porto Seguro",
+		amount: 285,
 		purchaseDate: dateForPeriodDay(firstPeriod, 6),
 		transactionType: "Despesa",
 		condition: "Recorrente",
@@ -1237,17 +1433,17 @@ async function main() {
 		payerId: adminPayer.id,
 		recurrenceCount: options.months,
 		dueDate: dateForPeriodDay(firstPeriod, 15),
-		note: "Parcela mensal do seguro do carro.",
+		note: "Seguro auto mensal.",
 	});
 
 	createRecords({
-		name: "Condomínio - Edifício Aurora",
-		amount: 680,
+		name: "Condomínio Loft",
+		amount: 720,
 		purchaseDate: dateForPeriodDay(firstPeriod, 1),
 		transactionType: "Despesa",
 		condition: "Recorrente",
 		paymentMethod: "Pix",
-		accountId: createdAccounts.nubank,
+		accountId: createdAccounts.itau,
 		categoryId: getCategoryId("Moradia"),
 		payerId: adminPayer.id,
 		recurrenceCount: options.months,
@@ -1255,16 +1451,28 @@ async function main() {
 		note: "Taxa condominial mensal.",
 	});
 
+	// ── Despesas e receitas variáveis (loop mensal) ──
 	for (const [index, period] of periods.entries()) {
-		const marketAmount = 420 + index * 37.5;
-		const uberAmount = 32 + index * 4.75;
-		const fuelAmount = 170 + index * 18.2;
-		const ifoodAmount = 62 + index * 7.3;
-		const investmentYield = 68 + index * 4.4;
+		const carrefourAmount = 580 + index * 24.5;
+		const paoAcucarAmount = 360 + index * 18.2;
+		const assaiAmount = 420 + index * 22;
+		const uberAmount = 165 + index * 8.4;
+		const noventaENoveAmount = 78 + index * 5.6;
+		const shellAmount = 280 + index * 12.5;
+		const ipirangaAmount = 195 + index * 9.8;
+		const ifoodAmount = 142 + index * 8.7;
+		const rappiAmount = 88 + index * 6.2;
+		const mcdonaldsAmount = 52 + index * 4.1;
+		const starbucksAmount = 78 + index * 5.3;
+		const burgerKingAmount = 48 + index * 3.6;
+		const drogasilAmount = 96 + index * 7.4;
+		const raiaAmount = 72 + index * 5.8;
+		const investmentYield = 84 + index * 6.4;
 
+		// Mercado — estoura o orçamento
 		createRecords({
-			name: "Assaí Atacadista",
-			amount: marketAmount,
+			name: "Carrefour",
+			amount: carrefourAmount,
 			purchaseDate: dateForPeriodDay(period, 6),
 			transactionType: "Despesa",
 			condition: "À vista",
@@ -1272,13 +1480,42 @@ async function main() {
 			accountId: createdAccounts.nubank,
 			categoryId: getCategoryId("Mercado"),
 			payerId: adminPayer.id,
-			secondaryPayerId: createdPayers.marina,
+			secondaryPayerId: createdPayers.mario,
 			isSplit: true,
-			primarySplitAmount: marketAmount / 2,
-			secondarySplitAmount: marketAmount / 2,
-			note: "Compra grande do mes dividida com Marina.",
+			primarySplitAmount: carrefourAmount / 2,
+			secondarySplitAmount: carrefourAmount / 2,
+			note: "Compra grande do mês dividida com mario.",
 		});
 
+		createRecords({
+			name: "Pão de Açúcar",
+			amount: paoAcucarAmount,
+			purchaseDate: dateForPeriodDay(period, 13),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de crédito",
+			cardId: createdCards.interblack.id,
+			categoryId: getCategoryId("Mercado"),
+			payerId: adminPayer.id,
+			cardMeta: createdCards.interblack,
+			note: "Hortifruti e frios da semana.",
+		});
+
+		createRecords({
+			name: "Assaí",
+			amount: assaiAmount,
+			purchaseDate: dateForPeriodDay(period, 22),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de crédito",
+			cardId: createdCards.interblack.id,
+			categoryId: getCategoryId("Mercado"),
+			payerId: adminPayer.id,
+			cardMeta: createdCards.interblack,
+			note: "Atacado mensal: bebidas e itens não-perecíveis.",
+		});
+
+		// Transporte
 		createRecords({
 			name: "Uber",
 			amount: uberAmount,
@@ -1293,18 +1530,45 @@ async function main() {
 		});
 
 		createRecords({
-			name: "Posto Shell",
-			amount: fuelAmount,
-			purchaseDate: dateForPeriodDay(period, 18),
+			name: "99",
+			amount: noventaENoveAmount,
+			purchaseDate: dateForPeriodDay(period, 19),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Pix",
+			accountId: createdAccounts["mercado-pago"],
+			categoryId: getCategoryId("Transporte"),
+			payerId: adminPayer.id,
+			note: "Corridas e idas ao aeroporto.",
+		});
+
+		createRecords({
+			name: "Shell",
+			amount: shellAmount,
+			purchaseDate: dateForPeriodDay(period, 9),
 			transactionType: "Despesa",
 			condition: "À vista",
 			paymentMethod: "Cartão de débito",
 			accountId: createdAccounts.itau,
 			categoryId: getCategoryId("Transporte"),
 			payerId: adminPayer.id,
-			note: "Abastecimento mensal.",
+			note: "Abastecimento principal do mês.",
 		});
 
+		createRecords({
+			name: "Ipiranga",
+			amount: ipirangaAmount,
+			purchaseDate: dateForPeriodDay(period, 23),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de débito",
+			accountId: createdAccounts.itau,
+			categoryId: getCategoryId("Transporte"),
+			payerId: adminPayer.id,
+			note: "Reabastecimento de fim de mês.",
+		});
+
+		// Delivery
 		createRecords({
 			name: "iFood",
 			amount: ifoodAmount,
@@ -1320,23 +1584,107 @@ async function main() {
 		});
 
 		createRecords({
-			name: "Rendimento CDB Itaú",
+			name: "Rappi",
+			amount: rappiAmount,
+			purchaseDate: dateForPeriodDay(period, 27),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de crédito",
+			cardId: createdCards.ultravioleta.id,
+			categoryId: getCategoryId("Delivery"),
+			payerId: adminPayer.id,
+			cardMeta: createdCards.ultravioleta,
+			note: "Pedidos de fim de semana.",
+		});
+
+		// Restaurantes — estoura o orçamento
+		createRecords({
+			name: "McDonald's",
+			amount: mcdonaldsAmount,
+			purchaseDate: dateForPeriodDay(period, 16),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Pré-Pago | VR/VA",
+			accountId: createdAccounts["mercado-pago"],
+			categoryId: getCategoryId("Restaurantes"),
+			payerId: adminPayer.id,
+			note: "Almoço rápido no intervalo.",
+		});
+
+		createRecords({
+			name: "Starbucks",
+			amount: starbucksAmount,
+			purchaseDate: dateForPeriodDay(period, 11),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de crédito",
+			cardId: createdCards.ultravioleta.id,
+			categoryId: getCategoryId("Restaurantes"),
+			payerId: adminPayer.id,
+			cardMeta: createdCards.ultravioleta,
+			note: "Café e snack do trabalho.",
+		});
+
+		createRecords({
+			name: "Burger King",
+			amount: burgerKingAmount,
+			purchaseDate: dateForPeriodDay(period, 24),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Pré-Pago | VR/VA",
+			accountId: createdAccounts["mercado-pago"],
+			categoryId: getCategoryId("Restaurantes"),
+			payerId: adminPayer.id,
+			note: "Jantar rápido.",
+		});
+
+		// Saúde / farmácia
+		createRecords({
+			name: "Drogasil",
+			amount: drogasilAmount,
+			purchaseDate: dateForPeriodDay(period, 12),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de débito",
+			accountId: createdAccounts.nubank,
+			categoryId: getCategoryId("Saúde"),
+			payerId: adminPayer.id,
+			note: "Remédios e itens de farmácia.",
+		});
+
+		createRecords({
+			name: "Raia",
+			amount: raiaAmount,
+			purchaseDate: dateForPeriodDay(period, 26),
+			transactionType: "Despesa",
+			condition: "À vista",
+			paymentMethod: "Cartão de débito",
+			accountId: createdAccounts.nubank,
+			categoryId: getCategoryId("Saúde"),
+			payerId: adminPayer.id,
+			note: "Remédios e suplementos.",
+		});
+
+		// Investimentos (rendimento)
+		createRecords({
+			name: "XP Investimentos",
 			amount: investmentYield,
 			purchaseDate: dateForPeriodDay(period, 27),
 			transactionType: "Receita",
 			condition: "À vista",
 			paymentMethod: "Transferência bancária",
-			accountId: createdAccounts.itau,
+			accountId: createdAccounts.inter,
 			categoryId: getCategoryId("Investimentos"),
 			payerId: adminPayer.id,
-			note: "Rendimento liquido do CDB.",
+			note: "Rendimento líquido do CDB.",
 		});
 
+		// Esporádicos por paridade do mês
 		if (index % 2 === 0) {
 			createRecords({
-				name: "Amazon Brasil",
-				amount: 148 + index * 12.8,
-				purchaseDate: dateForPeriodDay(period, 22),
+				name: "Amazon",
+				amount: 168 + index * 12.8,
+				purchaseDate: dateForPeriodDay(period, 18),
 				transactionType: "Despesa",
 				condition: "À vista",
 				paymentMethod: "Cartão de crédito",
@@ -1348,26 +1696,42 @@ async function main() {
 			});
 		}
 
+		if (index % 2 === 0) {
+			createRecords({
+				name: "Mercado Livre",
+				amount: 134 + index * 11.4,
+				purchaseDate: dateForPeriodDay(period, 25),
+				transactionType: "Despesa",
+				condition: "À vista",
+				paymentMethod: "Cartão de crédito",
+				cardId: createdCards.itaucard.id,
+				categoryId: getCategoryId("Compras"),
+				payerId: adminPayer.id,
+				cardMeta: createdCards.itaucard,
+				note: "Compras avulsas no marketplace.",
+			});
+		}
+
 		if (index % 2 === 1) {
 			createRecords({
-				name: "Freela - Clínica Aurora",
-				amount: 1450 + index * 120,
+				name: "Stone",
+				amount: 1850 + index * 140,
 				purchaseDate: dateForPeriodDay(period, 24),
 				transactionType: "Receita",
 				condition: "À vista",
 				paymentMethod: "Pix",
-				accountId: createdAccounts.nubank,
+				accountId: createdAccounts.itau,
 				categoryId: getCategoryId("Freelance"),
 				payerId: adminPayer.id,
-				note: "Projeto extra de landing page.",
+				note: "Projeto freelance de consultoria.",
 			});
 		}
 
 		if (index % 3 === 0) {
 			createRecords({
-				name: "Coco Bambu",
-				amount: 212 + index * 9.5,
-				purchaseDate: dateForPeriodDay(period, 25),
+				name: "Outback",
+				amount: 248 + index * 11.2,
+				purchaseDate: dateForPeriodDay(period, 21),
 				transactionType: "Despesa",
 				condition: "À vista",
 				paymentMethod: "Cartão de crédito",
@@ -1379,67 +1743,26 @@ async function main() {
 			});
 		}
 
-		if (index % 2 === 0) {
+		if (index % 3 === 1) {
 			createRecords({
-				name: "Drogasil",
-				amount: 46 + index * 6.25,
-				purchaseDate: dateForPeriodDay(period, 12),
+				name: "Madero",
+				amount: 198 + index * 9.5,
+				purchaseDate: dateForPeriodDay(period, 17),
 				transactionType: "Despesa",
 				condition: "À vista",
-				paymentMethod: "Cartão de débito",
-				accountId: createdAccounts.nubank,
-				categoryId: getCategoryId("Saúde"),
+				paymentMethod: "Cartão de crédito",
+				cardId: createdCards.itaucard.id,
+				categoryId: getCategoryId("Restaurantes"),
 				payerId: adminPayer.id,
-				note: "Remédios e itens de farmácia.",
+				cardMeta: createdCards.itaucard,
+				note: "Almoço de domingo.",
 			});
 		}
-
-		if (index % 2 === 1) {
-			createRecords({
-				name: "Ultrafarma",
-				amount: 52 + index * 5.5,
-				purchaseDate: dateForPeriodDay(period, 16),
-				transactionType: "Despesa",
-				condition: "À vista",
-				paymentMethod: "Cartão de débito",
-				accountId: createdAccounts.nubank,
-				categoryId: getCategoryId("Saúde"),
-				payerId: adminPayer.id,
-				note: "Medicamentos e suplementos.",
-			});
-		}
-
-		createRecords({
-			name: "Pão de Açúcar",
-			amount: 280 + index * 22.4,
-			purchaseDate: dateForPeriodDay(period, 10),
-			transactionType: "Despesa",
-			condition: "À vista",
-			paymentMethod: "Cartão de crédito",
-			cardId: createdCards.itaucard.id,
-			categoryId: getCategoryId("Mercado"),
-			payerId: adminPayer.id,
-			cardMeta: createdCards.itaucard,
-			note: "Compra semanal de hortifruti e frios.",
-		});
-
-		createRecords({
-			name: "McDonald's",
-			amount: 42 + index * 3.8,
-			purchaseDate: dateForPeriodDay(period, 16),
-			transactionType: "Despesa",
-			condition: "À vista",
-			paymentMethod: "Pré-Pago | VR/VA",
-			accountId: createdAccounts["mercado-pago"],
-			categoryId: getCategoryId("Alimentação"),
-			payerId: adminPayer.id,
-			note: "Almoço rápido no intervalo.",
-		});
 
 		if (index % 2 === 0) {
 			createRecords({
 				name: "Cinemark",
-				amount: 130 + index * 8.5,
+				amount: 142 + index * 8.5,
 				purchaseDate: dateForPeriodDay(period, 21),
 				transactionType: "Despesa",
 				condition: "À vista",
@@ -1448,44 +1771,75 @@ async function main() {
 				categoryId: getCategoryId("Lazer"),
 				payerId: adminPayer.id,
 				cardMeta: createdCards.itaucard,
-				note: "Ingresso + pipoca pra dois.",
+				note: "Sessão IMAX para dois.",
 			});
 		}
 	}
 
+	// ── Parcelados grandes ──
 	createRecords({
-		name: "Notebook Dell Inspiron",
-		amount: 7199.2,
-		purchaseDate: dateForPeriodDay(firstPeriod, 28),
+		name: "Apple",
+		amount: 9999,
+		purchaseDate: dateForPeriodDay(firstPeriod, 14),
 		transactionType: "Despesa",
 		condition: "Parcelado",
 		paymentMethod: "Cartão de crédito",
 		cardId: createdCards.itaucard.id,
 		categoryId: getCategoryId("Compras"),
 		payerId: adminPayer.id,
-		installmentCount: 8,
+		installmentCount: 12,
 		cardMeta: createdCards.itaucard,
-		note: "Troca do notebook do home office.",
+		note: "iPhone 16 Pro 256GB, 12x sem juros.",
 	});
 
 	createRecords({
-		name: "Ar-condicionado Springer Midea",
-		amount: 2899.8,
-		purchaseDate: dateForPeriodDay(secondPeriod, 26),
+		name: "Samsung",
+		amount: 5499,
+		purchaseDate: dateForPeriodDay(firstPeriod, 26),
 		transactionType: "Despesa",
 		condition: "Parcelado",
 		paymentMethod: "Cartão de crédito",
-		cardId: createdCards.ultravioleta.id,
-		categoryId: getCategoryId("Moradia"),
+		cardId: createdCards.itaucard.id,
+		categoryId: getCategoryId("Compras"),
 		payerId: adminPayer.id,
-		installmentCount: 6,
-		cardMeta: createdCards.ultravioleta,
-		note: "Compra feita para o quarto do casal.",
+		installmentCount: 10,
+		cardMeta: createdCards.itaucard,
+		note: "Smart TV QLED 65 polegadas.",
 	});
 
 	createRecords({
-		name: "Passagem LATAM - Salvador",
-		amount: 2140.5,
+		name: "Dell",
+		amount: 7999.2,
+		purchaseDate: dateForPeriodDay(secondPeriod, 18),
+		transactionType: "Despesa",
+		condition: "Parcelado",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.itaucard.id,
+		categoryId: getCategoryId("Compras"),
+		payerId: adminPayer.id,
+		installmentCount: 10,
+		cardMeta: createdCards.itaucard,
+		note: "Notebook Dell XPS 13 para o home office.",
+	});
+
+	createRecords({
+		name: "Magazine Luiza",
+		amount: 2299.5,
+		purchaseDate: dateForPeriodDay(thirdPeriod, 7),
+		transactionType: "Despesa",
+		condition: "Parcelado",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.itaucard.id,
+		categoryId: getCategoryId("Moradia"),
+		payerId: adminPayer.id,
+		installmentCount: 5,
+		cardMeta: createdCards.itaucard,
+		note: "Geladeira inverter para o apartamento.",
+	});
+
+	createRecords({
+		name: "LATAM",
+		amount: 4280.5,
 		purchaseDate: dateForPeriodDay(thirdPeriod, 16),
 		transactionType: "Despesa",
 		condition: "Parcelado",
@@ -1495,72 +1849,88 @@ async function main() {
 		payerId: adminPayer.id,
 		secondaryPayerId: createdPayers.eduardo,
 		isSplit: true,
-		primarySplitAmount: 1498.35,
-		secondarySplitAmount: 642.15,
-		installmentCount: 5,
+		primarySplitAmount: 2140.25,
+		secondarySplitAmount: 2140.25,
+		installmentCount: 6,
 		cardMeta: createdCards.ultravioleta,
-		note: "Viagem dividida com Eduardo.",
+		note: "Passagens para Salvador, divididas com Eduardo.",
 	});
 
 	createRecords({
-		name: "Reembolso plano de saúde",
-		amount: 185.4,
-		purchaseDate: dateForPeriodDay(middlePeriod, 26),
-		transactionType: "Receita",
-		condition: "À vista",
-		paymentMethod: "Pix",
-		accountId: createdAccounts.nubank,
-		categoryId: getCategoryId("Reembolso"),
-		payerId: adminPayer.id,
-		note: "Reembolso de consulta realizada no mes anterior.",
-	});
-
-	createRecords({
-		name: "Consulta dentista - Dra. Ana",
-		amount: 240,
-		purchaseDate: dateForPeriodDay(middlePeriod, 9),
-		transactionType: "Despesa",
-		condition: "À vista",
-		paymentMethod: "Boleto",
-		accountId: createdAccounts.itau,
-		categoryId: getCategoryId("Saúde"),
-		payerId: adminPayer.id,
-		dueDate: dateForPeriodDay(middlePeriod, 17),
-		note: "Procedimento odontológico.",
-	});
-
-	createRecords({
-		name: "IPVA 2026 - parcela única",
-		amount: 684.32,
-		purchaseDate: dateForPeriodDay(lastPeriod, 10),
-		transactionType: "Despesa",
-		condition: "À vista",
-		paymentMethod: "Boleto",
-		accountId: createdAccounts.itau,
-		categoryId: getCategoryId("Transporte"),
-		payerId: adminPayer.id,
-		dueDate: dateForPeriodDay(lastPeriod, 25),
-		note: "Mantido em aberto para testar lembretes e listagem de boletos.",
-		settlementBehavior: "open",
-	});
-
-	createRecords({
-		name: "iPhone 16 Pro",
-		amount: 9299.1,
-		purchaseDate: dateForPeriodDay(secondPeriod, 14),
+		name: "Booking",
+		amount: 3690,
+		purchaseDate: dateForPeriodDay(thirdPeriod, 17),
 		transactionType: "Despesa",
 		condition: "Parcelado",
 		paymentMethod: "Cartão de crédito",
-		cardId: createdCards.itaucard.id,
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Viagem"),
+		payerId: adminPayer.id,
+		installmentCount: 6,
+		cardMeta: createdCards.ultravioleta,
+		note: "Hospedagem da viagem.",
+	});
+
+	// ── Compras avulsas (à vista) ──
+	createRecords({
+		name: "Apple",
+		amount: 4299,
+		purchaseDate: dateForPeriodDay(secondPeriod, 5),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
 		categoryId: getCategoryId("Compras"),
 		payerId: adminPayer.id,
-		installmentCount: 12,
-		cardMeta: createdCards.itaucard,
-		note: "Troca do celular, 12x sem juros.",
+		cardMeta: createdCards.ultravioleta,
+		note: "Apple Watch Series 10.",
 	});
 
 	createRecords({
-		name: "Alura - assinatura anual",
+		name: "Zara",
+		amount: 689.8,
+		purchaseDate: dateForPeriodDay(middlePeriod, 17),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Vestuário"),
+		payerId: adminPayer.id,
+		cardMeta: createdCards.ultravioleta,
+		note: "Coleção de inverno.",
+	});
+
+	createRecords({
+		name: "Renner",
+		amount: 412.5,
+		purchaseDate: dateForPeriodDay(thirdPeriod, 9),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Vestuário"),
+		payerId: adminPayer.id,
+		cardMeta: createdCards.ultravioleta,
+		note: "Camisas e calças básicas.",
+	});
+
+	createRecords({
+		name: "Nike",
+		amount: 899.9,
+		purchaseDate: dateForPeriodDay(firstPeriod, 23),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.ultravioleta.id,
+		categoryId: getCategoryId("Vestuário"),
+		payerId: adminPayer.id,
+		cardMeta: createdCards.ultravioleta,
+		note: "Tênis Air Zoom para academia.",
+	});
+
+	// ── Educação, presentes, lazer ──
+	createRecords({
+		name: "Alura",
 		amount: 1499.9,
 		purchaseDate: dateForPeriodDay(firstPeriod, 20),
 		transactionType: "Despesa",
@@ -1570,11 +1940,11 @@ async function main() {
 		categoryId: getCategoryId("Educação"),
 		payerId: adminPayer.id,
 		cardMeta: createdCards.ultravioleta,
-		note: "Plano anual para desenvolvimento web e mobile.",
+		note: "Plano anual de desenvolvimento.",
 	});
 
 	createRecords({
-		name: "Presente - aniversário Eduardo",
+		name: "Amazon",
 		amount: 189,
 		purchaseDate: dateForPeriodDay(thirdPeriod, 11),
 		transactionType: "Despesa",
@@ -1583,26 +1953,12 @@ async function main() {
 		accountId: createdAccounts.nubank,
 		categoryId: getCategoryId("Presentes"),
 		payerId: adminPayer.id,
-		note: "Presente de aniversário para o Eduardo.",
+		note: "Presente de aniversário do Eduardo.",
 	});
 
 	createRecords({
-		name: "Zara - jaqueta e calça",
-		amount: 599.8,
-		purchaseDate: dateForPeriodDay(middlePeriod, 17),
-		transactionType: "Despesa",
-		condition: "À vista",
-		paymentMethod: "Cartão de crédito",
-		cardId: createdCards.ultravioleta.id,
-		categoryId: getCategoryId("Vestuário"),
-		payerId: adminPayer.id,
-		cardMeta: createdCards.ultravioleta,
-		note: "Roupas de inverno.",
-	});
-
-	createRecords({
-		name: "Show Criolo - Audio Club",
-		amount: 320,
+		name: "Eventim",
+		amount: 480,
 		purchaseDate: dateForPeriodDay(middlePeriod, 8),
 		transactionType: "Despesa",
 		condition: "Parcelado",
@@ -1610,13 +1966,165 @@ async function main() {
 		cardId: createdCards.ultravioleta.id,
 		categoryId: getCategoryId("Lazer"),
 		payerId: adminPayer.id,
-		secondaryPayerId: createdPayers.marina,
+		secondaryPayerId: createdPayers.mario,
 		isSplit: true,
-		primarySplitAmount: 160,
-		secondarySplitAmount: 160,
-		installmentCount: 2,
+		primarySplitAmount: 240,
+		secondarySplitAmount: 240,
+		installmentCount: 3,
 		cardMeta: createdCards.ultravioleta,
-		note: "Ingressos divididos com a Marina.",
+		note: "Ingressos para show, divididos com mario.",
+	});
+
+	// ── Saúde / consultas ──
+	createRecords({
+		name: "Hapvida",
+		amount: 320,
+		purchaseDate: dateForPeriodDay(middlePeriod, 9),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Boleto",
+		accountId: createdAccounts.itau,
+		categoryId: getCategoryId("Saúde"),
+		payerId: adminPayer.id,
+		dueDate: dateForPeriodDay(middlePeriod, 17),
+		note: "Consulta odontológica particular.",
+	});
+
+	createRecords({
+		name: "Amil",
+		amount: 218.5,
+		purchaseDate: dateForPeriodDay(secondPeriod, 26),
+		transactionType: "Receita",
+		condition: "À vista",
+		paymentMethod: "Pix",
+		accountId: createdAccounts.itau,
+		categoryId: getCategoryId("Reembolso"),
+		payerId: adminPayer.id,
+		note: "Reembolso de consulta médica.",
+	});
+
+	// ── Boleto em aberto (testa lembretes) ──
+	createRecords({
+		name: "Detran",
+		amount: 1284.32,
+		purchaseDate: dateForPeriodDay(lastPeriod, 10),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Boleto",
+		accountId: createdAccounts.itau,
+		categoryId: getCategoryId("Transporte"),
+		payerId: adminPayer.id,
+		dueDate: dateForPeriodDay(lastPeriod, 25),
+		note: "IPVA 2026 em aberto.",
+		settlementBehavior: "open",
+	});
+
+	// ── Estouro do Inter Black no último mês (testa barra destructive) ──
+	createRecords({
+		name: "Magazine Luiza",
+		amount: 2199,
+		purchaseDate: dateForPeriodDay(lastPeriod, 4),
+		transactionType: "Despesa",
+		condition: "À vista",
+		paymentMethod: "Cartão de crédito",
+		cardId: createdCards.interblack.id,
+		categoryId: getCategoryId("Moradia"),
+		payerId: adminPayer.id,
+		cardMeta: createdCards.interblack,
+		note: "Air fryer e cafeteira para a cozinha.",
+	});
+
+	// ── Transferências internas entre contas ──
+	const transferCategoryId = getCategoryId(TRANSFER_CATEGORY_NAME);
+
+	const pushTransfer = (params: {
+		fromAccountId: string;
+		toAccountId: string;
+		amount: number;
+		date: string;
+		fromAccountName: string;
+		toAccountName: string;
+	}) => {
+		const transferId = randomUUID();
+		const period = derivePeriodFromDate(params.date);
+		const purchaseDate = parseLocalDateString(params.date);
+		const note = `de ${params.fromAccountName} -> ${params.toAccountName}`;
+		const sharedFields = {
+			condition: TRANSFER_CONDITION,
+			paymentMethod: TRANSFER_PAYMENT_METHOD,
+			note,
+			purchaseDate,
+			transactionType: "Transferência" as const,
+			period,
+			isSettled: true,
+			userId: targetUser.id,
+			categoryId: transferCategoryId,
+			payerId: adminPayer.id,
+			transferId,
+		};
+
+		seedTransactionRecords.push({
+			...sharedFields,
+			name: TRANSFER_ESTABLISHMENT_SAIDA,
+			amount: `-${params.amount.toFixed(2)}`,
+			accountId: params.fromAccountId,
+		});
+		seedTransactionRecords.push({
+			...sharedFields,
+			name: TRANSFER_ESTABLISHMENT_ENTRADA,
+			amount: params.amount.toFixed(2),
+			accountId: params.toAccountId,
+		});
+	};
+
+	// Repasse mensal do salário (Itaú → Nubank) para o dia a dia
+	for (const period of periods) {
+		pushTransfer({
+			fromAccountId: createdAccounts.itau,
+			toAccountId: createdAccounts.nubank,
+			amount: 4000,
+			date: dateForPeriodDay(period, 6),
+			fromAccountName: "Itaú Personnalité",
+			toAccountName: "Nubank",
+		});
+	}
+
+	// Reserva de emergência no Inter (eventual)
+	pushTransfer({
+		fromAccountId: createdAccounts.itau,
+		toAccountId: createdAccounts.inter,
+		amount: 1500,
+		date: dateForPeriodDay(secondPeriod, 12),
+		fromAccountName: "Itaú Personnalité",
+		toAccountName: "Banco Inter",
+	});
+
+	pushTransfer({
+		fromAccountId: createdAccounts.itau,
+		toAccountId: createdAccounts.inter,
+		amount: 2000,
+		date: dateForPeriodDay(middlePeriod, 14),
+		fromAccountName: "Itaú Personnalité",
+		toAccountName: "Banco Inter",
+	});
+
+	// Recargas pontuais para o Mercado Pago
+	pushTransfer({
+		fromAccountId: createdAccounts.nubank,
+		toAccountId: createdAccounts["mercado-pago"],
+		amount: 250,
+		date: dateForPeriodDay(firstPeriod, 18),
+		fromAccountName: "Nubank",
+		toAccountName: "Mercado Pago",
+	});
+
+	pushTransfer({
+		fromAccountId: createdAccounts.nubank,
+		toAccountId: createdAccounts["mercado-pago"],
+		amount: 180,
+		date: dateForPeriodDay(thirdPeriod, 14),
+		fromAccountName: "Nubank",
+		toAccountName: "Mercado Pago",
 	});
 
 	await db.insert(transactions).values(seedTransactionRecords);
@@ -1642,12 +2150,12 @@ async function main() {
 			sourceAppName: "Nubank",
 			originalTitle: "Compra aprovada",
 			originalText:
-				"Compra de R$ 73,90 aprovada no cartão Ultravioleta em RAPPI*RAPPI BR",
+				"Compra de R$ 142,80 aprovada no cartão Ultravioleta em IFOOD*IFOOD",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 3),
 			),
-			parsedName: "Rappi",
-			parsedAmount: "73.90",
+			parsedName: "iFood",
+			parsedAmount: "142.80",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,
@@ -1658,12 +2166,12 @@ async function main() {
 			sourceApp: "com.nu.production",
 			sourceAppName: "Nubank",
 			originalTitle: "Pix enviado",
-			originalText: "Você enviou R$ 210,00 via Pix para Marina Oliveira.",
+			originalText: "Você enviou R$ 320,00 via Pix para mario Oliveira.",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 5),
 			),
-			parsedName: "Marina Oliveira",
-			parsedAmount: "210.00",
+			parsedName: "mario Oliveira",
+			parsedAmount: "320.00",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,
@@ -1674,12 +2182,12 @@ async function main() {
 			sourceApp: "br.com.itau.personnalite",
 			sourceAppName: "Itaú Personnalité",
 			originalTitle: "Débito em conta",
-			originalText: "Débito de R$45,80 realizado. PADARIA NOSSA SENHORA",
+			originalText: "Débito de R$ 78,90 realizado. STARBUCKS COFFEE",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 7),
 			),
-			parsedName: "Padaria Nossa Senhora",
-			parsedAmount: "45.80",
+			parsedName: "Starbucks",
+			parsedAmount: "78.90",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,
@@ -1691,12 +2199,12 @@ async function main() {
 			sourceAppName: "Itaú Personnalité",
 			originalTitle: "Compra aprovada",
 			originalText:
-				"Compra de R$387,40 aprovada no cartão PÃO DE AÇÚCAR. Limite disponível: R$8.112,60",
+				"Compra de R$ 487,40 aprovada no cartão Itaucard em AMAZON BR. Limite disponível: R$ 1.512,60",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 10),
 			),
-			parsedName: "Pão de Açúcar",
-			parsedAmount: "387.40",
+			parsedName: "Amazon",
+			parsedAmount: "487.40",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,
@@ -1707,11 +2215,11 @@ async function main() {
 			sourceApp: "com.mercadopago.wallet",
 			sourceAppName: "Mercado Pago",
 			originalTitle: null,
-			originalText: "Pagamento de R$38,50 aprovado em 99APP*CORRIDA",
+			originalText: "Pagamento de R$ 38,50 aprovado em UBER*TRIP",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 13),
 			),
-			parsedName: "99App",
+			parsedName: "Uber",
 			parsedAmount: "38.50",
 			status: "pending" as const,
 			transactionId: null,
@@ -1724,12 +2232,12 @@ async function main() {
 			sourceAppName: "Nubank",
 			originalTitle: "Compra aprovada",
 			originalText:
-				"Compra de R$ 124,90 aprovada no cartão Ultravioleta em SHOPEE*SHOPEE BR",
+				"Compra de R$ 224,90 aprovada no cartão Ultravioleta em SHOPEE*SHOPEE BR",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 18),
 			),
 			parsedName: "Shopee",
-			parsedAmount: "124.90",
+			parsedAmount: "224.90",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,
@@ -1741,12 +2249,12 @@ async function main() {
 			sourceAppName: "Nubank",
 			originalTitle: "Compra aprovada",
 			originalText:
-				"Compra de R$ 199,90 aprovada no cartão Ultravioleta em AMERICANAS S.A",
+				"Compra de R$ 89,90 aprovada no cartão Ultravioleta em NETFLIX.COM",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 21),
 			),
-			parsedName: "Americanas",
-			parsedAmount: "199.90",
+			parsedName: "Netflix",
+			parsedAmount: "89.90",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,
@@ -1757,12 +2265,45 @@ async function main() {
 			sourceApp: "com.mercadopago.wallet",
 			sourceAppName: "Mercado Pago",
 			originalTitle: null,
-			originalText: "Você pagou R$12,50 via Pix para POSTO IPIRANGA",
+			originalText: "Você pagou R$ 92,50 via Pix para SHELL POSTO",
 			notificationTimestamp: parseLocalDateString(
 				dateForPeriodDay(lastPeriod, 22),
 			),
-			parsedName: "Posto Ipiranga",
-			parsedAmount: "12.50",
+			parsedName: "Shell",
+			parsedAmount: "92.50",
+			status: "pending" as const,
+			transactionId: null,
+			processedAt: null,
+			discardedAt: null,
+		},
+		{
+			userId: targetUser.id,
+			sourceApp: "com.mercadolivre.mercadolibre",
+			sourceAppName: "Mercado Livre",
+			originalTitle: "Pedido confirmado",
+			originalText:
+				"Seu pedido de R$ 379,00 foi confirmado em MERCADO LIVRE BR",
+			notificationTimestamp: parseLocalDateString(
+				dateForPeriodDay(lastPeriod, 24),
+			),
+			parsedName: "Mercado Livre",
+			parsedAmount: "379.00",
+			status: "pending" as const,
+			transactionId: null,
+			processedAt: null,
+			discardedAt: null,
+		},
+		{
+			userId: targetUser.id,
+			sourceApp: "com.apple.android.music",
+			sourceAppName: "Apple",
+			originalTitle: "Compra recebida",
+			originalText: "Sua compra de R$ 19,90 em APPLE.COM/BILL foi processada.",
+			notificationTimestamp: parseLocalDateString(
+				dateForPeriodDay(lastPeriod, 25),
+			),
+			parsedName: "Apple",
+			parsedAmount: "19.90",
 			status: "pending" as const,
 			transactionId: null,
 			processedAt: null,

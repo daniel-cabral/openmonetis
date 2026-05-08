@@ -1,21 +1,27 @@
+import "server-only";
 import fs from "node:fs";
 import path from "node:path";
+import {
+	type BumpType,
+	type ChangelogSection,
+	type ChangelogVersion,
+	isSectionType,
+} from "@/features/settings/lib/changelog-types";
 
-export type ChangelogSection = {
-	type: string;
-	items: string[];
-};
+function diffBump(current: string, previous: string | undefined): BumpType {
+	if (!previous) return "minor";
+	const [aMajor = 0, aMinor = 0] = current.split(".").map(Number);
+	const [bMajor = 0, bMinor = 0] = previous.split(".").map(Number);
+	if (aMajor !== bMajor) return "major";
+	if (aMinor !== bMinor) return "minor";
+	return "patch";
+}
 
-export type ChangelogVersion = {
-	version: string;
-	date: string;
-	summary?: string;
-	sections: ChangelogSection[];
-	/** Linha de contribuições/autor (pode conter markdown, ex: [Nome](url)) */
-	contributor?: string;
-};
+let cached: ChangelogVersion[] | null = null;
 
 export function parseChangelog(): ChangelogVersion[] {
+	if (cached) return cached;
+
 	const filePath = path.join(process.cwd(), "CHANGELOG.md");
 	const content = fs.readFileSync(filePath, "utf-8");
 	const lines = content.split("\n");
@@ -31,10 +37,14 @@ export function parseChangelog(): ChangelogVersion[] {
 			if (currentSection && currentVersion) {
 				currentVersion.sections.push(currentSection);
 			}
-			const [y, m, d] = versionMatch[2].split("-");
+			const version = versionMatch[1] ?? "";
+			const isoDate = versionMatch[2] ?? "";
+			const [y, m, d] = isoDate.split("-");
 			currentVersion = {
-				version: versionMatch[1],
-				date: d && m && y ? `${d}/${m}/${y}` : versionMatch[2],
+				version,
+				isoDate,
+				date: d && m && y ? `${d}/${m}/${y}` : isoDate,
+				bump: "patch",
 				sections: [],
 			};
 			versions.push(currentVersion);
@@ -52,33 +62,35 @@ export function parseChangelog(): ChangelogVersion[] {
 			if (currentSection) {
 				currentVersion.sections.push(currentSection);
 			}
-			currentSection = { type: sectionMatch[1], items: [] };
+			const type = sectionMatch[1] ?? "";
+			currentSection = isSectionType(type) ? { type, items: [] } : null;
 			continue;
 		}
 
 		const itemMatch = line.match(/^- (.+)$/);
 		if (itemMatch && currentSection) {
-			currentSection.items.push(itemMatch[1]);
+			currentSection.items.push(itemMatch[1] ?? "");
 			continue;
 		}
 
 		if (currentVersion && !currentSection && line.trim()) {
 			summaryLines.push(line.trim());
-			continue;
-		}
-
-		// **Contribuições:** ou **Autor:** com texto/link opcional
-		const contributorMatch = line.match(
-			/^\*\*(?:Contribuições|Autor):\*\*\s*(.+)$/,
-		);
-		if (contributorMatch && currentVersion) {
-			currentVersion.contributor = contributorMatch[1].trim() || undefined;
 		}
 	}
 
 	if (currentSection && currentVersion) {
 		currentVersion.sections.push(currentSection);
 	}
+	if (currentVersion && !currentVersion.summary && summaryLines.length > 0) {
+		currentVersion.summary = summaryLines.join(" ").trim();
+	}
 
+	for (let i = 0; i < versions.length; i++) {
+		const current = versions[i];
+		if (!current) continue;
+		current.bump = diffBump(current.version, versions[i + 1]?.version);
+	}
+
+	cached = versions;
 	return versions;
 }

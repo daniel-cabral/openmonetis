@@ -10,7 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import type { DashboardAccount } from "@/features/dashboard/accounts-queries";
+import type { DashboardAccount } from "@/features/dashboard/lib/accounts-queries";
 import { updateMyAccountsWidgetPreference } from "@/features/dashboard/widget-registry/widget-actions";
 import MoneyValues from "@/shared/components/money-values";
 import { Badge } from "@/shared/components/ui/badge";
@@ -21,7 +21,8 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { WidgetEmptyState } from "@/shared/components/widget-empty-state";
+import { WidgetEmptyState } from "@/shared/components/widgets/widget-empty-state";
+import { isAccountInactive } from "@/shared/lib/accounts/constants";
 import { resolveLogoSrc } from "@/shared/lib/logo";
 import { formatPeriodForUrl } from "@/shared/utils/period";
 
@@ -42,12 +43,15 @@ export function MyAccountsWidget({
 }: MyAccountsWidgetProps) {
 	const [isPending, startTransition] = useTransition();
 
-	const excludedAccountsCount = accounts.filter(
+	const activeAccounts = accounts.filter(
+		(account) => !isAccountInactive(account.status),
+	);
+	const excludedAccountsCount = activeAccounts.filter(
 		(account) => account.excludeFromBalance,
 	).length;
 	const visibleAccounts = showExcludedAccounts
-		? accounts
-		: accounts.filter((account) => !account.excludeFromBalance);
+		? activeAccounts
+		: activeAccounts.filter((account) => !account.excludeFromBalance);
 	const displayedAccounts = visibleAccounts.slice(0, 5);
 	const remainingCount = visibleAccounts.length - displayedAccounts.length;
 	const hiddenExcludedAccountsCount = showExcludedAccounts
@@ -117,7 +121,7 @@ export function MyAccountsWidget({
 			) : null}
 
 			<div>
-				{accounts.length === 0 ? (
+				{activeAccounts.length === 0 ? (
 					<div className="-mt-10">
 						<WidgetEmptyState
 							icon={

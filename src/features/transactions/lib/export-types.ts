@@ -1,10 +1,10 @@
-export type TransactionExportFilters = {
+type TransactionExportFilters = {
 	transactionFilter: string | null;
-	conditionFilter: string | null;
-	paymentFilter: string | null;
-	payerFilter: string | null;
-	categoryFilter: string | null;
-	accountCardFilter: string | null;
+	conditionFilters: string[];
+	paymentFilters: string[];
+	payerFilters: string[];
+	categoryFilters: string[];
+	accountCardFilters: string[];
 	searchFilter: string | null;
 	settledFilter: string | null;
 	attachmentFilter: string | null;

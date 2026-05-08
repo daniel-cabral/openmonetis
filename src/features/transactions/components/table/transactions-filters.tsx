@@ -2,6 +2,7 @@
 
 import {
 	RiCheckLine,
+	RiCloseLine,
 	RiExpandUpDownLine,
 	RiFilter3Line,
 } from "@remixicon/react";
@@ -10,6 +11,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useMemo,
 	useState,
 	useTransition,
 } from "react";
@@ -18,8 +20,9 @@ import {
 	SETTLED_FILTER_VALUES,
 	TRANSACTION_CONDITIONS,
 	TRANSACTION_TYPES,
-} from "@/features/transactions/constants";
+} from "@/features/transactions/lib/constants";
 import { Button } from "@/shared/components/ui/button";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -46,9 +49,7 @@ import {
 import {
 	Select,
 	SelectContent,
-	SelectGroup,
 	SelectItem,
-	SelectLabel,
 	SelectTrigger,
 } from "@/shared/components/ui/select";
 import { Switch } from "@/shared/components/ui/switch";
@@ -127,6 +128,158 @@ function FilterSelect({
 	);
 }
 
+type MultiOption = {
+	value: string;
+	label: string;
+	group?: string;
+	render?: ReactNode;
+};
+
+interface MultiSelectFilterProps {
+	placeholder: string;
+	options: MultiOption[];
+	selected: string[];
+	onChange: (values: string[]) => void;
+	widthClass?: string;
+	disabled?: boolean;
+	searchable?: boolean;
+	searchPlaceholder?: string;
+	groupOrder?: string[];
+}
+
+function MultiSelectFilter({
+	placeholder,
+	options,
+	selected,
+	onChange,
+	widthClass = "w-full",
+	disabled,
+	searchable = false,
+	searchPlaceholder = "Buscar...",
+	groupOrder,
+}: MultiSelectFilterProps) {
+	const [open, setOpen] = useState(false);
+
+	const groupedOptions = useMemo(() => {
+		const map = new Map<string, MultiOption[]>();
+		for (const option of options) {
+			const key = option.group ?? "";
+			const list = map.get(key) ?? [];
+			list.push(option);
+			map.set(key, list);
+		}
+		const orderedKeys = groupOrder
+			? [
+					...groupOrder,
+					...Array.from(map.keys()).filter((k) => !groupOrder.includes(k)),
+				]
+			: Array.from(map.keys());
+		return orderedKeys
+			.filter((key) => map.has(key))
+			.map((key) => ({ name: key, items: map.get(key) ?? [] }));
+	}, [options, groupOrder]);
+
+	const selectedSet = new Set(selected);
+	const selectedOptions = options.filter((option) =>
+		selectedSet.has(option.value),
+	);
+
+	const toggle = (value: string) => {
+		if (selectedSet.has(value)) {
+			onChange(selected.filter((v) => v !== value));
+		} else {
+			onChange([...selected, value]);
+		}
+	};
+
+	const clear = () => {
+		onChange([]);
+	};
+
+	const triggerLabel: ReactNode =
+		selectedOptions.length === 0 ? (
+			placeholder
+		) : selectedOptions.length === 1 ? (
+			(selectedOptions[0]?.render ?? selectedOptions[0]?.label)
+		) : (
+			<span className="flex items-center gap-1.5">
+				<span className="text-foreground">
+					{selectedOptions.length} selecionados
+				</span>
+			</span>
+		);
+
+	return (
+		<Popover open={open} onOpenChange={setOpen} modal>
+			<PopoverTrigger asChild>
+				<Button
+					variant="outline"
+					role="combobox"
+					aria-expanded={open}
+					className={cn(
+						"justify-between text-sm border-dashed font-normal",
+						widthClass,
+					)}
+					disabled={disabled}
+				>
+					<span className="truncate flex items-center gap-2">
+						{triggerLabel}
+					</span>
+					<RiExpandUpDownLine className="ml-2 size-4 shrink-0 opacity-50" />
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent align="start" className="w-[260px] p-0">
+				<Command>
+					{searchable ? <CommandInput placeholder={searchPlaceholder} /> : null}
+					<CommandList>
+						<CommandEmpty>Nada encontrado.</CommandEmpty>
+						<CommandGroup>
+							<CommandItem
+								value="__clear"
+								onSelect={() => clear()}
+								disabled={selectedOptions.length === 0}
+								className="text-muted-foreground data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none"
+							>
+								Limpar seleção
+							</CommandItem>
+						</CommandGroup>
+						{groupedOptions.map((group) => (
+							<CommandGroup
+								key={group.name || "default"}
+								heading={group.name || undefined}
+							>
+								{group.items.map((option) => {
+									const isSelected = selectedSet.has(option.value);
+									return (
+										<CommandItem
+											key={option.value}
+											value={`${option.value} ${option.label}`}
+											onSelect={() => toggle(option.value)}
+											className="gap-2"
+										>
+											<Checkbox
+												checked={isSelected}
+												className="pointer-events-none"
+												aria-hidden
+											/>
+											<span className="flex items-center gap-2 flex-1 min-w-0 truncate">
+												{option.render ?? option.label}
+											</span>
+											{isSelected ? (
+												<RiCheckLine className="ml-auto size-4 shrink-0" />
+											) : null}
+										</CommandItem>
+									);
+								})}
+							</CommandGroup>
+						))}
+					</CommandList>
+				</Command>
+			</PopoverContent>
+		</Popover>
+	);
+}
+
 interface TransactionsFiltersProps {
 	payerOptions: TransactionFilterOption[];
 	categoryOptions: TransactionFilterOption[];
@@ -152,6 +305,11 @@ export function TransactionsFilters({
 	const getParamValue = (key: string) =>
 		searchParams.get(key) ?? FILTER_EMPTY_VALUE;
 
+	const getParamValues = useCallback(
+		(key: string) => searchParams.getAll(key),
+		[searchParams],
+	);
+
 	const handleFilterChange = useCallback(
 		(key: string, value: string | null) => {
 			const nextParams = new URLSearchParams(searchParams.toString());
@@ -162,6 +320,27 @@ export function TransactionsFilters({
 				nextParams.delete(key);
 			}
 
+			nextParams.delete("page");
+
+			startTransition(() => {
+				const target = nextParams.toString()
+					? `${pathname}?${nextParams.toString()}`
+					: pathname;
+				router.replace(target, { scroll: false });
+			});
+		},
+		[searchParams, pathname, router],
+	);
+
+	const handleMultiFilterChange = useCallback(
+		(key: string, values: string[]) => {
+			const nextParams = new URLSearchParams(searchParams.toString());
+			nextParams.delete(key);
+			for (const value of values) {
+				if (value) {
+					nextParams.append(key, value);
+				}
+			}
 			nextParams.delete("page");
 
 			startTransition(() => {
@@ -205,7 +384,6 @@ export function TransactionsFilters({
 			nextParams.set("pageSize", pageSizeValue);
 		}
 		setSearchValue("");
-		setCategoryOpen(false);
 		startTransition(() => {
 			const target = nextParams.toString()
 				? `${pathname}?${nextParams.toString()}`
@@ -214,56 +392,79 @@ export function TransactionsFilters({
 		});
 	};
 
-	const payerSelectOptions = payerOptions.map((option) => ({
-		value: option.slug,
-		label: option.label,
-		avatarUrl: option.avatarUrl,
-	}));
+	const conditionOptions = useMemo<MultiOption[]>(
+		() =>
+			TRANSACTION_CONDITIONS.map((value) => ({
+				value: slugify(value),
+				label: value,
+				render: <ConditionSelectContent label={value} />,
+			})),
+		[],
+	);
 
-	const accountOptions = accountCardOptions
-		.filter((option) => option.kind === "conta")
-		.map((option) => ({
-			value: option.slug,
-			label: option.label,
-			logo: option.logo,
-		}));
+	const paymentOptions = useMemo<MultiOption[]>(
+		() =>
+			PAYMENT_METHODS.map((value) => ({
+				value: slugify(value),
+				label: value,
+				render: <PaymentMethodSelectContent label={value} />,
+			})),
+		[],
+	);
 
-	const cardOptions = accountCardOptions
-		.filter((option) => option.kind === "cartao")
-		.map((option) => ({
-			value: option.slug,
-			label: option.label,
-			logo: option.logo,
-		}));
+	const payerMultiOptions = useMemo<MultiOption[]>(
+		() =>
+			payerOptions.map((option) => ({
+				value: option.slug,
+				label: option.label,
+				render: (
+					<PayerSelectContent
+						label={option.label}
+						avatarUrl={option.avatarUrl}
+					/>
+				),
+			})),
+		[payerOptions],
+	);
 
-	const categoryValue = getParamValue("category");
-	const selectedCategory =
-		categoryValue !== FILTER_EMPTY_VALUE
-			? categoryOptions.find((option) => option.slug === categoryValue)
-			: null;
+	const categoryMultiOptions = useMemo<MultiOption[]>(
+		() =>
+			categoryOptions.map((option) => ({
+				value: option.slug,
+				label: option.label,
+				render: (
+					<CategorySelectContent label={option.label} icon={option.icon} />
+				),
+			})),
+		[categoryOptions],
+	);
 
-	const payerValue = getParamValue("payer");
-	const selectedPayer =
-		payerValue !== FILTER_EMPTY_VALUE
-			? payerOptions.find((option) => option.slug === payerValue)
-			: null;
+	const accountCardMultiOptions = useMemo<MultiOption[]>(
+		() =>
+			accountCardOptions.map((option) => ({
+				value: option.slug,
+				label: option.label,
+				group: option.kind === "cartao" ? "Cartões" : "Contas",
+				render: (
+					<AccountCardSelectContent
+						label={option.label}
+						logo={option.logo}
+						isCartao={option.kind === "cartao"}
+					/>
+				),
+			})),
+		[accountCardOptions],
+	);
 
-	const accountCardValue = getParamValue("accountCard");
-	const selectedAccountCard =
-		accountCardValue !== FILTER_EMPTY_VALUE
-			? accountCardOptions.find((option) => option.slug === accountCardValue)
-			: null;
-
-	const [categoryOpen, setCategoryOpen] = useState(false);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	const hasActiveFilters =
 		searchParams.get("type") ||
-		searchParams.get("condition") ||
-		searchParams.get("payment") ||
-		searchParams.get("payer") ||
-		searchParams.get("category") ||
-		searchParams.get("accountCard") ||
+		searchParams.getAll("condition").length > 0 ||
+		searchParams.getAll("payment").length > 0 ||
+		searchParams.getAll("payer").length > 0 ||
+		searchParams.getAll("category").length > 0 ||
+		searchParams.getAll("accountCard").length > 0 ||
 		searchParams.get("settled") ||
 		searchParams.get("hasAttachment") ||
 		searchParams.get("isDivided");
@@ -280,13 +481,28 @@ export function TransactionsFilters({
 				className,
 			)}
 		>
-			<Input
-				value={searchValue}
-				onChange={(event) => setSearchValue(event.target.value)}
-				placeholder="Buscar"
-				aria-label="Buscar lançamentos"
-				className="w-full md:w-[250px] text-sm border-dashed"
-			/>
+			<div className="relative w-full md:w-[250px]">
+				<Input
+					value={searchValue}
+					onChange={(event) => setSearchValue(event.target.value)}
+					placeholder="Buscar"
+					aria-label="Buscar lançamentos"
+					className={cn(
+						"w-full text-sm border-dashed",
+						searchValue.length > 0 && "pr-8",
+					)}
+				/>
+				{searchValue.length > 0 ? (
+					<button
+						type="button"
+						onClick={() => setSearchValue("")}
+						aria-label="Limpar busca"
+						className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					>
+						<RiCloseLine className="size-4" />
+					</button>
+				) : null}
+			</div>
 
 			<div className="flex w-full gap-2 md:w-auto">
 				{exportButton && (
@@ -348,20 +564,14 @@ export function TransactionsFilters({
 									<label className="text-sm font-medium">
 										Condição de Lançamento
 									</label>
-									<FilterSelect
-										param="condition"
+									<MultiSelectFilter
 										placeholder="Todas"
-										options={TRANSACTION_CONDITIONS.map((v) => ({
-											value: slugify(v),
-											label: v,
-										}))}
-										widthClass="w-full border-dashed"
+										options={conditionOptions}
+										selected={getParamValues("condition")}
+										onChange={(values) =>
+											handleMultiFilterChange("condition", values)
+										}
 										disabled={isPending}
-										getParamValue={getParamValue}
-										onChange={handleFilterChange}
-										renderContent={(label) => (
-											<ConditionSelectContent label={label} />
-										)}
 									/>
 								</div>
 
@@ -369,195 +579,61 @@ export function TransactionsFilters({
 									<label className="text-sm font-medium">
 										Forma de Pagamento
 									</label>
-									<FilterSelect
-										param="payment"
-										placeholder="Todos"
-										options={PAYMENT_METHODS.map((v) => ({
-											value: slugify(v),
-											label: v,
-										}))}
-										widthClass="w-full border-dashed"
+									<MultiSelectFilter
+										placeholder="Todas"
+										options={paymentOptions}
+										selected={getParamValues("payment")}
+										onChange={(values) =>
+											handleMultiFilterChange("payment", values)
+										}
 										disabled={isPending}
-										getParamValue={getParamValue}
-										onChange={handleFilterChange}
-										renderContent={(label) => (
-											<PaymentMethodSelectContent label={label} />
-										)}
 									/>
 								</div>
 
 								<div className="space-y-2">
 									<label className="text-sm font-medium">Pessoa</label>
-									<Select
-										value={getParamValue("payer")}
-										onValueChange={(value) =>
-											handleFilterChange(
-												"payer",
-												value === FILTER_EMPTY_VALUE ? null : value,
-											)
+									<MultiSelectFilter
+										placeholder="Todas"
+										options={payerMultiOptions}
+										selected={getParamValues("payer")}
+										onChange={(values) =>
+											handleMultiFilterChange("payer", values)
 										}
 										disabled={isPending}
-									>
-										<SelectTrigger
-											className="w-full text-sm border-dashed"
-											disabled={isPending}
-										>
-											<span className="truncate">
-												{selectedPayer ? (
-													<PayerSelectContent
-														label={selectedPayer.label}
-														avatarUrl={selectedPayer.avatarUrl}
-													/>
-												) : (
-													"Todos"
-												)}
-											</span>
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value={FILTER_EMPTY_VALUE}>Todos</SelectItem>
-											{payerSelectOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													<PayerSelectContent
-														label={option.label}
-														avatarUrl={option.avatarUrl}
-													/>
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+										searchable
+										searchPlaceholder="Buscar pessoa..."
+									/>
 								</div>
 
 								<div className="space-y-2">
 									<label className="text-sm font-medium">Categoria</label>
-									<Popover
-										open={categoryOpen}
-										onOpenChange={setCategoryOpen}
-										modal
-									>
-										<PopoverTrigger asChild>
-											<Button
-												variant="outline"
-												role="combobox"
-												aria-expanded={categoryOpen}
-												className="w-full justify-between text-sm border-dashed"
-												disabled={isPending}
-											>
-												<span className="truncate flex items-center gap-2">
-													{selectedCategory ? (
-														<CategorySelectContent
-															label={selectedCategory.label}
-															icon={selectedCategory.icon}
-														/>
-													) : (
-														"Todas"
-													)}
-												</span>
-												<RiExpandUpDownLine className="ml-2 size-4 shrink-0 opacity-50" />
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent align="start" className="w-[220px] p-0">
-											<Command>
-												<CommandInput placeholder="Buscar categoria..." />
-												<CommandList>
-													<CommandEmpty>Nada encontrado.</CommandEmpty>
-													<CommandGroup>
-														<CommandItem
-															value={FILTER_EMPTY_VALUE}
-															onSelect={() => {
-																handleFilterChange("category", null);
-																setCategoryOpen(false);
-															}}
-														>
-															Todas
-															{categoryValue === FILTER_EMPTY_VALUE ? (
-																<RiCheckLine className="ml-auto size-4" />
-															) : null}
-														</CommandItem>
-														{categoryOptions.map((option) => (
-															<CommandItem
-																key={option.slug}
-																value={option.slug}
-																onSelect={() => {
-																	handleFilterChange("category", option.slug);
-																	setCategoryOpen(false);
-																}}
-															>
-																<CategorySelectContent
-																	label={option.label}
-																	icon={option.icon}
-																/>
-																{categoryValue === option.slug ? (
-																	<RiCheckLine className="ml-auto size-4" />
-																) : null}
-															</CommandItem>
-														))}
-													</CommandGroup>
-												</CommandList>
-											</Command>
-										</PopoverContent>
-									</Popover>
+									<MultiSelectFilter
+										placeholder="Todas"
+										options={categoryMultiOptions}
+										selected={getParamValues("category")}
+										onChange={(values) =>
+											handleMultiFilterChange("category", values)
+										}
+										disabled={isPending}
+										searchable
+										searchPlaceholder="Buscar categoria..."
+									/>
 								</div>
 
 								<div className="space-y-2">
 									<label className="text-sm font-medium">Conta/Cartão</label>
-									<Select
-										value={getParamValue("accountCard")}
-										onValueChange={(value) =>
-											handleFilterChange(
-												"accountCard",
-												value === FILTER_EMPTY_VALUE ? null : value,
-											)
+									<MultiSelectFilter
+										placeholder="Todos"
+										options={accountCardMultiOptions}
+										selected={getParamValues("accountCard")}
+										onChange={(values) =>
+											handleMultiFilterChange("accountCard", values)
 										}
 										disabled={isPending}
-									>
-										<SelectTrigger
-											className="w-full text-sm border-dashed"
-											disabled={isPending}
-										>
-											<span className="truncate">
-												{selectedAccountCard ? (
-													<AccountCardSelectContent
-														label={selectedAccountCard.label}
-														logo={selectedAccountCard.logo}
-														isCartao={selectedAccountCard.kind === "cartao"}
-													/>
-												) : (
-													"Todos"
-												)}
-											</span>
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value={FILTER_EMPTY_VALUE}>Todos</SelectItem>
-											{accountOptions.length > 0 ? (
-												<SelectGroup>
-													<SelectLabel>Contas</SelectLabel>
-													{accountOptions.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															<AccountCardSelectContent
-																label={option.label}
-																logo={option.logo}
-																isCartao={false}
-															/>
-														</SelectItem>
-													))}
-												</SelectGroup>
-											) : null}
-											{cardOptions.length > 0 ? (
-												<SelectGroup>
-													<SelectLabel>Cartões</SelectLabel>
-													{cardOptions.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															<AccountCardSelectContent
-																label={option.label}
-																logo={option.logo}
-																isCartao={true}
-															/>
-														</SelectItem>
-													))}
-												</SelectGroup>
-											) : null}
-										</SelectContent>
-									</Select>
+										searchable
+										searchPlaceholder="Buscar conta ou cartão..."
+										groupOrder={["Contas", "Cartões"]}
+									/>
 								</div>
 
 								<div className="space-y-3">

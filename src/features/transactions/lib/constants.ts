@@ -20,6 +20,12 @@ export const PAYMENT_METHODS = [
 	"Transferência bancária",
 ] as const;
 
+export const CREDIT_CARD_PAYMENT_METHOD = "Cartão de crédito" as const;
+
+export const SETTLEABLE_PAYMENT_METHODS = PAYMENT_METHODS.filter(
+	(method) => method !== CREDIT_CARD_PAYMENT_METHOD,
+);
+
 export const SETTLED_FILTER_VALUES = {
 	PAID: "pago",
 	UNPAID: "nao-pago",

@@ -69,6 +69,7 @@ export function CardItem({
 
 	const usagePercent =
 		limit > 0 ? Math.min(Math.max((used / limit) * 100, 0), 100) : 0;
+	const exceeded = usagePercent >= 100;
 
 	const logoPath = resolveLogoSrc(logo);
 	const brandAsset = resolveCardBrandAsset(brand);
@@ -194,7 +195,8 @@ export function CardItem({
 				<div className="flex flex-col gap-2">
 					<Progress
 						value={usagePercent}
-						className="h-2.5"
+						className={cn("h-2.5", exceeded && "bg-destructive/20!")}
+						indicatorClassName={cn(exceeded && "bg-destructive")}
 						aria-label={`${usagePercent.toFixed(0)}% do limite utilizado`}
 					/>
 					<span className="text-xs text-muted-foreground">

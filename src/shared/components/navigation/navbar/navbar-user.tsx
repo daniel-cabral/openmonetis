@@ -45,13 +45,13 @@ type NavbarUserProps = {
 		email: string;
 		image: string | null;
 	};
-	pagadorAvatarUrl: string | null;
+	payerAvatarUrl: string | null;
 	updateCheck: UpdateCheckResult;
 };
 
 export function NavbarUser({
 	user,
-	pagadorAvatarUrl,
+	payerAvatarUrl,
 	updateCheck,
 }: NavbarUserProps) {
 	const router = useRouter();
@@ -65,8 +65,8 @@ export function NavbarUser({
 		setTimeout(() => setCopied(false), 2000);
 	}
 
-	const avatarSrc = pagadorAvatarUrl
-		? getAvatarSrc(pagadorAvatarUrl)
+	const avatarSrc = payerAvatarUrl
+		? getAvatarSrc(payerAvatarUrl)
 		: user.image || getAvatarSrc(null);
 	const isDataUrl = avatarSrc.startsWith("data:");
 
@@ -190,7 +190,7 @@ export function NavbarUser({
 							>
 								<RiMegaphoneLine className="size-4 text-success shrink-0" />
 								<span className="flex-1 tracking-wide text-xs font-bold">
-									Atualização {updateCheck.latestVersion} disponível
+									Versão {updateCheck.latestVersion} disponível
 								</span>
 							</Link>
 						)}

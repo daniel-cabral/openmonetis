@@ -36,13 +36,37 @@ export const getConditionIcon = (condition: string): ReactNode => {
 	return registry[key] ?? null;
 };
 
+export const getAccountTypeIcon = (accountType: string): ReactNode => {
+	const key = normalizeKey(accountType);
+
+	const registry: Record<string, ReactNode> = {
+		contacorrente: <RemixIcons.RiBankLine className={ICON_CLASS} aria-hidden />,
+		contapoupanca: (
+			<RemixIcons.RiSafe2Line className={ICON_CLASS} aria-hidden />
+		),
+		carteiradigital: (
+			<RemixIcons.RiWalletLine className={ICON_CLASS} aria-hidden />
+		),
+		containvestimento: (
+			<RemixIcons.RiFundsLine className={ICON_CLASS} aria-hidden />
+		),
+		prepagovrva: <RemixIcons.RiCouponLine className={ICON_CLASS} aria-hidden />,
+		dinheiro: <RemixIcons.RiCashLine className={ICON_CLASS} aria-hidden />,
+		outros: <RemixIcons.RiMoreFill className={ICON_CLASS} aria-hidden />,
+	};
+
+	return (
+		registry[key] ?? (
+			<RemixIcons.RiBankLine className={ICON_CLASS} aria-hidden />
+		)
+	);
+};
+
 export const getPaymentMethodIcon = (paymentMethod: string): ReactNode => {
 	const key = normalizeKey(paymentMethod);
 
 	const registry: Record<string, ReactNode> = {
-		dinheiro: (
-			<RemixIcons.RiMoneyDollarCircleLine className={ICON_CLASS} aria-hidden />
-		),
+		dinheiro: <RemixIcons.RiCashLine className={ICON_CLASS} aria-hidden />,
 		pix: <RemixIcons.RiPixLine className={ICON_CLASS} aria-hidden />,
 		boleto: <RemixIcons.RiBarcodeLine className={ICON_CLASS} aria-hidden />,
 		credito: (

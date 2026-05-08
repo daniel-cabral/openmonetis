@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { deleteAccountAction } from "@/features/accounts/actions";
 import { AccountCard } from "@/features/accounts/components/account-card";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
-import { EmptyState } from "@/shared/components/empty-state";
+import { EmptyState } from "@/shared/components/feedback/empty-state";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import {
@@ -186,14 +186,14 @@ export function AccountsPage({
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 					<TabsList>
 						<TabsTrigger value="ativos">Ativas</TabsTrigger>
-						<TabsTrigger value="arquivados">Arquivadas</TabsTrigger>
+						<TabsTrigger value="inativas">Inativas</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value="ativos" className="mt-4">
 						{renderAccountList(orderedAccounts, false)}
 					</TabsContent>
 
-					<TabsContent value="arquivados" className="mt-4">
+					<TabsContent value="inativas" className="mt-4">
 						{renderAccountList(orderedArchivedAccounts, true)}
 					</TabsContent>
 				</Tabs>

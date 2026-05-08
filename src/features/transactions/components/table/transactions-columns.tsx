@@ -12,13 +12,17 @@ import {
 	RiHistoryLine,
 	RiMoreFill,
 	RiPencilLine,
-	RiRefund2Line,
+	RiRefundLine,
 	RiTimeLine,
 } from "@remixicon/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import Link from "next/link";
-import { DEFAULT_LANCAMENTOS_COLUMN_ORDER } from "@/features/transactions/column-order";
+import { DEFAULT_TRANSACTIONS_COLUMN_ORDER } from "@/features/transactions/lib/column-order";
+import {
+	CREDIT_CARD_PAYMENT_METHOD,
+	SETTLEABLE_PAYMENT_METHODS,
+} from "@/features/transactions/lib/constants";
 import {
 	CategoryIconBadge,
 	EstablishmentLogo,
@@ -54,7 +58,7 @@ import { getConditionIcon, getPaymentMethodIcon } from "@/shared/utils/icons";
 import { cn } from "@/shared/utils/ui";
 import type { TransactionItem } from "../types";
 
-export type BuildColumnsArgs = {
+type BuildColumnsArgs = {
 	currentUserId: string;
 	noteAsColumn: boolean;
 	onEdit?: (item: TransactionItem) => void;
@@ -195,7 +199,7 @@ function buildColumns({
 
 				const isBoleto = paymentMethod === "Boleto" && dueDate;
 				const dueDateLabel =
-					isBoleto && dueDate ? `venc. ${formatDate(dueDate)}` : null;
+					isBoleto && dueDate ? `Venc. ${formatDate(dueDate)}` : null;
 				const hasNote = Boolean(note?.trim().length);
 				const isLastInstallment =
 					currentInstallment === installmentCount &&
@@ -348,10 +352,12 @@ function buildColumns({
 			cell: ({ row }) => {
 				const isReceita = row.original.transactionType === "Receita";
 				const isTransfer = row.original.transactionType === "Transferência";
+				const isIncomingTransfer =
+					isTransfer && Number(row.original.amount) > 0;
 				return (
 					<MoneyValues
 						amount={row.original.amount}
-						showPositiveSign={isReceita}
+						showPositiveSign={isReceita || isIncomingTransfer}
 						className={cn(
 							"whitespace-nowrap",
 							isReceita ? "text-success" : "text-foreground",
@@ -497,20 +503,8 @@ function buildColumns({
 				return (
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Link
-								href={href}
-								className="inline-flex items-center gap-2 hover:underline"
-							>
-								{logoSrc && (
-									<Image
-										src={logoSrc}
-										alt={`Logo de ${label}`}
-										width={30}
-										height={30}
-										className="rounded-full"
-									/>
-								)}
-								<span className="truncate">{label}</span>
+							<Link href={href} className="hover:underline">
+								{content}
 							</Link>
 						</TooltipTrigger>
 						<TooltipContent side="top">
@@ -553,27 +547,14 @@ function buildColumns({
 				<div className="flex items-center gap-2">
 					{(() => {
 						const paymentMethod = row.original.paymentMethod;
-						const showSettlementButton = [
-							"Pix",
-							"Boleto",
-							"Cartão de crédito",
-							"Dinheiro",
-							"Cartão de débito",
-							"Transferência bancária",
-							"Pré-Pago | VR/VA",
-						].includes(paymentMethod);
+						const isCreditCard = paymentMethod === CREDIT_CARD_PAYMENT_METHOD;
+						const canToggleSettlement = (
+							SETTLEABLE_PAYMENT_METHODS as readonly string[]
+						).includes(paymentMethod);
 
-						if (!showSettlementButton) return null;
+						if (!canToggleSettlement && !isCreditCard) return null;
 
-						const canToggleSettlement =
-							paymentMethod === "Pix" ||
-							paymentMethod === "Boleto" ||
-							paymentMethod === "Dinheiro" ||
-							paymentMethod === "Cartão de débito" ||
-							paymentMethod === "Transferência bancária" ||
-							paymentMethod === "Pré-Pago | VR/VA";
-
-						if (!canToggleSettlement) {
+						if (isCreditCard) {
 							const invoicePaid = Boolean(row.original.isSettled);
 							return (
 								<Tooltip>
@@ -701,7 +682,7 @@ function buildColumns({
 
 								return (
 									<DropdownMenuItem onSelect={() => handleRefund(item)}>
-										<RiRefund2Line className="size-4" />
+										<RiRefundLine className="size-4" />
 										Reembolso
 									</DropdownMenuItem>
 								);
@@ -717,7 +698,6 @@ function buildColumns({
 								</DropdownMenuItem>
 							)}
 
-							{/* Opções de Antecipação */}
 							{row.original.userId === currentUserId &&
 								row.original.condition === "Parcelado" &&
 								row.original.seriesId && (
@@ -768,6 +748,6 @@ export function getTransactionColumns(
 	const built = buildColumns(args);
 	const order = args.columnOrder?.length
 		? args.columnOrder
-		: DEFAULT_LANCAMENTOS_COLUMN_ORDER;
+		: DEFAULT_TRANSACTIONS_COLUMN_ORDER;
 	return reorderColumnsByPreference(built, order);
 }
