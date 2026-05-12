@@ -11,8 +11,9 @@ import {
 	sql,
 	sum,
 } from "drizzle-orm";
-import { cards, transactions } from "@/db/schema";
+import { cards, financialAccounts, transactions } from "@/db/schema";
 import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
+import { excludeTransactionsFromExcludedAccounts } from "@/shared/lib/accounts/query-filters";
 import { db } from "@/shared/lib/db";
 import { toDateOnlyString } from "@/shared/utils/date";
 import { safeToNumber as toNumber } from "@/shared/utils/number";
@@ -96,12 +97,17 @@ export async function fetchPayerMonthlyBreakdown({
 			totalAmount: sum(transactions.amount).as("total"),
 		})
 		.from(transactions)
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
 				eq(transactions.payerId, payerId),
 				eq(transactions.period, period),
 				excludeAutoInvoiceEntries(),
+				excludeTransactionsFromExcludedAccounts(),
 			),
 		)
 		.groupBy(transactions.paymentMethod, transactions.transactionType);
@@ -155,6 +161,10 @@ export async function fetchPayerHistory({
 			totalAmount: sum(transactions.amount).as("total"),
 		})
 		.from(transactions)
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
@@ -162,6 +172,7 @@ export async function fetchPayerHistory({
 				gte(transactions.period, start),
 				lte(transactions.period, end),
 				excludeAutoInvoiceEntries(),
+				excludeTransactionsFromExcludedAccounts(),
 			),
 		)
 		.groupBy(transactions.period, transactions.transactionType);
@@ -210,6 +221,10 @@ export async function fetchPayerCardUsage({
 		})
 		.from(transactions)
 		.innerJoin(cards, eq(transactions.cardId, cards.id))
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
@@ -217,6 +232,7 @@ export async function fetchPayerCardUsage({
 				eq(transactions.period, period),
 				eq(transactions.paymentMethod, PAYMENT_METHOD_CARD),
 				excludeAutoInvoiceEntries(),
+				excludeTransactionsFromExcludedAccounts(),
 			),
 		)
 		.groupBy(transactions.cardId, cards.name, cards.logo);
@@ -251,6 +267,10 @@ export async function fetchPayerBoletoStats({
 			totalCount: sql<number>`count(${transactions.id})`.as("count"),
 		})
 		.from(transactions)
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
@@ -258,6 +278,7 @@ export async function fetchPayerBoletoStats({
 				eq(transactions.period, period),
 				eq(transactions.paymentMethod, PAYMENT_METHOD_BOLETO),
 				excludeAutoInvoiceEntries(),
+				excludeTransactionsFromExcludedAccounts(),
 			),
 		)
 		.groupBy(transactions.isSettled);
@@ -303,6 +324,10 @@ export async function fetchPayerBoletoItems({
 			isSettled: transactions.isSettled,
 		})
 		.from(transactions)
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
@@ -310,6 +335,7 @@ export async function fetchPayerBoletoItems({
 				eq(transactions.period, period),
 				eq(transactions.paymentMethod, PAYMENT_METHOD_BOLETO),
 				excludeAutoInvoiceEntries(),
+				excludeTransactionsFromExcludedAccounts(),
 			),
 		)
 		.orderBy(asc(transactions.dueDate));
@@ -343,6 +369,10 @@ export async function fetchPayerPaymentStatus({
 			pendingCount: sql<number>`sum(case when (${transactions.isSettled} = false or ${transactions.isSettled} is null) then 1 else 0 end)`,
 		})
 		.from(transactions)
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
@@ -350,6 +380,7 @@ export async function fetchPayerPaymentStatus({
 				eq(transactions.period, period),
 				eq(transactions.transactionType, DESPESA),
 				excludeAutoInvoiceEntries(),
+				excludeTransactionsFromExcludedAccounts(),
 			),
 		);
 

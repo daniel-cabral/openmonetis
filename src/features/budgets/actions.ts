@@ -4,6 +4,10 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { budgets, categories } from "@/db/schema";
 import {
+	type CategoryBudgetSummary,
+	fetchCategoryBudgetSummary,
+} from "@/features/budgets/queries";
+import {
 	handleActionError,
 	revalidateForEntity,
 } from "@/shared/lib/actions/helpers";
@@ -201,6 +205,34 @@ export async function deleteBudgetAction(
 		return { success: true, message: "Orçamento removido com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
+	}
+}
+
+const getCategoryBudgetSummarySchema = z.object({
+	categoryId: uuidSchema("Category"),
+	period: periodSchema,
+});
+
+type GetCategoryBudgetSummaryInput = z.input<
+	typeof getCategoryBudgetSummarySchema
+>;
+
+export async function getCategoryBudgetSummaryAction(
+	input: GetCategoryBudgetSummaryInput,
+): Promise<ActionResult<CategoryBudgetSummary | null>> {
+	try {
+		const user = await getUser();
+		const data = getCategoryBudgetSummarySchema.parse(input);
+		const summary = await fetchCategoryBudgetSummary(
+			user.id,
+			data.categoryId,
+			data.period,
+		);
+		return { success: true, message: "ok", data: summary };
+	} catch (error) {
+		return handleActionError(
+			error,
+		) as ActionResult<CategoryBudgetSummary | null>;
 	}
 }
 

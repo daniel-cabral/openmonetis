@@ -1,6 +1,12 @@
 import { and, asc, eq, inArray, isNull, or, sql, sum } from "drizzle-orm";
-import { budgets, categories, transactions } from "@/db/schema";
+import {
+	budgets,
+	categories,
+	financialAccounts,
+	transactions,
+} from "@/db/schema";
 import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
+import { excludeTransactionsFromExcludedAccounts } from "@/shared/lib/accounts/query-filters";
 import { db } from "@/shared/lib/db";
 import { getAdminPayerId } from "@/shared/lib/payers/get-admin-id";
 
@@ -75,6 +81,10 @@ export async function fetchBudgetsForUser(
 				totalAmount: sum(transactions.amount).as("totalAmount"),
 			})
 			.from(transactions)
+			.leftJoin(
+				financialAccounts,
+				eq(transactions.accountId, financialAccounts.id),
+			)
 			.where(
 				and(
 					eq(transactions.userId, userId),
@@ -86,6 +96,7 @@ export async function fetchBudgetsForUser(
 						isNull(transactions.note),
 						sql`${transactions.note} NOT LIKE ${`${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}%`}`,
 					),
+					excludeTransactionsFromExcludedAccounts(),
 				),
 			)
 			.groupBy(transactions.categoryId);
@@ -126,4 +137,58 @@ export async function fetchBudgetsForUser(
 	}));
 
 	return { budgets: budgetList, categoriesOptions };
+}
+
+export type CategoryBudgetSummary = {
+	amount: number;
+	spent: number;
+};
+
+export async function fetchCategoryBudgetSummary(
+	userId: string,
+	categoryId: string,
+	period: string,
+): Promise<CategoryBudgetSummary | null> {
+	const [adminPayerId, budget] = await Promise.all([
+		getAdminPayerId(userId),
+		db.query.budgets.findFirst({
+			columns: { amount: true },
+			where: and(
+				eq(budgets.userId, userId),
+				eq(budgets.categoryId, categoryId),
+				eq(budgets.period, period),
+			),
+		}),
+	]);
+
+	if (!adminPayerId || !budget) return null;
+
+	const totals = await db
+		.select({
+			totalAmount: sum(transactions.amount).as("totalAmount"),
+		})
+		.from(transactions)
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
+		.where(
+			and(
+				eq(transactions.userId, userId),
+				eq(transactions.period, period),
+				eq(transactions.transactionType, "Despesa"),
+				eq(transactions.payerId, adminPayerId),
+				eq(transactions.categoryId, categoryId),
+				or(
+					isNull(transactions.note),
+					sql`${transactions.note} NOT LIKE ${`${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}%`}`,
+				),
+				excludeTransactionsFromExcludedAccounts(),
+			),
+		);
+
+	return {
+		amount: toNumber(budget.amount),
+		spent: Math.abs(toNumber(totals[0]?.totalAmount ?? 0)),
+	};
 }
