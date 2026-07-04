@@ -1,6 +1,6 @@
-import { RiExternalLinkLine, RiWallet3Line } from "@remixicon/react";
 import Link from "next/link";
 import type { DashboardCategoryBreakdownItem } from "@/features/dashboard/categories/category-breakdown-helpers";
+import { dashboardWidgetListStyles as styles } from "@/features/dashboard/components/dashboard-widget-list-styles";
 import { PercentageChangeIndicator } from "@/features/dashboard/components/percentage-change-indicator";
 import { CategoryIconBadge } from "@/shared/components/entity-avatar";
 import MoneyValues from "@/shared/components/money-values";
@@ -11,13 +11,14 @@ type CategoryBreakdownListItemConfig = {
 	shareLabel: string;
 	percentageDigits: number;
 	positiveTrend: "up" | "down";
-	includeBudgetAmount: boolean;
+	showBudget: boolean;
 };
 
 type CategoryBreakdownListItemProps = {
 	category: DashboardCategoryBreakdownItem;
 	periodParam: string;
 	config: CategoryBreakdownListItemConfig;
+	position: number;
 };
 
 const formatPercentage = (value: number, digits: number) =>
@@ -31,8 +32,9 @@ export function CategoryBreakdownListItem({
 	category,
 	periodParam,
 	config,
+	position,
 }: CategoryBreakdownListItemProps) {
-	const hasBudget = category.budgetAmount !== null;
+	const hasBudget = config.showBudget && category.budgetAmount !== null;
 	const budgetExceeded =
 		hasBudget &&
 		category.budgetUsedPercentage !== null &&
@@ -44,26 +46,23 @@ export function CategoryBreakdownListItem({
 
 	return (
 		<div>
-			<div className="flex items-center justify-between gap-3 transition-all duration-300 py-2">
-				<div className="flex min-w-0 flex-1 items-center gap-2">
+			<div className={styles.row}>
+				<span className={styles.rank}>{position}</span>
+				<div className={styles.main}>
 					<CategoryIconBadge
 						icon={category.categoryIcon}
 						name={category.categoryName}
 					/>
-					<div className="min-w-0 flex-1">
+					<div className={styles.textStack}>
 						<div className="flex items-center gap-2">
 							<Link
 								href={`/categories/${category.categoryId}?periodo=${periodParam}`}
-								className="flex max-w-full items-center gap-1 text-sm font-medium text-foreground underline-offset-2 hover:underline"
+								className={styles.titleLink}
 							>
 								<span className="truncate">{category.categoryName}</span>
-								<RiExternalLinkLine
-									className="size-3 shrink-0 text-muted-foreground"
-									aria-hidden
-								/>
 							</Link>
 						</div>
-						<div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+						<div className={styles.meta}>
 							<span>
 								{formatPercentage(
 									category.percentageOfTotal,
@@ -71,57 +70,50 @@ export function CategoryBreakdownListItem({
 								)}{" "}
 								da {config.shareLabel}
 							</span>
-							{hasBudget && category.budgetUsedPercentage !== null ? (
-								<>
-									<span aria-hidden>·</span>
-									<span
-										className={`flex items-center gap-1 ${budgetExceeded ? "text-destructive" : "text-info"}`}
-									>
-										<RiWallet3Line className="size-3 shrink-0" />
-										{budgetExceeded ? (
-											<>
-												excedeu{" "}
-												<span className="font-medium">
-													{formatCurrency(exceededAmount)}
-												</span>
-											</>
-										) : (
-											<>
-												{formatPercentage(
-													category.budgetUsedPercentage,
-													config.percentageDigits,
-												)}{" "}
-												do limite
-												{config.includeBudgetAmount &&
-												category.budgetAmount !== null
-													? ` ${formatCurrency(category.budgetAmount)}`
-													: ""}
-											</>
-										)}
-									</span>
-								</>
-							) : null}
 						</div>
+						{hasBudget && category.budgetUsedPercentage !== null ? (
+							<div
+								className={`mt-0.5 text-xs ${budgetExceeded ? "text-destructive" : "text-info"}`}
+							>
+								{budgetExceeded ? (
+									<>
+										Limite excedido em{" "}
+										<span className="font-medium">
+											{formatCurrency(exceededAmount)}
+										</span>
+									</>
+								) : (
+									<>
+										{formatPercentage(
+											category.budgetUsedPercentage,
+											config.percentageDigits,
+										)}{" "}
+										do limite utilizado
+									</>
+								)}
+							</div>
+						) : null}
 					</div>
 				</div>
 
-				<div className="flex shrink-0 flex-col items-end gap-0.5">
+				<div className={styles.trailing}>
 					<MoneyValues
-						className="text-foreground font-medium"
+						className={styles.trailingValue}
 						amount={category.currentAmount}
 					/>
-					<PercentageChangeIndicator
-						value={category.percentageChange}
-						label={
-							category.percentageChange !== null
-								? formatPercentage(
-										category.percentageChange,
-										config.percentageDigits,
-									)
-								: undefined
-						}
-						positiveTrend={config.positiveTrend}
-					/>
+					{category.percentageChange !== null ? (
+						<span className={`${styles.trailingMeta} text-muted-foreground`}>
+							<PercentageChangeIndicator
+								value={category.percentageChange}
+								label={formatPercentage(
+									category.percentageChange,
+									config.percentageDigits,
+								)}
+								positiveTrend={config.positiveTrend}
+							/>
+							<span>vs. mês ant.</span>
+						</span>
+					) : null}
 				</div>
 			</div>
 		</div>

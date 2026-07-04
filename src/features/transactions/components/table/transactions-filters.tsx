@@ -23,12 +23,18 @@ import {
 import {
 	AMOUNT_MAX_PARAM,
 	AMOUNT_MIN_PARAM,
+	DATE_END_PARAM,
+	DATE_START_PARAM,
 	PAYMENT_METHODS,
 	SETTLED_FILTER_VALUES,
 	TRANSACTION_CONDITIONS,
 	TRANSACTION_TYPES,
 } from "@/features/transactions/lib/constants";
-import { parsePositiveAmount } from "@/features/transactions/lib/page-helpers";
+import {
+	parseDateFilterParam,
+	parsePositiveAmount,
+} from "@/features/transactions/lib/page-helpers";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
@@ -39,6 +45,7 @@ import {
 	CommandItem,
 	CommandList,
 } from "@/shared/components/ui/command";
+import { DatePicker } from "@/shared/components/ui/date-picker";
 import {
 	Drawer,
 	DrawerContent,
@@ -48,6 +55,11 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from "@/shared/components/ui/drawer";
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/shared/components/ui/hover-card";
 import { Input } from "@/shared/components/ui/input";
 import {
 	Popover,
@@ -60,7 +72,15 @@ import {
 	SelectItem,
 	SelectTrigger,
 } from "@/shared/components/ui/select";
+import { Separator } from "@/shared/components/ui/separator";
+import { Spinner } from "@/shared/components/ui/spinner";
 import { Switch } from "@/shared/components/ui/switch";
+import {
+	ToggleGroup,
+	ToggleGroupItem,
+} from "@/shared/components/ui/toggle-group";
+import { formatCurrency } from "@/shared/utils/currency";
+import { formatDateOnly } from "@/shared/utils/date";
 import { slugify } from "@/shared/utils/string";
 import { cn } from "@/shared/utils/ui";
 import {
@@ -78,10 +98,43 @@ import type {
 
 const FILTER_EMPTY_VALUE = "__all";
 
+type ActiveFilterChipProps = {
+	label: string;
+	onRemove: () => void;
+	disabled?: boolean;
+};
+
+function ActiveFilterChip({
+	label,
+	onRemove,
+	disabled,
+}: ActiveFilterChipProps) {
+	return (
+		<Badge
+			variant="secondary"
+			className="gap-1 border border-border/70 bg-secondary/70 py-1 pr-1 pl-2.5 font-normal text-secondary-foreground"
+		>
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				disabled={disabled}
+				className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+				aria-label={`Remover filtro ${label}`}
+			>
+				<RiCloseLine className="size-3" aria-hidden />
+			</button>
+		</Badge>
+	);
+}
+
 const normalizeAmountParam = (raw: string): string | null => {
 	const parsed = parsePositiveAmount(raw.trim());
 	return parsed === null ? null : parsed.toString();
 };
+
+const normalizeDateParam = (raw: string): string | null =>
+	parseDateFilterParam(raw.trim());
 
 function useDebouncedAmountFilter(
 	param: string,
@@ -135,6 +188,7 @@ function FilterSelect({
 		value === FILTER_EMPTY_VALUE
 			? placeholder
 			: (current?.label ?? placeholder);
+	const hasSelection = value !== FILTER_EMPTY_VALUE && Boolean(current);
 
 	return (
 		<Select
@@ -148,8 +202,13 @@ function FilterSelect({
 				className={cn("text-sm border-dashed", widthClass)}
 				disabled={disabled}
 			>
-				<span className="truncate">
-					{value !== FILTER_EMPTY_VALUE && current && renderContent
+				<span
+					className={cn(
+						"truncate",
+						hasSelection ? "text-foreground" : "text-muted-foreground",
+					)}
+				>
+					{current && renderContent
 						? renderContent(current.label)
 						: displayLabel}
 				</span>
@@ -171,6 +230,16 @@ type MultiOption = {
 	label: string;
 	group?: string;
 	render?: ReactNode;
+};
+
+const getCategoryFilterGroup = (type?: string | null) => {
+	if (type === "receita") {
+		return "Receitas";
+	}
+	if (type === "despesa") {
+		return "Despesas";
+	}
+	return "Outras";
 };
 
 interface MultiSelectFilterProps {
@@ -255,15 +324,25 @@ function MultiSelectFilter({
 					role="combobox"
 					aria-expanded={open}
 					className={cn(
-						"justify-between text-sm border-dashed font-normal",
+						"justify-between text-sm border-dashed font-normal shadow-none",
 						widthClass,
 					)}
 					disabled={disabled}
 				>
-					<span className="truncate flex items-center gap-2">
+					<span
+						className={cn(
+							"truncate flex items-center gap-2",
+							selectedOptions.length > 0
+								? "text-foreground"
+								: "text-muted-foreground",
+						)}
+					>
 						{triggerLabel}
 					</span>
-					<RiExpandUpDownLine className="ml-2 size-4 shrink-0 opacity-50" />
+					<RiExpandUpDownLine
+						className="ml-2 size-4 shrink-0 opacity-50"
+						aria-hidden
+					/>
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent align="start" className="w-[260px] p-0">
@@ -304,7 +383,10 @@ function MultiSelectFilter({
 												{option.render ?? option.label}
 											</span>
 											{isSelected ? (
-												<RiCheckLine className="ml-auto size-4 shrink-0" />
+												<RiCheckLine
+													className="ml-auto size-4 shrink-0"
+													aria-hidden
+												/>
 											) : null}
 										</CommandItem>
 									);
@@ -390,6 +472,13 @@ export function TransactionsFilters({
 			});
 		},
 		[searchParams, pathname, router],
+	);
+
+	const handleDateFilterChange = useCallback(
+		(key: string, value: string) => {
+			handleFilterChange(key, normalizeDateParam(value));
+		},
+		[handleFilterChange],
 	);
 
 	const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
@@ -484,6 +573,7 @@ export function TransactionsFilters({
 			categoryOptions.map((option) => ({
 				value: option.slug,
 				label: option.label,
+				group: getCategoryFilterGroup(option.type),
 				render: (
 					<CategorySelectContent label={option.label} icon={option.icon} />
 				),
@@ -509,27 +599,183 @@ export function TransactionsFilters({
 	);
 
 	const [drawerOpen, setDrawerOpen] = useState(false);
-
-	const hasActiveFilters =
-		searchParams.get("type") ||
-		searchParams.getAll("condition").length > 0 ||
-		searchParams.getAll("payment").length > 0 ||
-		searchParams.getAll("payer").length > 0 ||
-		searchParams.getAll("category").length > 0 ||
-		searchParams.getAll("accountCard").length > 0 ||
-		searchParams.get("settled") ||
-		searchParams.get("hasAttachment") ||
-		searchParams.get("isDivided") ||
-		searchParams.get(AMOUNT_MIN_PARAM) ||
-		searchParams.get(AMOUNT_MAX_PARAM);
+	const hasDateRangeFilter =
+		Boolean(searchParams.get(DATE_START_PARAM)) ||
+		Boolean(searchParams.get(DATE_END_PARAM));
+	const hasAmountFilter =
+		Boolean(searchParams.get(AMOUNT_MIN_PARAM)) ||
+		Boolean(searchParams.get(AMOUNT_MAX_PARAM));
+	const activeFilterCount = [
+		Boolean(searchParams.get("type")),
+		searchParams.getAll("condition").length > 0,
+		searchParams.getAll("payment").length > 0,
+		searchParams.getAll("payer").length > 0,
+		searchParams.getAll("category").length > 0,
+		searchParams.getAll("accountCard").length > 0,
+		Boolean(searchParams.get("settled")),
+		Boolean(searchParams.get("hasAttachment")),
+		Boolean(searchParams.get("isDivided")),
+		hasAmountFilter,
+		hasDateRangeFilter,
+	].filter(Boolean).length;
+	const hasActiveFilters = activeFilterCount > 0;
+	const settledFilterValue = searchParams.get("settled") ?? FILTER_EMPTY_VALUE;
 
 	const handleResetFilters = () => {
 		handleReset();
 		setDrawerOpen(false);
 	};
 
+	const handleResetDateRange = () => {
+		const nextParams = new URLSearchParams(searchParams.toString());
+		nextParams.delete(DATE_START_PARAM);
+		nextParams.delete(DATE_END_PARAM);
+		nextParams.delete("page");
+		startTransition(() => {
+			const target = nextParams.toString()
+				? `${pathname}?${nextParams.toString()}`
+				: pathname;
+			router.replace(target, { scroll: false });
+		});
+	};
+
+	const handleRemoveParams = (keys: string[]) => {
+		const nextParams = new URLSearchParams(searchParams.toString());
+		for (const key of keys) {
+			nextParams.delete(key);
+		}
+		nextParams.delete("page");
+
+		if (keys.includes(AMOUNT_MIN_PARAM)) {
+			setValorMinValue("");
+		}
+		if (keys.includes(AMOUNT_MAX_PARAM)) {
+			setValorMaxValue("");
+		}
+
+		startTransition(() => {
+			const target = nextParams.toString()
+				? `${pathname}?${nextParams.toString()}`
+				: pathname;
+			router.replace(target, { scroll: false });
+		});
+	};
+
+	const handleRemoveMultiValue = (key: string, value: string) => {
+		handleMultiFilterChange(
+			key,
+			getParamValues(key).filter((currentValue) => currentValue !== value),
+		);
+	};
+
+	const activeFilterChips: Array<{
+		key: string;
+		label: string;
+		onRemove: () => void;
+	}> = [];
+
+	const typeValue = searchParams.get("type");
+	if (typeValue) {
+		const label =
+			TRANSACTION_TYPES.find((value) => slugify(value) === typeValue) ??
+			typeValue;
+		activeFilterChips.push({
+			key: `type-${typeValue}`,
+			label: `Tipo: ${label}`,
+			onRemove: () => handleRemoveParams(["type"]),
+		});
+	}
+
+	const addMultiValueChips = (
+		param: string,
+		prefix: string,
+		options: MultiOption[],
+	) => {
+		const labels = new Map(
+			options.map((option) => [option.value, option.label]),
+		);
+		for (const value of getParamValues(param)) {
+			activeFilterChips.push({
+				key: `${param}-${value}`,
+				label: `${prefix}: ${labels.get(value) ?? value}`,
+				onRemove: () => handleRemoveMultiValue(param, value),
+			});
+		}
+	};
+
+	addMultiValueChips("condition", "Condição", conditionOptions);
+	addMultiValueChips("payment", "Pagamento", paymentOptions);
+	addMultiValueChips("payer", "Pessoa", payerMultiOptions);
+	addMultiValueChips("category", "Categoria", categoryMultiOptions);
+	addMultiValueChips("accountCard", "Conta/cartão", accountCardMultiOptions);
+
+	const settledValue = searchParams.get("settled");
+	if (settledValue) {
+		activeFilterChips.push({
+			key: `settled-${settledValue}`,
+			label:
+				settledValue === SETTLED_FILTER_VALUES.PAID
+					? "Status: Pago"
+					: "Status: Não pago",
+			onRemove: () => handleRemoveParams(["settled"]),
+		});
+	}
+
+	if (searchParams.get("hasAttachment") === "true") {
+		activeFilterChips.push({
+			key: "has-attachment",
+			label: "Com anexo",
+			onRemove: () => handleRemoveParams(["hasAttachment"]),
+		});
+	}
+
+	if (searchParams.get("isDivided") === "true") {
+		activeFilterChips.push({
+			key: "is-divided",
+			label: "Somente divididos",
+			onRemove: () => handleRemoveParams(["isDivided"]),
+		});
+	}
+
+	if (hasAmountFilter) {
+		const minValue = parsePositiveAmount(
+			searchParams.get(AMOUNT_MIN_PARAM) ?? "",
+		);
+		const maxValue = parsePositiveAmount(
+			searchParams.get(AMOUNT_MAX_PARAM) ?? "",
+		);
+		const label =
+			minValue !== null && maxValue !== null
+				? `Valor: ${formatCurrency(minValue)} até ${formatCurrency(maxValue)}`
+				: minValue !== null
+					? `Valor: a partir de ${formatCurrency(minValue)}`
+					: `Valor: até ${formatCurrency(maxValue ?? 0)}`;
+		activeFilterChips.push({
+			key: "amount-range",
+			label,
+			onRemove: () => handleRemoveParams([AMOUNT_MIN_PARAM, AMOUNT_MAX_PARAM]),
+		});
+	}
+
+	if (hasDateRangeFilter) {
+		const startValue = formatDateOnly(searchParams.get(DATE_START_PARAM));
+		const endValue = formatDateOnly(searchParams.get(DATE_END_PARAM));
+		const label =
+			startValue && endValue
+				? `Datas: ${startValue} até ${endValue}`
+				: startValue
+					? `Datas: a partir de ${startValue}`
+					: `Datas: até ${endValue}`;
+		activeFilterChips.push({
+			key: "date-range",
+			label,
+			onRemove: () => handleRemoveParams([DATE_START_PARAM, DATE_END_PARAM]),
+		});
+	}
+
 	return (
 		<div
+			aria-busy={isPending}
 			className={cn(
 				"flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center",
 				className,
@@ -553,7 +799,7 @@ export function TransactionsFilters({
 						aria-label="Limpar busca"
 						className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
-						<RiCloseLine className="size-4" />
+						<RiCloseLine className="size-4" aria-hidden />
 					</button>
 				) : null}
 			</div>
@@ -566,275 +812,401 @@ export function TransactionsFilters({
 				)}
 
 				{!hideAdvancedFilters && (
-					<Drawer
-						direction="right"
-						open={drawerOpen}
-						onOpenChange={setDrawerOpen}
-					>
-						<DrawerTrigger asChild>
-							<Button
-								variant="outline"
-								className="flex-1 md:flex-none text-sm border-dashed relative bg-transparent"
-								aria-label="Abrir filtros"
-							>
-								<RiFilterLine className="size-4" />
-								Filtros
-								{hasActiveFilters && (
-									<span className="absolute -top-1 -right-1 size-3 rounded-full bg-primary" />
-								)}
-							</Button>
-						</DrawerTrigger>
-						{hasActiveFilters && (
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								onClick={handleReset}
-								disabled={isPending}
-								aria-label="Limpar filtros"
-								className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
-							>
-								<RiCloseLine className="size-3.5" />
-								Limpar
-							</Button>
-						)}
-						<DrawerContent>
-							<DrawerHeader>
-								<DrawerTitle>Filtros</DrawerTitle>
-								<DrawerDescription>
-									Selecione os filtros desejados para refinar os lançamentos
-								</DrawerDescription>
-							</DrawerHeader>
-
-							<div className="flex-1 overflow-y-auto px-4 space-y-4">
-								<div className="space-y-2">
-									<label className="text-sm font-medium">
-										Tipo de Lançamento
-									</label>
-									<FilterSelect
-										param="type"
-										placeholder="Todos"
-										options={TRANSACTION_TYPES.map((v) => ({
-											value: slugify(v),
-											label: v,
-										}))}
-										widthClass="w-full border-dashed"
-										disabled={isPending}
-										getParamValue={getParamValue}
-										onChange={handleFilterChange}
-										renderContent={(label) => (
-											<TransactionTypeSelectContent label={label} />
+					<HoverCard openDelay={200} closeDelay={200}>
+						<Drawer
+							direction="right"
+							open={drawerOpen}
+							onOpenChange={setDrawerOpen}
+						>
+							<HoverCardTrigger asChild>
+								<DrawerTrigger asChild>
+									<Button
+										variant="outline"
+										className="flex-1 md:flex-none text-sm border-dashed relative bg-transparent"
+										aria-label={
+											isPending ? "Aplicando filtros" : "Abrir filtros"
+										}
+									>
+										{isPending ? (
+											<Spinner
+												className="size-4"
+												role="presentation"
+												aria-hidden
+											/>
+										) : (
+											<RiFilterLine className="size-4" aria-hidden />
 										)}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-sm font-medium">
-										Condição de Lançamento
-									</label>
-									<MultiSelectFilter
-										placeholder="Todas"
-										options={conditionOptions}
-										selected={getParamValues("condition")}
-										onChange={(values) =>
-											handleMultiFilterChange("condition", values)
-										}
-										disabled={isPending}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-sm font-medium">
-										Forma de Pagamento
-									</label>
-									<MultiSelectFilter
-										placeholder="Todas"
-										options={paymentOptions}
-										selected={getParamValues("payment")}
-										onChange={(values) =>
-											handleMultiFilterChange("payment", values)
-										}
-										disabled={isPending}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-sm font-medium">Pessoa</label>
-									<MultiSelectFilter
-										placeholder="Todas"
-										options={payerMultiOptions}
-										selected={getParamValues("payer")}
-										onChange={(values) =>
-											handleMultiFilterChange("payer", values)
-										}
-										disabled={isPending}
-										searchable
-										searchPlaceholder="Buscar pessoa..."
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-sm font-medium">Categoria</label>
-									<MultiSelectFilter
-										placeholder="Todas"
-										options={categoryMultiOptions}
-										selected={getParamValues("category")}
-										onChange={(values) =>
-											handleMultiFilterChange("category", values)
-										}
-										disabled={isPending}
-										searchable
-										searchPlaceholder="Buscar categoria..."
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-sm font-medium">Conta/Cartão</label>
-									<MultiSelectFilter
-										placeholder="Todos"
-										options={accountCardMultiOptions}
-										selected={getParamValues("accountCard")}
-										onChange={(values) =>
-											handleMultiFilterChange("accountCard", values)
-										}
-										disabled={isPending}
-										searchable
-										searchPlaceholder="Buscar conta ou cartão..."
-										groupOrder={["Contas", "Cartões"]}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-sm font-medium">Faixa de valor</label>
-									<div className="flex items-center gap-2">
-										<Input
-											type="number"
-											inputMode="decimal"
-											min="0"
-											step="0.01"
-											placeholder="Mínimo"
-											aria-label="Valor mínimo"
-											value={valorMinValue}
-											onChange={(event) => setValorMinValue(event.target.value)}
-											disabled={isPending}
-											className="text-sm border-dashed"
-										/>
-										<span className="text-xs text-muted-foreground">até</span>
-										<Input
-											type="number"
-											inputMode="decimal"
-											min="0"
-											step="0.01"
-											placeholder="Máximo"
-											aria-label="Valor máximo"
-											value={valorMaxValue}
-											onChange={(event) => setValorMaxValue(event.target.value)}
-											disabled={isPending}
-											className="text-sm border-dashed"
-										/>
-									</div>
-								</div>
-
-								<div className="space-y-3">
-									<p className="text-sm font-medium">Status</p>
-									<div className="space-y-3">
-										<div className="flex items-center justify-between">
-											<label
-												htmlFor="filter-pago"
-												className="text-sm text-muted-foreground cursor-pointer"
-											>
-												Somente pagos
-											</label>
-											<Switch
-												id="filter-pago"
-												checked={
-													searchParams.get("settled") ===
-													SETTLED_FILTER_VALUES.PAID
-												}
-												disabled={isPending}
-												onCheckedChange={(checked) => {
-													handleFilterChange(
-														"settled",
-														checked ? SETTLED_FILTER_VALUES.PAID : null,
-													);
-												}}
+										{isPending ? "Aplicando..." : "Filtros"}
+										{hasActiveFilters && (
+											<span
+												className="absolute -top-1 -right-1 size-3 rounded-full bg-primary"
+												aria-hidden
 											/>
-										</div>
-										<div className="flex items-center justify-between">
-											<label
-												htmlFor="filter-nao-pago"
-												className="text-sm text-muted-foreground cursor-pointer"
-											>
-												Somente não pagos
-											</label>
-											<Switch
-												id="filter-nao-pago"
-												checked={
-													searchParams.get("settled") ===
-													SETTLED_FILTER_VALUES.UNPAID
-												}
-												disabled={isPending}
-												onCheckedChange={(checked) => {
-													handleFilterChange(
-														"settled",
-														checked ? SETTLED_FILTER_VALUES.UNPAID : null,
-													);
-												}}
-											/>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex items-center justify-between">
-									<label
-										htmlFor="filter-has-attachment"
-										className="text-sm font-medium cursor-pointer"
-									>
-										Com anexo
-									</label>
-									<Switch
-										id="filter-has-attachment"
-										checked={searchParams.get("hasAttachment") === "true"}
-										disabled={isPending}
-										onCheckedChange={(checked) => {
-											handleFilterChange(
-												"hasAttachment",
-												checked ? "true" : null,
-											);
-										}}
-									/>
-								</div>
-
-								<div className="flex items-center justify-between">
-									<label
-										htmlFor="filter-is-divided"
-										className="text-sm font-medium cursor-pointer"
-									>
-										Somente divididos
-									</label>
-									<Switch
-										id="filter-is-divided"
-										checked={searchParams.get("isDivided") === "true"}
-										disabled={isPending}
-										onCheckedChange={(checked) => {
-											handleFilterChange("isDivided", checked ? "true" : null);
-										}}
-									/>
-								</div>
-							</div>
-
-							<DrawerFooter>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={handleResetFilters}
-									disabled={isPending || !hasActiveFilters}
+										)}
+									</Button>
+								</DrawerTrigger>
+							</HoverCardTrigger>
+							{activeFilterChips.length > 0 ? (
+								<HoverCardContent
+									align="end"
+									className="w-80 space-y-3"
+									aria-label="Filtros ativos"
 								>
-									Limpar filtros
-								</Button>
-							</DrawerFooter>
-						</DrawerContent>
-					</Drawer>
+									<div className="space-y-0.5">
+										<p className="text-sm font-medium">Filtros ativos</p>
+										<p className="text-xs text-muted-foreground">
+											Remova rapidamente o que não precisa mais.
+										</p>
+									</div>
+									<div className="flex flex-wrap gap-1.5">
+										{activeFilterChips.map((chip) => (
+											<ActiveFilterChip
+												key={chip.key}
+												label={chip.label}
+												onRemove={chip.onRemove}
+												disabled={isPending}
+											/>
+										))}
+									</div>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={handleReset}
+										disabled={isPending}
+										className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+									>
+										Limpar filtros
+									</Button>
+								</HoverCardContent>
+							) : null}
+							<DrawerContent>
+								<DrawerHeader>
+									<DrawerTitle>Filtros</DrawerTitle>
+									<DrawerDescription>
+										Selecione os filtros desejados para refinar os lançamentos
+									</DrawerDescription>
+								</DrawerHeader>
+
+								<div className="flex-1 overflow-y-auto px-4 space-y-4">
+									<div>
+										<div className="grid gap-3 sm:grid-cols-2">
+											<div className="space-y-1.5">
+												<label className="text-xs font-medium text-muted-foreground">
+													Tipo de lançamento
+												</label>
+												<FilterSelect
+													param="type"
+													placeholder="Todos"
+													options={TRANSACTION_TYPES.map((v) => ({
+														value: slugify(v),
+														label: v,
+													}))}
+													widthClass="w-full border-dashed"
+													disabled={isPending}
+													getParamValue={getParamValue}
+													onChange={handleFilterChange}
+													renderContent={(label) => (
+														<TransactionTypeSelectContent label={label} />
+													)}
+												/>
+											</div>
+
+											<div className="space-y-1.5">
+												<label className="text-xs font-medium text-muted-foreground">
+													Condição de pagamento
+												</label>
+												<MultiSelectFilter
+													placeholder="Todas"
+													options={conditionOptions}
+													selected={getParamValues("condition")}
+													onChange={(values) =>
+														handleMultiFilterChange("condition", values)
+													}
+													disabled={isPending}
+												/>
+											</div>
+
+											<div className="space-y-1.5">
+												<label className="text-xs font-medium text-muted-foreground">
+													Forma de pagamento
+												</label>
+												<MultiSelectFilter
+													placeholder="Todas"
+													options={paymentOptions}
+													selected={getParamValues("payment")}
+													onChange={(values) =>
+														handleMultiFilterChange("payment", values)
+													}
+													disabled={isPending}
+												/>
+											</div>
+
+											<div className="space-y-1.5">
+												<label className="text-xs font-medium text-muted-foreground">
+													Pessoa
+												</label>
+												<MultiSelectFilter
+													placeholder="Todas"
+													options={payerMultiOptions}
+													selected={getParamValues("payer")}
+													onChange={(values) =>
+														handleMultiFilterChange("payer", values)
+													}
+													disabled={isPending}
+													searchable
+													searchPlaceholder="Buscar pessoa..."
+												/>
+											</div>
+
+											<div className="space-y-1.5">
+												<label className="text-xs font-medium text-muted-foreground">
+													Categoria
+												</label>
+												<MultiSelectFilter
+													placeholder="Todas"
+													options={categoryMultiOptions}
+													selected={getParamValues("category")}
+													onChange={(values) =>
+														handleMultiFilterChange("category", values)
+													}
+													disabled={isPending}
+													searchable
+													searchPlaceholder="Buscar categoria..."
+													groupOrder={["Despesas", "Receitas", "Outras"]}
+												/>
+											</div>
+
+											<div className="space-y-1.5">
+												<label className="text-xs font-medium text-muted-foreground">
+													Conta/Cartão
+												</label>
+												<MultiSelectFilter
+													placeholder="Todos"
+													options={accountCardMultiOptions}
+													selected={getParamValues("accountCard")}
+													onChange={(values) =>
+														handleMultiFilterChange("accountCard", values)
+													}
+													disabled={isPending}
+													searchable
+													searchPlaceholder="Buscar conta ou cartão..."
+													groupOrder={["Contas", "Cartões"]}
+												/>
+											</div>
+										</div>
+									</div>
+
+									<Separator />
+
+									<div className="space-y-3">
+										<div className="space-y-2">
+											<div className="flex items-center justify-between gap-2">
+												<label className="text-xs font-medium text-muted-foreground">
+													Intervalo de datas
+												</label>
+												{hasDateRangeFilter ? (
+													<button
+														type="button"
+														onClick={handleResetDateRange}
+														disabled={isPending}
+														className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:pointer-events-none disabled:opacity-50"
+													>
+														Limpar período
+													</button>
+												) : null}
+											</div>
+											<div className="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+												<DatePicker
+													value={searchParams.get(DATE_START_PARAM) ?? ""}
+													onChange={(value) =>
+														handleDateFilterChange(DATE_START_PARAM, value)
+													}
+													placeholder="Data inicial"
+													disabled={isPending}
+													inputClassName="border-dashed"
+													compact
+												/>
+												<span className="hidden text-xs text-muted-foreground sm:block">
+													até
+												</span>
+												<DatePicker
+													value={searchParams.get(DATE_END_PARAM) ?? ""}
+													onChange={(value) =>
+														handleDateFilterChange(DATE_END_PARAM, value)
+													}
+													placeholder="Data final"
+													disabled={isPending}
+													inputClassName="border-dashed"
+													compact
+												/>
+											</div>
+										</div>
+
+										<div className="space-y-2">
+											<label className="text-xs font-medium text-muted-foreground">
+												Faixa de valor
+											</label>
+											<div className="flex items-center gap-2">
+												<Input
+													type="number"
+													inputMode="decimal"
+													min="0"
+													step="0.01"
+													placeholder="Mínimo"
+													aria-label="Valor mínimo"
+													value={valorMinValue}
+													onChange={(event) =>
+														setValorMinValue(event.target.value)
+													}
+													disabled={isPending}
+													className="text-sm border-dashed"
+												/>
+												<span className="text-xs text-muted-foreground">
+													até
+												</span>
+												<Input
+													type="number"
+													inputMode="decimal"
+													min="0"
+													step="0.01"
+													placeholder="Máximo"
+													aria-label="Valor máximo"
+													value={valorMaxValue}
+													onChange={(event) =>
+														setValorMaxValue(event.target.value)
+													}
+													disabled={isPending}
+													className="text-sm border-dashed"
+												/>
+											</div>
+										</div>
+									</div>
+
+									<Separator />
+
+									<div className="space-y-3">
+										<ToggleGroup
+											type="single"
+											value={settledFilterValue}
+											onValueChange={(value) => {
+												if (!value) return;
+												handleFilterChange(
+													"settled",
+													value === FILTER_EMPTY_VALUE ? null : value,
+												);
+											}}
+											variant="outline"
+											size="sm"
+											className="grid w-full grid-cols-3 rounded-md bg-muted/30 p-0.5"
+											aria-label="Status de pagamento"
+										>
+											<ToggleGroupItem
+												value={FILTER_EMPTY_VALUE}
+												className="text-xs font-medium transition-all data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-sm"
+											>
+												Todos
+											</ToggleGroupItem>
+											<ToggleGroupItem
+												value={SETTLED_FILTER_VALUES.PAID}
+												className="text-xs font-medium transition-all data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-sm"
+											>
+												Pagos
+											</ToggleGroupItem>
+											<ToggleGroupItem
+												value={SETTLED_FILTER_VALUES.UNPAID}
+												className="text-xs font-medium transition-all data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-sm"
+											>
+												Não pagos
+											</ToggleGroupItem>
+										</ToggleGroup>
+									</div>
+
+									<div className="flex items-center justify-between">
+										<label
+											htmlFor="filter-has-attachment"
+											className="text-sm font-medium cursor-pointer"
+										>
+											Com anexo
+										</label>
+										<Switch
+											id="filter-has-attachment"
+											checked={searchParams.get("hasAttachment") === "true"}
+											disabled={isPending}
+											onCheckedChange={(checked) => {
+												handleFilterChange(
+													"hasAttachment",
+													checked ? "true" : null,
+												);
+											}}
+										/>
+									</div>
+
+									<div className="flex items-center justify-between">
+										<label
+											htmlFor="filter-is-divided"
+											className="text-sm font-medium cursor-pointer"
+										>
+											Somente divididos
+										</label>
+										<Switch
+											id="filter-is-divided"
+											checked={searchParams.get("isDivided") === "true"}
+											disabled={isPending}
+											onCheckedChange={(checked) => {
+												handleFilterChange(
+													"isDivided",
+													checked ? "true" : null,
+												);
+											}}
+										/>
+									</div>
+								</div>
+
+								<DrawerFooter>
+									<div className="flex items-center justify-between gap-3 rounded-md border border-dashed px-3 py-2">
+										<div className="flex min-w-0 flex-col gap-0.5">
+											<span
+												className="text-xs text-muted-foreground"
+												aria-live="polite"
+											>
+												{hasActiveFilters
+													? `${activeFilterCount} ${
+															activeFilterCount === 1
+																? "filtro ativo"
+																: "filtros ativos"
+														}`
+													: "Nenhum filtro ativo"}
+											</span>
+											{isPending ? (
+												<span
+													className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+													role="status"
+												>
+													<Spinner
+														className="size-3"
+														role="presentation"
+														aria-hidden
+													/>
+													Aplicando filtros...
+												</span>
+											) : null}
+										</div>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											onClick={handleResetFilters}
+											disabled={isPending || !hasActiveFilters}
+											className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+										>
+											Limpar
+										</Button>
+									</div>
+								</DrawerFooter>
+							</DrawerContent>
+						</Drawer>
+					</HoverCard>
 				)}
 			</div>
 		</div>

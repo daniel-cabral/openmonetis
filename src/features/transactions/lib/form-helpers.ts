@@ -73,6 +73,7 @@ export type TransactionFormState = {
 	paymentMethod: string;
 	payerId: string | undefined;
 	secondaryPayerId: string | undefined;
+	splitShares: Array<{ payerId: string; amount: string }>;
 	isSplit: boolean;
 	primarySplitAmount: string;
 	secondarySplitAmount: string;
@@ -80,6 +81,7 @@ export type TransactionFormState = {
 	cardId: string | undefined;
 	categoryId: string | undefined;
 	installmentCount: string;
+	startInstallment: string;
 	recurrenceCount: string;
 	dueDate: string;
 	boletoPaymentDate: string;
@@ -92,6 +94,7 @@ export type TransactionFormState = {
  */
 type TransactionFormOverrides = {
 	defaultCardId?: string | null;
+	defaultAccountId?: string | null;
 	defaultPaymentMethod?: string | null;
 	defaultPurchaseDate?: string | null;
 	defaultName?: string | null;
@@ -169,6 +172,7 @@ export function buildTransactionInitialState(
 		paymentMethod,
 		payerId: fallbackPayerId ?? undefined,
 		secondaryPayerId: undefined,
+		splitShares: [],
 		isSplit: false,
 
 		primarySplitAmount: "",
@@ -178,7 +182,9 @@ export function buildTransactionInitialState(
 				? undefined
 				: isImporting
 					? undefined
-					: (transaction?.accountId ?? undefined),
+					: (transaction?.accountId ??
+						overrides?.defaultAccountId ??
+						undefined),
 		cardId:
 			paymentMethod === "Cartão de crédito"
 				? isImporting
@@ -191,6 +197,12 @@ export function buildTransactionInitialState(
 		installmentCount: transaction?.installmentCount
 			? String(transaction.installmentCount)
 			: "",
+		startInstallment:
+			isImporting &&
+			transaction?.condition === "Parcelado" &&
+			transaction.currentInstallment
+				? String(transaction.currentInstallment)
+				: "1",
 		recurrenceCount: transaction?.recurrenceCount
 			? String(transaction.recurrenceCount)
 			: "",
@@ -252,9 +264,22 @@ export function applyFieldDependencies(
 	if (key === "condition" && typeof value === "string") {
 		if (value !== "Parcelado") {
 			updates.installmentCount = "";
+			updates.startInstallment = "1";
 		}
 		if (value !== "Recorrente") {
 			updates.recurrenceCount = "";
+		}
+	}
+
+	if (key === "installmentCount" && typeof value === "string" && value) {
+		const nextCount = Number.parseInt(value, 10);
+		const currentStart = Number.parseInt(currentState.startInstallment, 10);
+		if (
+			!Number.isNaN(nextCount) &&
+			!Number.isNaN(currentStart) &&
+			currentStart > nextCount
+		) {
+			updates.startInstallment = String(nextCount);
 		}
 	}
 
@@ -309,6 +334,7 @@ export function applyFieldDependencies(
 	// When split is disabled, clear secondary pagador and split fields
 	if (key === "isSplit" && value === false) {
 		updates.secondaryPayerId = undefined;
+		updates.splitShares = [];
 		updates.primarySplitAmount = "";
 		updates.secondarySplitAmount = "";
 	}
@@ -317,9 +343,8 @@ export function applyFieldDependencies(
 	if (key === "isSplit" && value === true) {
 		const totalAmount = Number.parseFloat(currentState.amount) || 0;
 		if (totalAmount > 0) {
-			const half = (totalAmount / 2).toFixed(2);
-			updates.primarySplitAmount = half;
-			updates.secondarySplitAmount = half;
+			updates.primarySplitAmount = totalAmount.toFixed(2);
+			updates.secondarySplitAmount = "";
 		}
 	}
 
@@ -327,12 +352,20 @@ export function applyFieldDependencies(
 	if (key === "amount" && typeof value === "string" && currentState.isSplit) {
 		const totalAmount = Number.parseFloat(value) || 0;
 		if (totalAmount > 0) {
-			const half = (totalAmount / 2).toFixed(2);
-			updates.primarySplitAmount = half;
-			updates.secondarySplitAmount = half;
+			const otherTotal = currentState.splitShares.reduce(
+				(total, share) => total + (Number.parseFloat(share.amount) || 0),
+				0,
+			);
+			updates.primarySplitAmount = Math.max(
+				0,
+				totalAmount - otherTotal,
+			).toFixed(2);
 		} else {
 			updates.primarySplitAmount = "";
-			updates.secondarySplitAmount = "";
+			updates.splitShares = currentState.splitShares.map((share) => ({
+				...share,
+				amount: "",
+			}));
 		}
 	}
 
@@ -341,6 +374,23 @@ export function applyFieldDependencies(
 		const secondaryValue = currentState.secondaryPayerId;
 		if (secondaryValue && secondaryValue === value) {
 			updates.secondaryPayerId = undefined;
+		}
+		if (currentState.splitShares.some((share) => share.payerId === value)) {
+			const nextShares = currentState.splitShares.filter(
+				(share) => share.payerId !== value,
+			);
+			updates.splitShares = nextShares;
+			if (currentState.isSplit) {
+				const totalAmount = Number.parseFloat(currentState.amount) || 0;
+				const otherTotal = nextShares.reduce(
+					(total, share) => total + (Number.parseFloat(share.amount) || 0),
+					0,
+				);
+				updates.primarySplitAmount = Math.max(
+					0,
+					totalAmount - otherTotal,
+				).toFixed(2);
+			}
 		}
 	}
 

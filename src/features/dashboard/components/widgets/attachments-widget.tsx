@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { AttachmentPreview } from "@/features/attachments/components/attachment-preview";
 import type { AttachmentForPeriod } from "@/features/attachments/queries";
+import { dashboardWidgetListStyles as styles } from "@/features/dashboard/components/dashboard-widget-list-styles";
 import {
 	Tooltip,
 	TooltipContent,
@@ -77,7 +78,7 @@ export function AttachmentsWidget({ snapshot }: AttachmentsWidgetProps) {
 							<button
 								type="button"
 								onClick={() => setSelectedIndex(index)}
-								className="flex w-full items-center gap-2 py-2 text-left"
+								className={`${styles.row} w-full text-left`}
 							>
 								<div className="shrink-0">
 									{isPdf && <RiFilePdf2Line className="size-6 text-red-500" />}
@@ -86,10 +87,10 @@ export function AttachmentsWidget({ snapshot }: AttachmentsWidgetProps) {
 										<RiFileLine className="size-6 text-muted-foreground" />
 									)}
 								</div>
-								<div className="min-w-0 flex-1">
+								<div className={styles.textStack}>
 									<Tooltip>
 										<TooltipTrigger asChild>
-											<span className="block truncate text-sm font-medium text-foreground hover:underline">
+											<span className={`${styles.title} block hover:underline`}>
 												{attachment.fileName}
 											</span>
 										</TooltipTrigger>
@@ -97,18 +98,18 @@ export function AttachmentsWidget({ snapshot }: AttachmentsWidgetProps) {
 											{attachment.fileName}
 										</TooltipContent>
 									</Tooltip>
-									<span className="block truncate text-xs text-muted-foreground">
+									<span className={`${styles.meta} block truncate`}>
 										{attachment.transactionName}
 									</span>
 								</div>
-								<div className="shrink-0 text-right">
-									<span className="block text-xs text-muted-foreground">
+								<div className={styles.trailing}>
+									<span className="block text-xs leading-4 text-muted-foreground">
 										{formatDateOnly(attachment.purchaseDate, {
 											day: "2-digit",
 											month: "2-digit",
 										}) ?? "—"}
 									</span>
-									<span className="block text-xs text-muted-foreground/60">
+									<span className="block text-xs leading-4 text-muted-foreground/60">
 										{formatBytes(attachment.fileSize)}
 									</span>
 								</div>

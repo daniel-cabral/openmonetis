@@ -154,6 +154,15 @@ export const userPreferences = pgTable("preferencias_usuario", {
 		string[] | null
 	>(),
 	attachmentMaxSizeMb: integer("attachment_max_size_mb").notNull().default(50),
+	showTransactionSummary: boolean("mostrar_resumo_lancamento")
+		.notNull()
+		.default(true),
+	groupTransactionsByDate: boolean("agrupar_lancamentos_por_data")
+		.notNull()
+		.default(true),
+	hideAnticipatedInstallments: boolean("ocultar_parcelas_antecipadas")
+		.notNull()
+		.default(false),
 	dashboardWidgets: jsonb("dashboard_widgets").$type<{
 		order: string[];
 		hidden: string[];
@@ -495,7 +504,7 @@ export const inboxItems = pgTable(
 			withTimezone: true,
 		}).notNull(),
 
-		// Dados parseados (editáveis pelo usuário antes de processar)
+		// Dados parseados (editáveis pelo usuário antes de lançar)
 		parsedName: text("parsed_name"), // Nome do estabelecimento
 		parsedAmount: numeric("parsed_amount", { precision: 12, scale: 2 }),
 
@@ -844,11 +853,12 @@ export const budgetsRelations = relations(budgets, ({ one }) => ({
 	}),
 }));
 
-export const notesRelations = relations(notes, ({ one }) => ({
+export const notesRelations = relations(notes, ({ one, many }) => ({
 	user: one(user, {
 		fields: [notes.userId],
 		references: [user.id],
 	}),
+	noteAttachments: many(noteAttachments),
 }));
 
 export const savedInsightsRelations = relations(savedInsights, ({ one }) => ({
@@ -969,6 +979,24 @@ export const transactionAttachments = pgTable(
 	}),
 );
 
+export const noteAttachments = pgTable(
+	"anotacao_anexos",
+	{
+		noteId: uuid("anotacao_id")
+			.notNull()
+			.references(() => notes.id, { onDelete: "cascade" }),
+		attachmentId: uuid("anexo_id")
+			.notNull()
+			.references(() => attachments.id, { onDelete: "cascade" }),
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.noteId, table.attachmentId] }),
+		attachmentIdIdx: index("anotacao_anexos_anexo_id_idx").on(
+			table.attachmentId,
+		),
+	}),
+);
+
 export const importCategoryMappings = pgTable(
 	"import_category_mappings",
 	{
@@ -1041,6 +1069,7 @@ export const attachmentsRelations = relations(attachments, ({ one, many }) => ({
 		references: [user.id],
 	}),
 	transactionAttachments: many(transactionAttachments),
+	noteAttachments: many(noteAttachments),
 }));
 
 export const transactionAttachmentsRelations = relations(
@@ -1057,8 +1086,23 @@ export const transactionAttachmentsRelations = relations(
 	}),
 );
 
+export const noteAttachmentsRelations = relations(
+	noteAttachments,
+	({ one }) => ({
+		note: one(notes, {
+			fields: [noteAttachments.noteId],
+			references: [notes.id],
+		}),
+		attachment: one(attachments, {
+			fields: [noteAttachments.attachmentId],
+			references: [attachments.id],
+		}),
+	}),
+);
+
 export type Attachment = typeof attachments.$inferSelect;
 export type TransactionAttachment = typeof transactionAttachments.$inferSelect;
+export type NoteAttachment = typeof noteAttachments.$inferSelect;
 
 export const establishmentLogosRelations = relations(
 	establishmentLogos,

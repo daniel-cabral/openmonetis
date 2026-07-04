@@ -4,9 +4,10 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { transactions } from "@/db/schema";
 import {
+	fetchOwnedCategoryIds,
+	fetchOwnedPayerIds,
 	validateCartaoOwnership,
 	validateContaOwnership,
-	validatePayerOwnership,
 } from "@/features/transactions/actions/core";
 import { revalidateForEntity } from "@/shared/lib/actions/helpers";
 import { getUserId } from "@/shared/lib/auth/server";
@@ -21,6 +22,7 @@ const importRowSchema = z.object({
 	description: z.string().min(1, "Descrição obrigatória."),
 	transactionType: z.enum(["income", "expense"]),
 	categoryId: uuidSchema("Category").nullable().optional(),
+	payerId: uuidSchema("Payer").nullable().optional(),
 });
 
 const importSchema = z.object({
@@ -76,14 +78,34 @@ export async function importTransactionsAction(
 	const { rows, payerId, accountId, cardId, paymentMethod, invoicePeriod } =
 		parsed.data;
 
-	// Valida ownership
-	const [payerOk, accountOk, cardOk] = await Promise.all([
-		validatePayerOwnership(userId, payerId),
-		validateContaOwnership(userId, accountId),
-		validateCartaoOwnership(userId, cardId),
-	]);
+	const payerIdsByRow = rows.map((row) => row.payerId ?? payerId ?? null);
 
-	if (!payerOk) return { success: false, error: "Pessoa não encontrada." };
+	if (payerIdsByRow.some((id) => !id)) {
+		return { success: false, error: "Pessoa obrigatória." };
+	}
+
+	// Valida ownership
+	const [ownedPayerIds, ownedCategoryIds, accountOk, cardOk] =
+		await Promise.all([
+			fetchOwnedPayerIds(userId, payerIdsByRow),
+			fetchOwnedCategoryIds(
+				userId,
+				rows.map((row) => row.categoryId),
+			),
+			validateContaOwnership(userId, accountId),
+			validateCartaoOwnership(userId, cardId),
+		]);
+
+	if (payerIdsByRow.some((id) => id && !ownedPayerIds.has(id))) {
+		return { success: false, error: "Pessoa não encontrada." };
+	}
+
+	if (
+		rows.some((row) => row.categoryId && !ownedCategoryIds.has(row.categoryId))
+	) {
+		return { success: false, error: "Categoria não encontrada." };
+	}
+
 	if (!accountOk) return { success: false, error: "Conta não encontrada." };
 	if (!cardOk) return { success: false, error: "Cartão não encontrado." };
 
@@ -96,7 +118,7 @@ export async function importTransactionsAction(
 	// Cartão de crédito: fatura pode ainda não ter sido paga
 	const isSettled = paymentMethod !== "Cartão de crédito";
 
-	const records = rows.map((row) => {
+	const records = rows.map((row, index) => {
 		const purchaseDate = parseLocalDateString(row.date);
 		const period =
 			invoicePeriod ??
@@ -115,7 +137,7 @@ export async function importTransactionsAction(
 			period,
 			isSettled,
 			userId,
-			payerId: payerId ?? null,
+			payerId: payerIdsByRow[index],
 			accountId: accountId ?? null,
 			cardId: cardId ?? null,
 			categoryId: row.categoryId ?? null,

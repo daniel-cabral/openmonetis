@@ -1,28 +1,13 @@
 import {
 	RiAttachment2,
-	RiBankCard2Line,
 	RiChat1Line,
-	RiCheckboxBlankCircleLine,
-	RiCheckboxCircleFill,
-	RiCheckLine,
-	RiDeleteBin5Line,
-	RiFileCopyLine,
-	RiFileList2Line,
 	RiGroupLine,
-	RiHistoryLine,
-	RiMoreFill,
-	RiPencilLine,
-	RiRefundLine,
 	RiTimeLine,
 } from "@remixicon/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import Link from "next/link";
 import { DEFAULT_TRANSACTIONS_COLUMN_ORDER } from "@/features/transactions/lib/column-order";
-import {
-	CREDIT_CARD_PAYMENT_METHOD,
-	SETTLEABLE_PAYMENT_METHODS,
-} from "@/features/transactions/lib/constants";
 import {
 	CategoryIconBadge,
 	EstablishmentLogo,
@@ -35,28 +20,20 @@ import {
 	AvatarImage,
 } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
-import { Spinner } from "@/shared/components/ui/spinner";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { REFUND_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
 import { resolveLogoSrc } from "@/shared/lib/logo";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
 import { formatDate } from "@/shared/utils/date";
 import { getConditionIcon, getPaymentMethodIcon } from "@/shared/utils/icons";
 import { cn } from "@/shared/utils/ui";
 import type { TransactionItem } from "../types";
+import { TransactionActionsMenu } from "./transaction-actions-menu";
+import { TransactionSettlementButton } from "./transaction-settlement-button";
 
 type BuildColumnsArgs = {
 	currentUserId: string;
@@ -70,8 +47,11 @@ type BuildColumnsArgs = {
 	onToggleSettlement?: (item: TransactionItem) => void;
 	onAnticipate?: (item: TransactionItem) => void;
 	onViewAnticipationHistory?: (item: TransactionItem) => void;
+	onConvertToInstallment?: (item: TransactionItem) => void;
+	onConvertToRecurring?: (item: TransactionItem) => void;
 	isSettlementLoading: (id: string) => boolean;
 	showActions: boolean;
+	showDateGroups: boolean;
 	columnOrder?: string[] | null;
 };
 
@@ -132,8 +112,11 @@ function buildColumns({
 	onToggleSettlement,
 	onAnticipate,
 	onViewAnticipationHistory,
+	onConvertToInstallment,
+	onConvertToRecurring,
 	isSettlementLoading,
 	showActions,
+	showDateGroups,
 }: BuildColumnsArgs): ColumnDef<TransactionItem>[] {
 	const noop = () => undefined;
 	const handleEdit = onEdit ?? noop;
@@ -145,6 +128,8 @@ function buildColumns({
 	const handleToggleSettlement = onToggleSettlement ?? noop;
 	const handleAnticipate = onAnticipate ?? noop;
 	const handleViewAnticipationHistory = onViewAnticipationHistory ?? noop;
+	const handleConvertToInstallment = onConvertToInstallment ?? noop;
+	const handleConvertToRecurring = onConvertToRecurring ?? noop;
 
 	const columns: ColumnDef<TransactionItem>[] = [
 		{
@@ -162,6 +147,7 @@ function buildColumns({
 			cell: ({ row }) => (
 				<Checkbox
 					checked={row.getIsSelected()}
+					disabled={!row.getCanSelect()}
 					onCheckedChange={(value) => row.toggleSelected(!!value)}
 					aria-label="Selecionar linha"
 				/>
@@ -210,12 +196,14 @@ function buildColumns({
 					<span className="flex items-center gap-2">
 						<EstablishmentLogo name={name} size={32} />
 						<span className="flex flex-col py-0.5">
-							<span className="text-xs text-muted-foreground flex items-center gap-2">
-								{formatDate(purchaseDate)}
-								{dueDateLabel ? (
-									<span className="text-primary">{dueDateLabel}</span>
-								) : null}
-							</span>
+							{showDateGroups ? null : (
+								<span className="text-xs text-muted-foreground flex items-center gap-2">
+									{formatDate(purchaseDate)}
+									{dueDateLabel ? (
+										<span className="text-primary">{dueDateLabel}</span>
+									) : null}
+								</span>
+							)}
 							<span className="flex items-center gap-1">
 								<Tooltip>
 									<TooltipTrigger asChild>
@@ -267,6 +255,15 @@ function buildColumns({
 								{installmentBadge ? (
 									<Badge variant="outline" className="px-2 text-xs">
 										{installmentBadge}
+									</Badge>
+								) : null}
+
+								{showDateGroups && dueDateLabel ? (
+									<Badge
+										variant="outline"
+										className="px-2 text-xs text-primary"
+									>
+										{dueDateLabel}
 									</Badge>
 								) : null}
 
@@ -426,7 +423,7 @@ function buildColumns({
 				const initial = displayName.charAt(0).toUpperCase() || "?";
 				const content = (
 					<>
-						<Avatar className="size-7">
+						<Avatar className="size-8">
 							<AvatarImage src={avatarSrc} alt={`Avatar de ${label}`} />
 							<AvatarFallback className="text-xs font-medium uppercase">
 								{initial}
@@ -477,15 +474,21 @@ function buildColumns({
 				const content = (
 					<span className="inline-flex items-center gap-2">
 						{logoSrc && (
-							<Image
-								src={logoSrc}
-								alt={`Logo de ${label}`}
-								width={30}
-								height={30}
-								className="rounded-full"
-							/>
+							<Avatar className="size-8">
+								<AvatarImage src={logoSrc} alt={`Logo de ${label}`} />
+								<AvatarFallback className="text-xs font-medium uppercase">
+									{label}
+								</AvatarFallback>
+							</Avatar>
 						)}
-						<span className="truncate">{label}</span>
+						<span
+							className={cn(
+								"truncate underline-offset-2",
+								isOwnData && href && "group-hover:underline",
+							)}
+						>
+							{label}
+						</span>
 					</span>
 				);
 
@@ -503,7 +506,7 @@ function buildColumns({
 				return (
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Link href={href} className="hover:underline">
+							<Link href={href} className="group">
 								{content}
 							</Link>
 						</TooltipTrigger>
@@ -545,195 +548,29 @@ function buildColumns({
 			enableSorting: false,
 			cell: ({ row }) => (
 				<div className="flex items-center gap-2">
-					{(() => {
-						const paymentMethod = row.original.paymentMethod;
-						const isCreditCard = paymentMethod === CREDIT_CARD_PAYMENT_METHOD;
-						const canToggleSettlement = (
-							SETTLEABLE_PAYMENT_METHODS as readonly string[]
-						).includes(paymentMethod);
-
-						if (!canToggleSettlement && !isCreditCard) return null;
-
-						if (isCreditCard) {
-							const invoicePaid = Boolean(row.original.isSettled);
-							return (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<span className="inline-flex">
-											<Button
-												variant="ghost"
-												size="icon-sm"
-												disabled
-												className={cn(
-													"transition-colors",
-													invoicePaid
-														? "bg-success/10 text-success"
-														: "text-muted-foreground/30",
-												)}
-											>
-												{invoicePaid ? (
-													<RiCheckboxCircleFill className="size-4" />
-												) : (
-													<RiBankCard2Line className="size-4" />
-												)}
-												<span className="sr-only">
-													{invoicePaid
-														? "Fatura paga"
-														: "Lançamento de cartão de crédito"}
-												</span>
-											</Button>
-										</span>
-									</TooltipTrigger>
-									<TooltipContent side="top" className="max-w-48 text-center">
-										{invoicePaid
-											? "Fatura paga"
-											: "Lançamentos de cartão de crédito são liquidados ao pagar a fatura"}
-									</TooltipContent>
-								</Tooltip>
-							);
+					<TransactionSettlementButton
+						item={row.original}
+						isLoading={isSettlementLoading(row.original.id)}
+						onToggle={handleToggleSettlement}
+					/>
+					<TransactionActionsMenu
+						item={row.original}
+						currentUserId={currentUserId}
+						onEdit={handleEdit}
+						onCopy={handleCopy}
+						onImport={handleImport}
+						onConfirmDelete={handleConfirmDelete}
+						onViewDetails={handleViewDetails}
+						onRefund={handleRefund}
+						onAnticipate={handleAnticipate}
+						onViewAnticipationHistory={handleViewAnticipationHistory}
+						onConvertToInstallment={
+							onConvertToInstallment ? handleConvertToInstallment : undefined
 						}
-
-						const readOnly = row.original.readonly;
-						const loading = isSettlementLoading(row.original.id);
-						const settled = Boolean(row.original.isSettled);
-
-						return (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon-sm"
-										onClick={() => handleToggleSettlement(row.original)}
-										disabled={loading || readOnly}
-										className={cn(
-											"transition-colors",
-											settled
-												? "bg-success/10 text-success hover:bg-success/20 hover:text-success"
-												: "text-muted-foreground hover:text-foreground",
-										)}
-									>
-										{loading ? (
-											<Spinner className="size-4" />
-										) : settled ? (
-											<RiCheckboxCircleFill className="size-4" />
-										) : (
-											<RiCheckboxBlankCircleLine className="size-4" />
-										)}
-										<span className="sr-only">
-											{settled ? "Desfazer pagamento" : "Marcar como pago"}
-										</span>
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent side="top">
-									{settled ? "Desfazer pagamento" : "Marcar como pago"}
-								</TooltipContent>
-							</Tooltip>
-						);
-					})()}
-
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="icon-sm">
-								<RiMoreFill className="size-4" />
-								<span className="sr-only">Abrir ações do lançamento</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-44">
-							<DropdownMenuItem
-								onSelect={() => handleViewDetails(row.original)}
-							>
-								<RiFileList2Line className="size-4" />
-								Detalhes
-							</DropdownMenuItem>
-							{row.original.userId === currentUserId && (
-								<DropdownMenuItem
-									onSelect={() => handleEdit(row.original)}
-									disabled={row.original.readonly}
-								>
-									<RiPencilLine className="size-4" />
-									Editar
-								</DropdownMenuItem>
-							)}
-							{row.original.categoriaName !== "Pagamentos" &&
-								row.original.userId === currentUserId && (
-									<DropdownMenuItem onSelect={() => handleCopy(row.original)}>
-										<RiFileCopyLine className="size-4" />
-										Copiar
-									</DropdownMenuItem>
-								)}
-							{row.original.categoriaName !== "Pagamentos" &&
-								row.original.userId !== currentUserId && (
-									<DropdownMenuItem onSelect={() => handleImport(row.original)}>
-										<RiFileCopyLine className="size-4" />
-										Importar para Minha Conta
-									</DropdownMenuItem>
-								)}
-							{(() => {
-								const item = row.original;
-								const canRefund =
-									item.userId === currentUserId &&
-									item.transactionType === "Despesa" &&
-									item.condition === "À vista" &&
-									!item.splitGroupId &&
-									!item.readonly &&
-									!item.note?.startsWith(REFUND_NOTE_PREFIX);
-
-								if (!canRefund) return null;
-
-								return (
-									<DropdownMenuItem onSelect={() => handleRefund(item)}>
-										<RiRefundLine className="size-4" />
-										Reembolso
-									</DropdownMenuItem>
-								);
-							})()}
-							{row.original.userId === currentUserId && (
-								<DropdownMenuItem
-									variant="destructive"
-									onSelect={() => handleConfirmDelete(row.original)}
-									disabled={row.original.readonly}
-								>
-									<RiDeleteBin5Line className="size-4" />
-									Remover
-								</DropdownMenuItem>
-							)}
-
-							{row.original.userId === currentUserId &&
-								row.original.condition === "Parcelado" &&
-								row.original.seriesId && (
-									<>
-										<DropdownMenuSeparator />
-
-										{!row.original.isAnticipated && onAnticipate && (
-											<DropdownMenuItem
-												onSelect={() => handleAnticipate(row.original)}
-											>
-												<RiTimeLine className="size-4" />
-												Antecipar Parcelas
-											</DropdownMenuItem>
-										)}
-
-										{onViewAnticipationHistory && (
-											<DropdownMenuItem
-												onSelect={() =>
-													handleViewAnticipationHistory(row.original)
-												}
-											>
-												<RiHistoryLine className="size-4" />
-												Histórico de Antecipações
-											</DropdownMenuItem>
-										)}
-
-										{row.original.isAnticipated && (
-											<DropdownMenuItem disabled>
-												<RiCheckLine className="size-4 text-success" />
-												Parcela Antecipada
-											</DropdownMenuItem>
-										)}
-									</>
-								)}
-						</DropdownMenuContent>
-					</DropdownMenu>
+						onConvertToRecurring={
+							onConvertToRecurring ? handleConvertToRecurring : undefined
+						}
+					/>
 				</div>
 			),
 		});

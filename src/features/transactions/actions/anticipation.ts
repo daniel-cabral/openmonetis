@@ -26,6 +26,7 @@ import type {
 import { uuidSchema } from "@/shared/lib/schemas/common";
 import type { ActionResult } from "@/shared/lib/types/actions";
 import { formatDecimalForDbRequired } from "@/shared/utils/currency";
+import { comparePeriods } from "@/shared/utils/period";
 
 /**
  * Schema de validação para criar antecipação
@@ -63,14 +64,18 @@ const cancelAnticipationSchema = z.object({
  */
 export async function getEligibleInstallmentsAction(
 	seriesId: string,
+	anticipationPeriod: string,
 ): Promise<ActionResult<EligibleInstallment[]>> {
 	try {
 		const user = await getUser();
 
 		// Validar seriesId
 		const validatedSeriesId = uuidSchema("Série").parse(seriesId);
+		const validatedAnticipationPeriod =
+			createAnticipationSchema.shape.anticipationPeriod.parse(
+				anticipationPeriod,
+			);
 
-		// Buscar todas as parcelas da série que estão elegíveis
 		const rows = await db.query.transactions.findMany({
 			where: and(
 				eq(transactions.seriesId, validatedSeriesId),
@@ -96,19 +101,23 @@ export async function getEligibleInstallmentsAction(
 			},
 		});
 
-		const eligibleInstallments: EligibleInstallment[] = rows.map((row) => ({
-			id: row.id,
-			name: row.name,
-			amount: row.amount,
-			period: row.period,
-			purchaseDate: row.purchaseDate,
-			dueDate: row.dueDate,
-			currentInstallment: row.currentInstallment,
-			installmentCount: row.installmentCount,
-			paymentMethod: row.paymentMethod,
-			categoryId: row.categoryId,
-			payerId: row.payerId,
-		}));
+		const eligibleInstallments: EligibleInstallment[] = rows
+			.filter(
+				(row) => comparePeriods(row.period, validatedAnticipationPeriod) > 0,
+			)
+			.map((row) => ({
+				id: row.id,
+				name: row.name,
+				amount: row.amount,
+				period: row.period,
+				purchaseDate: row.purchaseDate,
+				dueDate: row.dueDate,
+				currentInstallment: row.currentInstallment,
+				installmentCount: row.installmentCount,
+				paymentMethod: row.paymentMethod,
+				categoryId: row.categoryId,
+				payerId: row.payerId,
+			}));
 
 		return {
 			success: true,
@@ -192,6 +201,18 @@ export async function createInstallmentAnticipationAction(
 			return {
 				success: false,
 				error: "Nenhuma parcela selecionada para antecipação.",
+			};
+		}
+
+		const selectedIncludesCurrentOrPastPeriod = installments.some(
+			(installment) =>
+				comparePeriods(installment.period, data.anticipationPeriod) <= 0,
+		);
+
+		if (selectedIncludesCurrentOrPastPeriod) {
+			return {
+				success: false,
+				error: "Selecione apenas parcelas de períodos futuros para antecipar.",
 			};
 		}
 

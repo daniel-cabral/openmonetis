@@ -6,9 +6,11 @@
   Projeto pessoal de gestão financeira. Self-hosted, manual e open source.
 </p>
 
-> **⚠️ Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
+> **⚠️ Nota:** o OpenMonetis não está sendo encerrado, mas o desenvolvimento deve reduzir para quase zero daqui em diante. O app já cobre minhas demandas atuais de gerenciamento financeiro, então novas mudanças tendem a ser pontuais: correções, ajustes necessários e pequenas melhorias quando fizerem bastante sentido para meu uso.
 
-[![Version](https://img.shields.io/badge/version-2.5.6-blue?style=flat-square)](CHANGELOG.md)
+> **Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
+
+[![Version](https://img.shields.io/badge/version-2.7.12-blue?style=flat-square)](CHANGELOG.md)
 [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -36,9 +38,11 @@
 - [Backup](#-backup)
 - [Storage S3 Compatível](#-storage-s3-compatível)
 - [Variáveis de Ambiente](#-variáveis-de-ambiente)
+- [Design System](#-design-system)
 - [Arquitetura](#-arquitetura)
 - [Contribuindo](#-contribuindo)
 - [Apoie o Projeto](#-apoie-o-projeto)
+- [Star History](#-star-history)
 - [Licença](#-licença)
 
 ---
@@ -61,21 +65,21 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 ### Funcionalidades
 
-💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas e transferências. Categorização, filtros combináveis, extratos detalhados e importação de extratos OFX e XLS/XLSX com detecção automática de categoria.
+💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas, rendimentos e transferências. Categorização, divisão de lançamentos entre várias pessoas, filtros combináveis com intervalo de datas, extratos detalhados com identificação visual clara da conta e importação de extratos OFX e XLS/XLSX com detecção automática de categoria.
 
-📊 **Dashboard e relatórios** — Widgets interativos de métricas, gráficos de evolução, comparativos por categoria, tendências, uso de cartões, top estabelecimentos. Exportação em PDF e Excel.
+📊 **Dashboard e relatórios** — Widgets personalizáveis com listas consistentes, métricas com atalhos para lançamentos, gráficos de evolução, comparativos por categoria, tendências, uso de cartões, top estabelecimentos e navegação direta entre meses pelo seletor de período. Exportação em PDF e Excel.
 
-💳 **Faturas de cartão** — Acompanhe faturas por período, controle limites e vencimentos.
+💳 **Faturas de cartão** — Acompanhe faturas por período, controle limites e vencimentos com identificação visual mais clara do cartão.
 
 🎯 **Orçamentos** — Defina limites por categoria e acompanhe o progresso.
 
 💸 **Parcelamentos avançados** — Séries de parcelas, antecipação com cálculo de desconto, análise consolidada.
 
-🤖 **Insights com IA** — Análises geradas por Claude, GPT, Gemini ou OpenRouter. Insights personalizados e histórico salvo.
+🤖 **Insights com IA** — Análises geradas por Claude, GPT, Gemini, MiniMax, OpenRouter ou modelos locais via Ollama. Insights personalizados e histórico salvo.
 
 👥 **Gestão colaborativa** — Pagadores com permissões (admin/viewer), notificações automáticas por e-mail, códigos de compartilhamento.
 
-📝 **Anotações e tarefas** — Notas de texto, listas com checkboxes, sistema de arquivamento.
+📝 **Anotações e tarefas** — Notas de texto com anexos, listas com checkboxes e sistema de arquivamento.
 
 📅 **Calendário financeiro** — Visualize todos os lançamentos em um calendário mensal.
 
@@ -85,7 +89,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
   <img src="./public/images/companion-preview-light.webp" alt="OpenMonetis Companion" width="300" height="600" />
 </p>
 
-⚙️ **Personalização** — Tema dark/light, modo privacidade e changelog visual para acompanhar as novidades do app.
+⚙️ **Personalização** — Tema dark/light, modo privacidade, ordem das colunas, agrupamento por data em lançamentos, exibição de anotações, tamanho máximo de anexos, resumo opcional no modal de lançamento e changelog visual para acompanhar as novidades do app.
 
 ### Stack técnica
 
@@ -93,9 +97,10 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 - **PostgreSQL** + **Drizzle ORM**
 - **Better Auth** (email/senha, OAuth, Passkeys/WebAuthn)
 - **shadcn/ui** (Radix UI) + **Tailwind CSS**
+- **Bricolage Grotesque** via `next/font`
 - **Docker** (multi-stage build)
 - **Biome** (linting + formatting)
-- **Vercel AI SDK** (Claude, GPT, Gemini, OpenRouter)
+- **Vercel AI SDK** (Claude, GPT, Gemini, MiniMax, OpenRouter, Ollama)
 
 ---
 
@@ -127,10 +132,11 @@ Só quer rodar o OpenMonetis. **Não precisa clonar o repositório nem instalar 
 # 1. Baixe o compose
 curl -fsSL https://raw.githubusercontent.com/felipegcoutinho/openmonetis/main/docker-compose.yml -o docker-compose.yml
 
-# 2. Crie um .en na mesma pasta.
+# 2. Crie um .env na mesma pasta.
 # .env mínimo recomendado para produção
 BETTER_AUTH_SECRET=gere-um-valor-com-openssl-rand-base64-32
 BETTER_AUTH_URL=http://seu-dominio.com
+DISABLE_SIGNUP=false # opcional: true bloqueia novos cadastros
 
 # 3. Suba tudo
 docker compose up -d
@@ -443,6 +449,12 @@ POSTGRES_USER=openmonetis
 POSTGRES_PASSWORD=openmonetis_dev_password
 POSTGRES_DB=openmonetis_db
 
+# Autenticação
+DISABLE_SIGNUP=false # true bloqueia novos cadastros
+AUTH_SESSION_EXPIRES_IN_DAYS=30 # duração de sessões persistentes
+AUTH_SESSION_UPDATE_AGE_HOURS=24 # frequência de renovação da sessão
+BETTER_AUTH_TRUSTED_ORIGINS= # origins adicionais confiáveis, separadas por vírgula
+
 # S3 Server (opcional, necessario para anexos)
 S3_ENDPOINT=
 S3_REGION=
@@ -465,13 +477,61 @@ RESEND_FROM_EMAIL=
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 GOOGLE_GENERATIVE_AI_API_KEY=
+MINIMAX_API_KEY=
 OPENROUTER_API_KEY=
+OLLAMA_BASE_URL=http://localhost:11434/v1
+OLLAMA_API_KEY=
 
 # Logo.dev (opcional, necessário para logos automáticos de estabelecimentos)
 # Ambas as variáveis são runtime — basta definir no host; nenhum build arg necessário.
 LOGO_DEV_TOKEN=
 LOGO_DEV_SECRET_KEY=
 ```
+
+### BETTER_AUTH_TRUSTED_ORIGINS
+
+Use `BETTER_AUTH_TRUSTED_ORIGINS` quando o OpenMonetis for acessado por uma URL diferente de `BETTER_AUTH_URL`, como Cloudflare Tunnel, reverse proxy, domínio local ou subdomínios temporários. Isso evita falhas de login como `Invalid origin` sem precisar alterar a imagem Docker.
+
+Informe apenas origins confiáveis, separadas por vírgula:
+
+```env
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_TRUSTED_ORIGINS=https://*.trycloudflare.com,https://openmonetis.seudominio.com
+```
+
+Para Google OAuth e outros callbacks externos, mantenha `BETTER_AUTH_URL` apontando para a URL pública/canônica configurada no provedor.
+
+### IA local com Ollama
+
+O provider Ollama permite gerar insights usando modelos locais. Instale e suba o Ollama no host onde o modelo ficará disponível:
+
+```bash
+ollama pull llama3.2
+ollama serve
+```
+
+Configure a URL OpenAI-compatible no `.env`:
+
+```env
+OLLAMA_BASE_URL=http://localhost:11434/v1
+# Opcional; normalmente o Ollama local não exige chave.
+OLLAMA_API_KEY=
+```
+
+Se o OpenMonetis estiver rodando dentro de um container Docker e o Ollama estiver no host, `localhost` aponta para o próprio container. Nesse caso, use uma URL acessível a partir do container, como `http://host.docker.internal:11434/v1` quando disponível, ou o endereço da rede Docker/host configurado no seu ambiente.
+
+---
+
+## 🎨 Design System
+
+O OpenMonetis usa uma identidade visual própria com superfícies quentes, laranja
+como cor de destaque, temas claro e escuro e tipografia Bricolage Grotesque. A
+interface é construída com tokens semânticos em OKLCH, Tailwind CSS 4 e
+componentes compartilhados baseados em shadcn/ui e Radix UI.
+
+As regras de cores, tipografia, componentes, responsividade e acessibilidade
+estão documentadas no [`DESIGN.md`](DESIGN.md). Use esse guia como referência ao
+criar telas ou alterar componentes visuais.
 
 ---
 
@@ -563,6 +623,17 @@ A regra é: `actions.ts` e `queries.ts` são as portas de entrada da feature. Tu
 
 Antes de começar, leia o [`CLAUDE.md`](CLAUDE.md) — ele documenta a arquitetura, convenções de nomenclatura, regras de queries e o checklist para novas features. Use TypeScript, commits semânticos e mantenha o `CHANGELOG.md` atualizado.
 
+### Publicando uma versão
+
+As validações rodam em pull requests e em cada push na `main`. A publicação só começa quando uma tag SemVer aponta para um commit validado e a versão da tag corresponde ao `package.json` e ao `CHANGELOG.md`.
+
+```bash
+git tag -a v2.7.12 -m "v2.7.12"
+git push origin v2.7.12
+```
+
+O workflow da tag valida o código, publica as imagens Docker versionadas e `latest` e, somente depois, cria a GitHub Release com as notas do changelog.
+
 ---
 
 ## 💖 Apoie o Projeto
@@ -572,6 +643,18 @@ Se o **OpenMonetis** está sendo útil, considere se tornar um sponsor!
 [![Sponsor no GitHub](https://img.shields.io/badge/Sponsor_no_GitHub-❤️-ea4aaa?style=for-the-badge&logo=github-sponsors)](https://github.com/sponsors/felipegcoutinho)
 
 Outras formas de contribuir: ⭐ estrela no repo, reportar bugs, melhorar docs, submeter PRs.
+
+---
+
+## ⭐ Star History
+
+<a href="https://www.star-history.com/?repos=felipegcoutinho%2Fopenmonetis&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=felipegcoutinho/openmonetis&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=felipegcoutinho/openmonetis&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=felipegcoutinho/openmonetis&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ---
 

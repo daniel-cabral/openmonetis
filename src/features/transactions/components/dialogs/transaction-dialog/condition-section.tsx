@@ -1,7 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { TRANSACTION_CONDITIONS } from "@/features/transactions/lib/constants";
 import { Label } from "@/shared/components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/shared/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -13,6 +19,61 @@ import { formatCurrency } from "@/shared/utils/currency";
 import { cn } from "@/shared/utils/ui";
 import { ConditionSelectContent } from "../../select-items";
 import type { ConditionSectionProps } from "./transaction-dialog-types";
+
+function InlineStartInstallmentPicker({
+	value,
+	options,
+	onChange,
+}: {
+	value: string;
+	options: number[];
+	onChange: (value: string) => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const selected = Number(value || "1");
+	const selectedLabel =
+		!Number.isNaN(selected) && selected > 0
+			? `${selected}ª parcela`
+			: "1ª parcela";
+	const disabled = options.length === 0;
+
+	return (
+		<div className="ml-1">
+			<span className="text-xs text-muted-foreground">Começar em </span>
+			<Popover modal open={open} onOpenChange={setOpen}>
+				<PopoverTrigger asChild>
+					<button
+						type="button"
+						className="cursor-pointer text-xs text-primary underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:hover:no-underline"
+						disabled={disabled}
+					>
+						{selectedLabel}
+					</button>
+				</PopoverTrigger>
+				<PopoverContent className="w-40 p-1" align="start">
+					<div className="max-h-56 overflow-y-auto">
+						{options.map((option) => (
+							<button
+								key={option}
+								type="button"
+								className={cn(
+									"flex w-full items-center rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground",
+									option === selected && "font-medium text-primary",
+								)}
+								onClick={() => {
+									onChange(String(option));
+									setOpen(false);
+								}}
+							>
+								{option}ª parcela
+							</button>
+						))}
+					</div>
+				</PopoverContent>
+			</Popover>
+		</div>
+	);
+}
 
 export function ConditionSection({
 	formState,
@@ -37,11 +98,17 @@ export function ConditionSection({
 	const installmentSummary =
 		showInstallments &&
 		formState.installmentCount &&
-		amount &&
 		!Number.isNaN(installmentCount) &&
 		installmentCount > 0
 			? getInstallmentLabel(installmentCount)
 			: null;
+	const startInstallmentOptions =
+		showInstallments &&
+		formState.installmentCount &&
+		!Number.isNaN(installmentCount) &&
+		installmentCount > 0
+			? Array.from({ length: installmentCount }, (_, index) => index + 1)
+			: [];
 
 	return (
 		<div className="flex w-full flex-col gap-2 md:flex-row">
@@ -96,6 +163,11 @@ export function ConditionSection({
 							})}
 						</SelectContent>
 					</Select>
+					<InlineStartInstallmentPicker
+						value={formState.startInstallment}
+						options={startInstallmentOptions}
+						onChange={(value) => onFieldChange("startInstallment", value)}
+					/>
 				</div>
 			) : null}
 

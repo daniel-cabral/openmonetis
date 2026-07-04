@@ -10,6 +10,7 @@ interface ImportSummaryProps {
 	selected: number;
 	duplicates: number;
 	uncategorized: number;
+	withoutPayer: number;
 }
 
 export function ImportSummary({
@@ -18,9 +19,10 @@ export function ImportSummary({
 	selected,
 	duplicates,
 	uncategorized,
+	withoutPayer,
 }: ImportSummaryProps) {
 	return (
-		<Card className="flex flex-col gap-1 p-5 text-sm bg-linear-to-br from-primary/5 to-transparent">
+		<Card className="flex flex-col gap-1 p-5 text-sm bg-primary/10 shadow-none ">
 			{/* Linha 1: título */}
 			<div className="flex items-center gap-2">
 				<span className="font-medium">{statement.source}</span>
@@ -40,8 +42,7 @@ export function ImportSummary({
 				)}
 
 				<span>
-					<span className="font-medium text-foreground">{selected}</span>/
-					{total} selecionadas
+					{selected}/{total} selecionadas
 				</span>
 
 				{duplicates > 0 && (
@@ -56,6 +57,16 @@ export function ImportSummary({
 					selected > 0 && (
 						<span className="text-emerald-600 dark:text-emerald-400">
 							todas categorizadas ✓
+						</span>
+					)
+				)}
+
+				{withoutPayer > 0 ? (
+					<span>{withoutPayer} sem pessoa</span>
+				) : (
+					selected > 0 && (
+						<span className="text-emerald-600 dark:text-emerald-400">
+							todas com pessoa ✓
 						</span>
 					)
 				)}

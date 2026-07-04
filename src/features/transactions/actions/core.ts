@@ -31,19 +31,6 @@ import { addMonthsToPeriod, MONTH_NAMES } from "@/shared/utils/period";
 // Authorization Validation Functions
 // ============================================================================
 
-export async function validatePayerOwnership(
-	userId: string,
-	payerId: string | null | undefined,
-): Promise<boolean> {
-	if (!payerId) return true;
-
-	const pagador = await db.query.payers.findFirst({
-		where: and(eq(payers.id, payerId), eq(payers.userId, userId)),
-	});
-
-	return !!pagador;
-}
-
 const normalizeIds = (ids: Array<string | null | undefined>) => [
 	...new Set(ids.filter((id): id is string => Boolean(id))),
 ];
@@ -155,14 +142,20 @@ export async function validateAllOwnership(
 	fields: {
 		payerId?: string | null;
 		secondaryPayerId?: string | null;
+		splitPayerIds?: Array<string | null | undefined>;
 		categoryId?: string | null;
 		accountId?: string | null;
 		cardId?: string | null;
 	},
 ): Promise<string | null> {
+	const payerIds = [
+		fields.payerId,
+		fields.secondaryPayerId,
+		...(fields.splitPayerIds ?? []),
+	];
 	const [ownedPayerIds, ownedCategoryIds, ownedAccountIds, ownedCardIds] =
 		await Promise.all([
-			fetchOwnedPayerIds(userId, [fields.payerId, fields.secondaryPayerId]),
+			fetchOwnedPayerIds(userId, payerIds),
 			fetchOwnedCategoryIds(userId, [fields.categoryId]),
 			fetchOwnedAccountIds(userId, [fields.accountId]),
 			fetchOwnedCardIds(userId, [fields.cardId]),
@@ -171,6 +164,7 @@ export async function validateAllOwnership(
 	const checks = [
 		!fields.payerId || ownedPayerIds.has(fields.payerId),
 		!fields.secondaryPayerId || ownedPayerIds.has(fields.secondaryPayerId),
+		(fields.splitPayerIds ?? []).every((id) => !id || ownedPayerIds.has(id)),
 		!fields.categoryId || ownedCategoryIds.has(fields.categoryId),
 		!fields.accountId || ownedAccountIds.has(fields.accountId),
 		!fields.cardId || ownedCardIds.has(fields.cardId),
@@ -178,7 +172,8 @@ export async function validateAllOwnership(
 
 	const errors = [
 		"Pessoa não encontrada ou sem permissão.",
-		"Pessoa secundário não encontrado ou sem permissão.",
+		"Pessoa secundária não encontrada ou sem permissão.",
+		"Uma das pessoas selecionadas não foi encontrada ou está sem permissão.",
 		"Categoria não encontrada.",
 		"Conta não encontrada.",
 		"Cartão não encontrado.",
@@ -322,6 +317,14 @@ const baseFields = z.object({
 	}),
 	payerId: uuidSchema("Payer").nullable().optional(),
 	secondaryPayerId: uuidSchema("Payer secundário").optional(),
+	splitShares: z
+		.array(
+			z.object({
+				payerId: uuidSchema("Pessoa"),
+				amount: z.coerce.number().min(0.01, "Informe um valor maior que zero."),
+			}),
+		)
+		.optional(),
 	isSplit: z.boolean().optional().default(false),
 	primarySplitAmount: z.coerce.number().min(0).optional(),
 	secondarySplitAmount: z.coerce.number().min(0).optional(),
@@ -334,6 +337,12 @@ const baseFields = z.object({
 		.int()
 		.min(1, "Selecione uma quantidade válida.")
 		.max(60, "Selecione uma quantidade válida.")
+		.optional(),
+	startInstallment: z.coerce
+		.number()
+		.int()
+		.min(1, "Selecione uma parcela válida.")
+		.max(60, "Selecione uma parcela válida.")
 		.optional(),
 	recurrenceCount: z.coerce
 		.number()
@@ -415,10 +424,21 @@ const refineLancamento = (
 				path: ["installmentCount"],
 				message: "Selecione pelo menos duas parcelas.",
 			});
+		} else if (
+			data.startInstallment &&
+			data.startInstallment > data.installmentCount
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["startInstallment"],
+				message: "A parcela inicial não pode ser maior que o total.",
+			});
 		}
 	}
 
 	if (data.isSplit) {
+		const shares = resolveSplitShares(data);
+
 		if (!data.payerId) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
@@ -427,30 +447,38 @@ const refineLancamento = (
 			});
 		}
 
-		if (!data.secondaryPayerId) {
+		if (shares.length < 2) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				path: ["secondaryPayerId"],
-				message: "Selecione a pessoa secundário para dividir o lançamento.",
-			});
-		} else if (data.payerId && data.secondaryPayerId === data.payerId) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ["secondaryPayerId"],
-				message: "Escolha uma pessoa diferente para dividir o lançamento.",
+				path: ["splitShares"],
+				message: "Selecione pelo menos uma pessoa para dividir o lançamento.",
 			});
 		}
 
-		if (
-			data.primarySplitAmount !== undefined &&
-			data.secondarySplitAmount !== undefined
-		) {
-			const sum = data.primarySplitAmount + data.secondarySplitAmount;
+		const uniquePayerIds = new Set(shares.map((share) => share.payerId));
+		if (uniquePayerIds.size !== shares.length) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["splitShares"],
+				message: "Escolha pessoas diferentes para dividir o lançamento.",
+			});
+		}
+
+		if (shares.some((share) => share.amount <= 0)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["splitShares"],
+				message: "Informe um valor maior que zero para cada pessoa.",
+			});
+		}
+
+		if (shares.length > 0) {
+			const sum = shares.reduce((total, share) => total + share.amount, 0);
 			const total = Math.abs(data.amount);
 			if (Math.abs(sum - total) > 0.01) {
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
-					path: ["primarySplitAmount"],
+					path: ["splitShares"],
 					message: "A soma das divisões deve ser igual ao valor total.",
 				});
 			}
@@ -485,11 +513,33 @@ export const toggleSettlementSchema = z.object({
 		.optional(),
 });
 
+export const convertToInstallmentSchema = z.object({
+	id: uuidSchema("Lançamento"),
+	installmentCount: z.coerce
+		.number({ message: "Informe em quantas parcelas dividir." })
+		.int()
+		.min(2, "O parcelamento deve ter ao menos duas parcelas.")
+		.max(60, "Selecione até 60 parcelas."),
+});
+
+export const convertToRecurringSchema = z.object({
+	id: uuidSchema("Lançamento"),
+	recurrenceCount: z.coerce
+		.number({ message: "Informe por quantos meses repetir." })
+		.int()
+		.min(2, "A recorrência deve ter ao menos dois meses.")
+		.max(60, "Selecione até 60 meses."),
+});
+
 type BaseInput = z.infer<typeof baseFields>;
 export type CreateInput = z.infer<typeof createSchema>;
 export type UpdateInput = z.infer<typeof updateSchema>;
 export type DeleteInput = z.infer<typeof deleteSchema>;
 export type ToggleSettlementInput = z.infer<typeof toggleSettlementSchema>;
+export type ConvertToInstallmentInput = z.infer<
+	typeof convertToInstallmentSchema
+>;
+export type ConvertToRecurringInput = z.infer<typeof convertToRecurringSchema>;
 
 export const revalidate = (userId: string) =>
 	revalidateForEntity("transactions", userId);
@@ -546,11 +596,41 @@ type Share = {
 	amountCents: number;
 };
 
+type SplitShareInput = {
+	payerId: string;
+	amount: number;
+};
+
+const resolveSplitShares = (data: {
+	payerId?: string | null;
+	secondaryPayerId?: string | null;
+	splitShares?: SplitShareInput[];
+	primarySplitAmount?: number;
+	secondarySplitAmount?: number;
+}): SplitShareInput[] => {
+	if (data.splitShares && data.splitShares.length > 0) {
+		return data.splitShares;
+	}
+
+	if (!data.payerId || !data.secondaryPayerId) {
+		return [];
+	}
+
+	return [
+		{ payerId: data.payerId, amount: data.primarySplitAmount ?? 0 },
+		{
+			payerId: data.secondaryPayerId,
+			amount: data.secondarySplitAmount ?? 0,
+		},
+	];
+};
+
 export const buildShares = ({
 	totalCents,
 	payerId,
 	isSplit,
 	secondaryPayerId,
+	splitShares,
 	primarySplitAmountCents,
 	secondarySplitAmountCents,
 }: {
@@ -558,10 +638,18 @@ export const buildShares = ({
 	payerId: string | null;
 	isSplit: boolean;
 	secondaryPayerId?: string;
+	splitShares?: SplitShareInput[];
 	primarySplitAmountCents?: number;
 	secondarySplitAmountCents?: number;
 }): Share[] => {
 	if (isSplit) {
+		if (splitShares && splitShares.length > 0) {
+			return splitShares.map((share) => ({
+				payerId: share.payerId,
+				amountCents: Math.round(share.amount * 100),
+			}));
+		}
+
 		if (!payerId || !secondaryPayerId) {
 			throw new Error("Configuração de divisão inválida para o lançamento.");
 		}
@@ -651,24 +739,27 @@ export const buildTransactionRecords = ({
 
 	if (data.condition === "Parcelado") {
 		const installmentTotal = data.installmentCount ?? 0;
+		const startInstallment = data.startInstallment ?? 1;
 		const amountsByShare = shares.map((share) =>
 			splitAmount(share.amountCents, installmentTotal),
 		);
 
 		for (
-			let installment = 0;
-			installment < installmentTotal;
-			installment += 1
+			let index = 0;
+			index <= installmentTotal - startInstallment;
+			index += 1
 		) {
-			const installmentPeriod = addMonthsToPeriod(period, installment);
+			const currentInstallment = startInstallment + index;
+			const installmentPeriod = addMonthsToPeriod(period, index);
 			const installmentDueDate = dueDate
-				? addMonthsToDate(dueDate, installment)
+				? addMonthsToDate(dueDate, index)
 				: null;
 			const splitGroupId = cycleSplitGroupId();
 
 			shares.forEach((share, shareIndex) => {
-				const amountCents = amountsByShare[shareIndex]?.[installment] ?? 0;
-				const settled = resolveSettledValue(installment);
+				const amountCents =
+					amountsByShare[shareIndex]?.[currentInstallment - 1] ?? 0;
+				const settled = resolveSettledValue(index);
 				records.push({
 					...basePayload,
 					amount: centsToDecimalString(amountCents * amountSign),
@@ -677,7 +768,7 @@ export const buildTransactionRecords = ({
 					period: installmentPeriod,
 					isSettled: settled,
 					installmentCount: installmentTotal,
-					currentInstallment: installment + 1,
+					currentInstallment,
 					recurrenceCount: null,
 					dueDate: installmentDueDate,
 					splitGroupId,

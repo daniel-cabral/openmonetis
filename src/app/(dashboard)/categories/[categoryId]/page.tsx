@@ -41,13 +41,17 @@ export default async function Page({ params, searchParams }: PageProps) {
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");
 	const { period: selectedPeriod } = parsePeriodParam(periodoParam);
 
-	const [detail, filterSources, estabelecimentos, userPreferences] =
-		await Promise.all([
-			fetchCategoryDetails(userId, categoryId, selectedPeriod),
-			fetchTransactionFilterSources(userId),
-			fetchRecentEstablishments(userId),
-			fetchUserPreferences(userId),
-		]);
+	const [filterSources, estabelecimentos, userPreferences] = await Promise.all([
+		fetchTransactionFilterSources(userId),
+		fetchRecentEstablishments(userId),
+		fetchUserPreferences(userId),
+	]);
+	const detail = await fetchCategoryDetails(
+		userId,
+		categoryId,
+		selectedPeriod,
+		userPreferences?.hideAnticipatedInstallments ?? false,
+	);
 
 	if (!detail) {
 		notFound();
@@ -101,6 +105,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 				allowCreate={true}
 				noteAsColumn={userPreferences?.statementNoteAsColumn ?? false}
 				columnOrder={userPreferences?.transactionsColumnOrder ?? null}
+				groupTransactionsByDate={
+					userPreferences?.groupTransactionsByDate ?? true
+				}
 				attachmentMaxSizeMb={userPreferences?.attachmentMaxSizeMb ?? 50}
 			/>
 		</main>

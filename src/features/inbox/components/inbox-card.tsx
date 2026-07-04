@@ -206,15 +206,15 @@ export const InboxCard = memo(function InboxCard({
 						onClick={() => onProcess?.(item)}
 					>
 						<RiCheckLine className="mr-1.5 size-4" />
-						Processar
+						Lançar
 					</Button>
 					<Button
 						size="icon-sm"
 						variant="ghost"
 						onClick={() => onViewDetails?.(item)}
 						className="text-muted-foreground hover:text-foreground"
-						aria-label="Ver detalhes"
-						title="Ver detalhes"
+						aria-label="detalhes"
+						title="detalhes"
 					>
 						<RiFileList2Line className="size-4" />
 					</Button>

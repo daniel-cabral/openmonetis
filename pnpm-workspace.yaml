@@ -1,5 +1,13 @@
-onlyBuiltDependencies:
-  - core-js
-  - esbuild
-  - sharp
-  - unrs-resolver
+packages:
+  - '.'
+
+allowBuilds:
+  core-js: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+minimumReleaseAge: 0
+
+overrides:
+  defu: 6.1.7

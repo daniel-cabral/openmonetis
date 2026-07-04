@@ -2,14 +2,16 @@
 
 import {
 	RiBankCard2Line,
+	RiChat1Line,
 	RiCheckboxCircleFill,
-	RiEyeLine,
+	RiFileList2Line,
 	RiTimeLine,
 } from "@remixicon/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Image from "next/image";
 import { useState } from "react";
+import { EstablishmentLogo } from "@/shared/components/entity-avatar";
 import MoneyValues from "@/shared/components/money-values";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -29,6 +31,12 @@ import {
 	DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Progress } from "@/shared/components/ui/progress";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import { resolveLogoSrc } from "@/shared/lib/logo";
 import { cn } from "@/shared/utils";
 import type { InstallmentGroup } from "./types";
 
@@ -62,8 +70,8 @@ export function InstallmentGroupCard({
 	const hasSelection = selectedInstallments.size > 0;
 
 	const progress =
-		group.totalInstallments > 0
-			? (group.paidInstallments / group.totalInstallments) * 100
+		group.trackedInstallments > 0
+			? (group.paidInstallments / group.trackedInstallments) * 100
 			: 0;
 
 	const selectedAmount = group.pendingInstallments
@@ -79,6 +87,13 @@ export function InstallmentGroupCard({
 		(sum, i) => sum + i.amount,
 		0,
 	);
+	const cardLogoSrc = resolveLogoSrc(group.cartaoLogo);
+	const cardName = group.cartaoName ?? "Compra parcelada";
+	const hasNote = Boolean(group.note?.trim().length);
+	const untrackedLabel =
+		group.untrackedInstallments === 1
+			? "1 parcela anterior fora do acompanhamento"
+			: `${group.untrackedInstallments} parcelas anteriores fora do acompanhamento`;
 
 	return (
 		<>
@@ -111,25 +126,44 @@ export function InstallmentGroupCard({
 						{/* Info principal */}
 						<div className="flex-1 min-w-0">
 							<div className="flex items-center gap-3 flex-wrap">
-								{group.cartaoLogo ? (
-									<Image
-										src={`/logos/${group.cartaoLogo}`}
-										alt={group.cartaoName ?? "Cartão"}
-										width={40}
-										height={40}
-										className="size-10 rounded-full object-cover"
-									/>
-								) : (
-									<div className="size-10 flex items-center justify-center">
-										<RiBankCard2Line className="size-5 text-muted-foreground" />
-									</div>
-								)}
+								<EstablishmentLogo name={group.name} size={40} />
 								<div className="flex-1 min-w-0">
-									<CardTitle className="text-base truncate">
-										{group.name}
+									<CardTitle className="flex items-center gap-1 text-base">
+										<span className="truncate">{group.name}</span>
+										{hasNote ? (
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span className="inline-flex shrink-0 rounded-full p-1 hover:bg-accent transition-colors duration-300">
+														<RiChat1Line
+															className="h-4 w-4 text-muted-foreground"
+															aria-hidden
+														/>
+														<span className="sr-only">Ver anotação</span>
+													</span>
+												</TooltipTrigger>
+												<TooltipContent
+													side="top"
+													align="start"
+													className="max-w-xs whitespace-pre-line"
+												>
+													{group.note}
+												</TooltipContent>
+											</Tooltip>
+										) : null}
 									</CardTitle>
-									<CardDescription className="text-xs">
-										{group.cartaoName ?? "Compra parcelada"}
+									<CardDescription className="flex min-w-0 items-center gap-1 text-xs">
+										{cardLogoSrc ? (
+											<Image
+												src={cardLogoSrc}
+												alt={`Logo do cartão ${cardName}`}
+												width={18}
+												height={18}
+												className="size-4.5 shrink-0 rounded-full object-cover"
+											/>
+										) : (
+											<RiBankCard2Line className="size-3.5 shrink-0 text-muted-foreground/70" />
+										)}
+										<span className="truncate">{cardName}</span>
 									</CardDescription>
 								</div>
 							</div>
@@ -147,10 +181,10 @@ export function InstallmentGroupCard({
 
 				<CardContent>
 					{/* Grid de valores */}
-					<div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50 mb-4">
+					<div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-primary/5 mb-4">
 						<div className="space-y-1">
 							<p className="text-xs text-muted-foreground font-medium">
-								Valor total
+								Valor acompanhado
 							</p>
 							<MoneyValues
 								amount={totalAmount}
@@ -165,7 +199,7 @@ export function InstallmentGroupCard({
 								amount={pendingAmount}
 								className={cn(
 									"text-lg font-semibold",
-									pendingAmount > 0 ? "text-amber-600" : "text-success-600",
+									pendingAmount > 0 ? "text-primary" : "text-success",
 								)}
 							/>
 						</div>
@@ -177,48 +211,46 @@ export function InstallmentGroupCard({
 							<div className="flex items-center gap-1 text-muted-foreground">
 								<RiCheckboxCircleFill className="size-3.5 text-success" />
 								<span>
-									{group.paidInstallments} de {group.totalInstallments} parcelas
-									pagas
+									{group.paidInstallments} de {group.trackedInstallments}{" "}
+									parcelas acompanhadas pagas
 								</span>
 							</div>
 							{unpaidCount > 0 && (
 								<div className="flex items-center gap-1 text-muted-foreground">
-									<RiTimeLine className="size-3.5 text-amber-600" />
+									<RiTimeLine className="size-3.5" />
 									<span>
 										{unpaidCount} {unpaidCount === 1 ? "pendente" : "pendentes"}
 									</span>
 								</div>
 							)}
 						</div>
-						<Progress value={progress} className="h-2.5" />
+						<Progress
+							value={progress}
+							className="h-2.5 bg-muted"
+							indicatorClassName="bg-success"
+						/>
+						{group.untrackedInstallments > 0 && (
+							<p className="text-xs text-muted-foreground">{untrackedLabel}</p>
+						)}
 					</div>
-
-					{/* Valor selecionado */}
-					{hasSelection && (
-						<div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 mb-4">
-							<span className="text-sm font-medium text-foreground">
-								{selectedInstallments.size}{" "}
-								{selectedInstallments.size === 1
-									? "parcela selecionada"
-									: "parcelas selecionadas"}
-							</span>
-							<MoneyValues
-								amount={selectedAmount}
-								className="text-base font-semibold text-primary"
-							/>
-						</div>
-					)}
 
 					{/* Botão para abrir detalhes */}
 					<Button
 						type="button"
-						variant="outline"
+						variant="secondary"
 						size="sm"
-						className="w-full gap-1.5"
+						className="relative w-full justify-center gap-1.5"
 						onClick={() => setIsDetailsOpen(true)}
 					>
-						<RiEyeLine className="size-4" />
-						Ver detalhes ({group.pendingInstallments.length} parcelas)
+						<span className="inline-flex items-center gap-1.5">
+							<RiFileList2Line className="size-4" />
+							detalhes
+						</span>
+						{hasSelection && (
+							<span className="absolute right-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+								{selectedInstallments.size} sel.
+							</span>
+						)}
 					</Button>
 				</CardContent>
 			</Card>
@@ -228,18 +260,46 @@ export function InstallmentGroupCard({
 				<DialogContent className="max-w-md max-h-[80vh] flex flex-col">
 					<DialogHeader>
 						<div className="flex items-center gap-3">
-							{group.cartaoLogo ? (
-								<img
-									src={`/logos/${group.cartaoLogo}`}
-									alt={group.cartaoName ?? "Cartão"}
-									className="size-8 rounded-full object-cover"
-								/>
-							) : (
-								<div className="size-8 rounded-full bg-muted flex items-center justify-center">
-									<RiBankCard2Line className="size-4 text-muted-foreground" />
+							<EstablishmentLogo name={group.name} size={32} />
+							<div className="min-w-0">
+								<DialogTitle className="flex items-center gap-1 text-base">
+									<span className="truncate">{group.name}</span>
+									{hasNote ? (
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className="inline-flex shrink-0 rounded-full p-1 hover:bg-accent transition-colors duration-300">
+													<RiChat1Line
+														className="h-4 w-4 text-muted-foreground"
+														aria-hidden
+													/>
+													<span className="sr-only">Ver anotação</span>
+												</span>
+											</TooltipTrigger>
+											<TooltipContent
+												side="top"
+												align="start"
+												className="max-w-xs whitespace-pre-line"
+											>
+												{group.note}
+											</TooltipContent>
+										</Tooltip>
+									) : null}
+								</DialogTitle>
+								<div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+									{cardLogoSrc ? (
+										<Image
+											src={cardLogoSrc}
+											alt={`Logo do cartão ${cardName}`}
+											width={14}
+											height={14}
+											className="size-3.5 shrink-0 rounded-full object-cover opacity-75"
+										/>
+									) : (
+										<RiBankCard2Line className="size-3.5 shrink-0 text-muted-foreground/70" />
+									)}
+									<span className="truncate">{cardName}</span>
 								</div>
-							)}
-							<DialogTitle className="text-base">{group.name}</DialogTitle>
+							</div>
 						</div>
 						<DialogDescription className="sr-only">
 							Detalhes das parcelas do grupo {group.name}

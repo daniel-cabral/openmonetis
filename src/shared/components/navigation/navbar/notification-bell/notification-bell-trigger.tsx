@@ -36,9 +36,6 @@ export function NotificationBellTrigger({
 							"group relative shadow-none transition-all duration-200",
 							"hover:border-black/20 hover:bg-black/10 hover:text-black focus-visible:ring-2 focus-visible:ring-black/20 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white/20",
 							"data-[state=open]:bg-black/10 data-[state=open]:text-black dark:data-[state=open]:bg-white/10 dark:data-[state=open]:text-white",
-							hasAnySourceItems
-								? "text-black dark:text-white"
-								: "text-black/75 dark:text-white/75",
 						)}
 					>
 						<RiNotification2Line
@@ -55,7 +52,7 @@ export function NotificationBellTrigger({
 								>
 									{displayCount}
 								</span>
-								<span className="absolute -right-1.5 -top-1.5 size-5 animate-ping rounded-full bg-destructive/5 [animation-iteration-count:3]" />
+								<span className="absolute -right-1.5 -top-1.5 size-5 animate-ping rounded-full bg-destructive/5 repeat-3" />
 							</>
 						) : null}
 					</button>

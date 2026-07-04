@@ -22,9 +22,13 @@ import {
 	SheetTrigger,
 } from "@/shared/components/ui/sheet";
 import { cn } from "@/shared/utils/ui";
-import { MobileLink, MobileSectionLabel } from "./mobile-link";
+import {
+	MobileFinanceEntityLinks,
+	MobileLink,
+	MobileSectionLabel,
+} from "./mobile-link";
 import { NavDropdown } from "./nav-dropdown";
-import { NAV_SECTIONS } from "./nav-items";
+import { NAV_SECTIONS, type NavbarFinanceLinks } from "./nav-items";
 import { NavPill } from "./nav-pill";
 import { MobileTools, NavToolsDropdown } from "./nav-tools";
 
@@ -34,7 +38,11 @@ const triggerClass =
 const triggerActiveClass =
 	"bg-primary-foreground/15! text-primary-foreground! dark:bg-foreground/15! dark:text-foreground!";
 
-export function NavMenu() {
+export function NavMenu({
+	financeLinks,
+}: {
+	financeLinks: NavbarFinanceLinks;
+}) {
 	const pathname = usePathname();
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -44,7 +52,10 @@ export function NavMenu() {
 	return (
 		<>
 			{/* Desktop */}
-			<nav className="hidden md:flex items-center justify-center flex-1 gap-4">
+			<nav
+				aria-label="Navegação principal"
+				className="hidden md:flex items-center justify-center flex-1 gap-4"
+			>
 				<NavigationMenu viewport={false}>
 					<NavigationMenuList className="gap-2">
 						<NavigationMenuItem>
@@ -70,8 +81,19 @@ export function NavMenu() {
 									>
 										{section.label}
 									</NavigationMenuTrigger>
-									<NavigationMenuContent>
-										<NavDropdown items={section.items} />
+									<NavigationMenuContent
+										className={
+											section.label === "Finanças"
+												? "overflow-visible!"
+												: undefined
+										}
+									>
+										<NavDropdown
+											items={section.items}
+											financeLinks={
+												section.label === "Finanças" ? financeLinks : undefined
+											}
+										/>
 									</NavigationMenuContent>
 								</NavigationMenuItem>
 							);
@@ -97,7 +119,7 @@ export function NavMenu() {
 						size="icon-sm"
 						className="-order-1 md:hidden"
 					>
-						<RiMenuLine className="size-5" />
+						<RiMenuLine className="size-5" aria-hidden />
 						<span className="sr-only">Abrir menu</span>
 					</Button>
 				</SheetTrigger>
@@ -105,10 +127,13 @@ export function NavMenu() {
 					<SheetHeader className="border-b border-border/60 p-4">
 						<SheetTitle>Menu</SheetTitle>
 					</SheetHeader>
-					<nav className="p-3 overflow-y-auto">
+					<nav
+						className="p-3 overflow-y-auto"
+						aria-label="Menu principal mobile"
+					>
 						<MobileLink
 							href="/dashboard"
-							icon={<RiDashboardLine className="size-4" />}
+							icon={<RiDashboardLine className="size-4" aria-hidden />}
 							onClick={close}
 							preservePeriod
 						>
@@ -124,17 +149,33 @@ export function NavMenu() {
 								<div key={section.label}>
 									<MobileSectionLabel label={section.label} />
 									{mobileItems.map((item) => (
-										<MobileLink
-											key={item.href}
-											href={item.href}
-											icon={item.icon}
-											onClick={close}
-											badge={item.badge}
-											preservePeriod={item.preservePeriod}
-											description={item.description}
-										>
-											{item.label}
-										</MobileLink>
+										<div key={item.href}>
+											<MobileLink
+												href={item.href}
+												icon={item.icon}
+												onClick={close}
+												badge={item.badge}
+												preservePeriod={item.preservePeriod}
+												description={item.description}
+											>
+												{item.label}
+											</MobileLink>
+											{item.href === "/cards" && financeLinks.cards.length ? (
+												<MobileFinanceEntityLinks
+													type="cards"
+													items={financeLinks.cards}
+													onClick={close}
+												/>
+											) : null}
+											{item.href === "/accounts" &&
+											financeLinks.accounts.length ? (
+												<MobileFinanceEntityLinks
+													type="accounts"
+													items={financeLinks.accounts}
+													onClick={close}
+												/>
+											) : null}
+										</div>
 									))}
 								</div>
 							);

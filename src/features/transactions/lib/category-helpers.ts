@@ -61,13 +61,3 @@ export function groupAndSortCategories(
 			),
 	}));
 }
-
-/**
- * Filters secondary payer options to exclude the primary payer
- */
-export function filterSecondaryPayerOptions(
-	allOptions: SelectOption[],
-	primaryPayerId?: string,
-): SelectOption[] {
-	return allOptions.filter((option) => option.value !== primaryPayerId);
-}

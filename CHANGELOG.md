@@ -5,6 +5,281 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.7.12] - 2026-06-30
+
+Esta versão corrige a seleção de faturas e períodos em popovers usados dentro de diálogos, alinhando esses componentes ao mesmo comportamento seguro aplicado recentemente aos seletores de data.
+
+### Corrigido
+- Lançamentos: o seletor inline de fatura volta a aceitar cliques no mês em diálogos de criação/edição e no modal de múltiplos lançamentos.
+- Períodos: botões internos do seletor mensal agora são explicitamente `type="button"`, evitando submits acidentais quando o componente aparece dentro de formulários.
+- Interface: popovers de período e escolha de logo de estabelecimento passam a usar modo modal quando podem aparecer sobre diálogos, preservando foco e clique.
+
+## [2.7.11] - 2026-06-28
+
+Esta atualização melhora a leitura diária dos lançamentos e deixa a nova visualização opcional, mantendo a possibilidade de voltar ao formato anterior quando a lista agrupada não for a melhor escolha para o usuário.
+
+### Adicionado
+- Preferências: nova opção `Agrupar por data` em Ajustes > Preferências > Lançamentos para alternar entre a lista agrupada por data e a visualização anterior.
+- Lançamentos: a lista agora pode exibir uma barra de data por grupo no formato `TER, 26 JUN 2026`, reunindo os lançamentos daquele dia.
+
+### Alterado
+- Lançamentos: quando o agrupamento por data está ativo, os cards e linhas deixam de repetir a data em cada item, reduzindo ruído visual e mantendo vencimentos de boleto como informação do lançamento.
+- Lançamentos: a preferência de agrupamento por data é aplicada nas listagens principais, extratos de conta, faturas de cartão, detalhes de pessoa e detalhes de categoria.
+- Interface: checkboxes passam a usar um visual mais compacto.
+- Documentação: o README agora cita o agrupamento por data entre as opções de personalização.
+
+### Corrigido
+- Lançamentos: o seletor de data em modais de criação e edição volta a aceitar a data selecionada no calendário.
+
+## [2.7.10] - 2026-06-27
+
+Esta versão ajusta a experiência de leitura dos lançamentos parcelados após antecipações, permitindo esconder parcelas já liquidadas por antecipação sem perder o histórico quando ele ainda for necessário.
+
+### Adicionado
+- Ajustes: nova preferência `Ocultar parcelas antecipadas` para remover da tabela lançamentos marcados como parcela antecipada.
+
+### Alterado
+- Lançamentos: a preferência passa a ser aplicada nas listagens principais, extratos de conta, faturas de cartão, detalhes de pessoa, detalhes de categoria e exportação de lançamentos, preservando paginação e contagens visíveis.
+
+## [2.7.9] - 2026-06-21
+
+Esta versão torna a publicação mais previsível ao separar a validação contínua da entrega de versões oficiais. Pull requests e a branch principal continuam sendo verificadas, enquanto imagens Docker e releases passam a ser produzidas somente a partir de uma tag SemVer validada.
+
+### Alterado
+- CI: pull requests e pushes na `main` agora executam geração de tipos, verificação TypeScript, lint e build sem publicar imagens.
+- Releases: tags `vX.Y.Z` agora validam sua correspondência com o `package.json` e o `CHANGELOG.md` antes de publicar as imagens Docker e criar a GitHub Release.
+- Docker: as tags versionadas e `latest` passam a ser publicadas exclusivamente por releases oficiais, depois das verificações de qualidade.
+
+## [2.7.8] - 2026-06-21
+
+Esta versão deixa documentos e comprovantes mais fáceis de guardar e encontrar sem tirar o foco da rotina financeira. Agora é possível manter arquivos junto às notas, consultar a galeria por pessoa com identificação visual e abrir uma categoria diretamente das tendências do dashboard, sempre preservando o contexto do período selecionado.
+
+### Adicionado
+- Anotações: itens do tipo `Nota` agora aceitam anexos PDF, JPEG, PNG e WebP na criação e na edição, com consulta e download nos detalhes e respeito ao limite configurado pelo usuário.
+- Anexos: a galeria agora oferece filtro por pessoa, incluindo a pessoa principal, pessoas específicas e uma visão consolidada de todas as pessoas.
+
+### Alterado
+- Anexos: os cards da galeria agora identificam a pessoa vinculada ao lançamento e o filtro exibe os respectivos avatares, preservando o contexto quando vários responsáveis são exibidos.
+- Dashboard: os nomes no widget `Tendências de categorias` agora levam aos detalhes da categoria mantendo o período selecionado.
+
+## [2.7.7] - 2026-06-20
+
+Esta versão faz ajustes pontuais de leitura nos resumos financeiros e no dashboard, reforçando a identidade visual de cartões e contas e deixando as listas dos widgets mais consistentes sem alterar a estrutura de navegação das páginas.
+
+### Alterado
+- Cartões e contas: os cabeçalhos dos resumos agora destacam melhor o logo, o nome da entidade e o período exibido.
+- Dashboard: as listas dos widgets agora compartilham padrões de altura, espaçamento, alinhamento e truncamento para melhorar a leitura de valores, status e metadados.
+
+## [2.7.6] - 2026-06-20
+
+Esta versão melhora dois fluxos importantes: a importação de planilhas fica mais esperta ao reconhecer categorias já informadas no arquivo, e lançamentos avulsos podem ser reorganizados como parcelamentos ou recorrências sem precisar recriá-los manualmente.
+
+As funcionalidades desta versão foram desenvolvidas originalmente por Yuri Argolo (`yurnasg`) e adaptadas para integração ao projeto principal.
+
+### Adicionado
+- Importação: planilhas XLS/XLSX agora aceitam a coluna `Categoria` no template e tentam mapear automaticamente o valor para uma categoria existente compatível com o tipo do lançamento.
+- Lançamentos: lançamentos à vista agora podem ser convertidos em recorrentes diretamente pelo menu de ações.
+- Lançamentos: lançamentos à vista de cartão de crédito agora podem ser convertidos em uma série parcelada informando o total de parcelas.
+
+### Alterado
+- Lançamentos: conversões para séries respeitam faturas pagas e limite disponível do cartão antes de criar novos movimentos.
+
+## [2.7.5] - 2026-06-13
+
+Esta versão faz um polimento pontual no dashboard, deixando os widgets mais explicativos, consistentes e confiáveis quando há listas maiores ou informações complementares para revisar.
+
+### Alterado
+- Dashboard: os indicadores percentuais de faturas por pessoa, despesas por categoria, receitas por categoria e tendências de categorias agora deixam explícito que a comparação é contra o mês anterior.
+- Dashboard: pequenos ajustes visuais em widgets melhoram espaçamento, bordas e leitura de itens financeiros.
+
+### Corrigido
+- Dashboard: o widget `Lançamentos por categoria` agora recalcula corretamente o overflow quando a lista muda e volta a exibir o botão `Expandir` em listagens grandes.
+- Relatórios: em `/reports/installment-analysis`, os cards de parcelamentos agora exibem o ícone de observação ao lado do nome do lançamento quando há anotação cadastrada.
+
+## [2.7.4] - 2026-06-09
+
+Esta versão corrige o fluxo de revisão de lançamentos compartilhados para que o acesso somente leitura proteja os dados originais sem impedir que a pessoa copie movimentos para a própria conta.
+
+### Corrigido
+- Pessoas: lançamentos de uma pessoa compartilhada em modo somente leitura agora podem ser selecionados e importados para a conta do usuário logado, tanto individualmente quanto em lote, mantendo edição e remoção bloqueadas no lançamento original.
+
+## [2.7.3] - 2026-06-05
+
+Esta versão melhora pequenos pontos de leitura e configuração para o uso diário e self-hosted. As faturas pagas ficam mais fáceis de identificar na lista de cartões, a configuração de origins confiáveis do Better Auth passa a ficar documentada para Docker e túneis, o dashboard corrige a leitura de tempo dos pré-lançamentos e as dependências seguem atualizadas sem quebrar o build da imagem.
+
+### Adicionado
+- Cartões: a lista de cartões agora exibe a etiqueta `Paga` ao lado do valor da fatura atual quando ela já foi quitada.
+- Self-hosting: adicionada a variável `BETTER_AUTH_TRUSTED_ORIGINS` ao `.env.example`, ao `docker-compose.yml` e ao README para permitir origins adicionais confiáveis em cenários com Cloudflare Tunnel, reverse proxy ou URLs diferentes de `BETTER_AUTH_URL`.
+
+### Alterado
+- Dependências: atualizados Next.js, React, Better Auth, AI SDK, AWS SDK, pdf.js e ferramentas de desenvolvimento usadas no build.
+
+### Corrigido
+- Dashboard: o widget `Pré-lançamentos` agora calcula o rótulo `há X` a partir da chegada do item ao OpenMonetis, evitando deslocamentos causados por timestamps de notificação enviados com timezone incorreto.
+- Anexos: o preview de PDFs foi ajustado para a API atual do `pdfjs-dist`, evitando falha de TypeScript durante o build da imagem Docker.
+
+## [2.7.2] - 2026-05-31
+
+Esta versão atualiza as imagens de apresentação do OpenMonetis na landing page e no compartilhamento em redes sociais.
+
+### Alterado
+- Landing page: atualizadas as imagens de preview do dashboard e da versão PWA.
+- Compartilhamento: ajustada a imagem usada nos metadados sociais da landing page.
+
+## [2.7.1] - 2026-05-30
+
+Esta versão melhora a clareza dos fluxos de lançamento e a experiência do dashboard. Boletos de receita agora diferenciam pagamentos de recebimentos, a navegação mensal ficou mais direta e o painel ganhou atalhos mais úteis com personalização simplificada.
+
+### Adicionado
+- Preferências: nova opção para exibir ou ocultar o card `Resumo da operação` no modal de lançamento.
+- Navegação mensal: ao passar o mouse, focar ou clicar no período selecionado, agora é possível abrir um seletor e ir diretamente para outro mês.
+
+### Alterado
+- Documentação: o guia visual foi reescrito com os tokens, temas, componentes e práticas de acessibilidade atuais; o README agora apresenta a identidade visual e as preferências disponíveis.
+- Dashboard: os cards de receitas e despesas agora oferecem um atalho discreto para abrir os lançamentos da pessoa principal filtrados pelo tipo e período.
+- Dashboard: a configuração e a reordenação de widgets agora partem de uma única ação `Personalizar`, com controle de visibilidade durante a edição.
+- Dashboard: em telas pequenas, os atalhos para receita, despesa e anotação foram agrupados no menu `Adicionar`.
+- Dashboard: os títulos dos widgets agora usam sentence case para reduzir ruído visual.
+- Dashboard: os widgets receberam uma revisão ampla de UX, com hierarquia visual mais clara, listas compactas, textos mais diretos, estados acessíveis e navegação interna consistente.
+- Dashboard: o widget `Comportamento de pagamento` foi renomeado para `Distribuição de despesas`.
+- Dashboard: limites de orçamento agora aparecem apenas no widget de despesas por categoria.
+- Dashboard: o widget `Panorama de gastos` agora exibe todos os lançamentos sem filtro adicional por cartão.
+- Navegação: o menu de finanças agora oferece submenus para abrir diretamente as faturas dos cartões e os extratos das contas ativas.
+- Lançamentos: ao passar o mouse sobre `Filtros`, os filtros ativos agora aparecem em um painel compacto com remoção individual e ação para limpar todos de uma vez.
+
+### Corrigido
+- Dashboard: o saldo consolidado do widget `Minhas contas` não inclui mais contas inativas.
+- Boletos: lançamentos de receita agora exibem ações e status como `Receber`, `Recebido` e `Recebido em`, enquanto despesas continuam usando `Pagar`, `Pago` e `Pago em`.
+- Dashboard: o modal de baixa de boleto agora usa textos de recebimento e conta de destino para receitas.
+- Calendário e pessoas: os detalhes de boletos de receita agora preservam a nomenclatura de recebimento.
+
+## [2.7.0] - 2026-05-28
+
+Esta versão amplia o OpenMonetis para quem usa o app todos os dias e para quem prefere mais controle sobre os próprios dados. Os Insights ganham novas opções de IA, incluindo modelos locais via Ollama, enquanto a autenticação fica mais confortável em dispositivos pessoais. Também entram melhorias práticas em contas, lançamentos compartilhados, filtros, relatórios e dashboard, deixando os fluxos financeiros mais completos e fáceis de revisar.
+
+### Adicionado
+- Autenticação: a tela de login agora tem a opção "Manter conectado neste dispositivo", usando a persistência nativa do Better Auth para evitar novo login ao reabrir o navegador ou PWA.
+- Autenticação: novas variáveis `AUTH_SESSION_EXPIRES_IN_DAYS` e `AUTH_SESSION_UPDATE_AGE_HOURS` para configurar, em ambientes self-hosted, a duração e a renovação de sessões persistentes.
+- Contas: o extrato de uma conta agora tem um atalho "Adicionar rendimento" ao lado de "Ajustar saldo", abrindo um modal simples com valor e data para criar uma receita paga na conta atual, com categoria `Rendimentos`, forma de pagamento `Transferência bancária` e pessoa admin.
+- Insights: adicionado suporte ao provider MiniMax via `vercel-minimax-ai-provider`, incluindo os modelos M2.7, M2.7 Highspeed, M2.5, M2.5 Highspeed, M2.1, M2.1 Highspeed e M2.
+- Insights: adicionado suporte ao provider Ollama via endpoint OpenAI-compatible, com modelos sugeridos `llama3.2`, `llama3.1`, `qwen2.5` e `mistral`, além de input para qualquer modelo instalado localmente.
+- Configuração: adicionadas as variáveis `MINIMAX_API_KEY`, `OLLAMA_BASE_URL` e `OLLAMA_API_KEY` aos exemplos de ambiente, ao assistente de setup e à documentação.
+- Dependências: adicionada `@ai-sdk/openai-compatible` para integrar provedores compatíveis com a API da OpenAI, incluindo Ollama.
+- Lançamentos: o campo "Dividir com" agora permite selecionar múltiplas pessoas e exibe um campo de valor para cada participante escolhido.
+- Lançamentos: o modal de criação e edição agora exibe um card compacto de resumo da operação abaixo dos anexos, incluindo forma de pagamento, destino, categoria, pessoas, valores divididos e quantidade de lançamentos que serão criados.
+
+### Alterado
+- Contas: o modal "Adicionar rendimento" usa o mesmo seletor de data do modal de lançamentos e os botões de rendimento e ajuste de saldo agora exibem tooltip.
+- Categorias: o header de `/categories/[categoryId]` agora usa três blocos de métrica alinhados para total do mês selecionado, total do mês anterior e variação.
+- Dashboard: o botão expansível dos widgets passou de "Ver tudo" para "Expandir", com visual secundário e gradiente inferior mais compacto para diferenciar melhor a ação de abrir o modal dos links que navegam para páginas completas.
+- Insights: a resolução de modelos foi centralizada em `model-provider.ts`, reduzindo ramificações na action de geração e preservando OpenAI, Anthropic, Google, MiniMax e OpenRouter.
+- Insights: o aviso de privacidade agora diferencia providers externos de providers locais como Ollama.
+- Lançamentos: o filtro de categorias agora separa as opções em grupos de `Despesas` e `Receitas`, preservando ícones e busca dentro do seletor.
+- Lançamentos: a configuração de divisão foi movida para um modal dedicado e minimalista, com seleção direta de participantes, divisão igual e conferência do total distribuído.
+- Lançamentos: a validação de divisão agora aceita uma lista de participações, exige pessoas distintas e confere se a soma dos valores bate com o total do lançamento.
+- Lançamentos: os textos de edição de lançamentos divididos foram ajustados para tratar divisões com mais de duas pessoas.
+- Lançamentos: o card "Dividir lançamento" agora mostra avatares discretos antes dos nomes das pessoas selecionadas e remove as vírgulas entre os nomes no resumo.
+- Relatórios: em `/reports/category-trends`, o seletor de categorias não exibe mais a ação `Todas`; quando há seleção ativa, mostra apenas `Limpar seleção` e resume múltiplas escolhas pela contagem.
+- Relatórios: em `/reports/category-trends`, as tabelas agora usam os cabeçalhos `Categoria Despesa` e `Categoria Receita` e não exibem mais o ponto colorido antes do nome da categoria.
+
+### Corrigido
+- Categorias: em `/categories/[categoryId]`, o percentual de variação do header agora aparece sem `+` quando já há uma etiqueta indicando aumento, queda ou estabilidade.
+- Dashboard: os modais "Ver tudo" dos widgets agora reservam espaço para a barra de rolagem, evitando que ela fique sobreposta aos valores alinhados à direita.
+- Insights: o seletor de modelo do OpenRouter mantém o provider selecionado enquanto o usuário digita um modelo customizado sem `/`, evitando voltar automaticamente para o provider padrão.
+- Relatórios: em `/reports/category-trends`, a busca do seletor de categorias agora pesquisa pelo nome da categoria, e não apenas pelo ID interno, incluindo correspondência sem acentos.
+
+## [2.6.4] - 2026-05-23
+
+Esta versão reúne o polimento final antes da próxima publicação: melhora o fluxo de antecipação de parcelas, deixa os dialogs de lançamentos mais seguros e consistentes, e incorpora as contribuições vindas dos PRs abertos para nomes de logos e ajustes no cadastro de transações.
+
+### Adicionado
+- Logos: adicionado um dicionário de nomes de exibição para logos, com busca normalizada sem acentos e fallback para o comportamento anterior quando não houver mapeamento específico (PR #69).
+- Lançamentos: o dialog de adicionar múltiplos lançamentos agora pede confirmação antes de descartar alterações não salvas ao fechar ou cancelar (PR #70).
+
+### Alterado
+- Lançamentos: o modal "Histórico de Antecipações" agora segue o padrão do modal de detalhes, com `Fechar` e `Desfazer Antecipação` no rodapé, contagem dentro do conteúdo e cards de antecipação reorganizados em blocos mais escaneáveis.
+- Lançamentos: a antecipação de parcelas agora só permite selecionar parcelas futuras ao período escolhido, evitando antecipar a parcela do próprio mês sem bloquear parcelas seguintes da mesma compra.
+- Lançamentos: ao criar uma antecipação, o cache do histórico da série agora é invalidado e o modal refaz a busca ao abrir.
+- Lançamentos: ao adicionar uma nova linha no dialog de múltiplos lançamentos, a data passa a seguir a última transação informada em vez de voltar para a data atual (PR #72).
+
+### Corrigido
+- Lançamentos: ajustado o espaçamento horizontal da área rolável do dialog de adicionar transação para preservar o alinhamento dos campos e botões (PR #71).
+
+## [2.6.3] - 2026-05-22
+
+Esta versão concentra os ajustes feitos depois da `2.6.2` em um único ciclo público. O foco está em dar mais precisão aos filtros de lançamentos por período real de compra e em polir a análise de parcelas para priorizar parcelamentos mais próximos da quitação sem causar saltos visuais nos cards.
+
+### Adicionado
+- Lançamentos: o drawer de filtros agora permite informar data inicial e data final para filtrar a tabela por `data_compra`.
+
+### Alterado
+- Lançamentos: quando um intervalo de datas está ativo, a consulta server-side deixa de limitar os dados a um único mês e usa o intervalo real de compra, mantendo paginação e exportação alinhadas ao que aparece na tabela.
+- Relatórios: os cards de `/reports/installment-analysis` agora são ordenados pelo percentual pago em ordem decrescente, mantendo a data da compra como critério de desempate.
+- Relatórios: em `/reports/installment-analysis`, o contador de parcelas selecionadas agora aparece discretamente no botão "detalhes", sem criar uma área extra no corpo do card.
+
+### Corrigido
+- Relatórios: selecionar parcelas em um card de `/reports/installment-analysis` não força mais os outros cards da mesma linha a reservarem espaço vazio para o resumo de seleção.
+
+## [2.6.2] - 2026-05-21
+
+Esta versão corrige o build da imagem Docker depois da atualização para `pnpm@11.1.3`. A etapa de dependências dentro do Docker não recebia a configuração do workspace, então o install congelado falhava ao comparar os `overrides` e as políticas de build com o lockfile.
+
+### Corrigido
+- Docker: o `Dockerfile` agora usa `pnpm@11.1.3` em todos os estágios e copia `pnpm-workspace.yaml` antes do `pnpm install --frozen-lockfile`, garantindo que `overrides` e `allowBuilds` sejam aplicados também no build da imagem.
+
+## [2.6.1] - 2026-05-21
+
+Esta versão corrige o pipeline de publicação após o salto para a `2.6.0`. O build do GitHub Actions falhava antes mesmo de instalar as dependências porque o workflow ainda fixava uma versão antiga do `pnpm`, enquanto o projeto já declarava `pnpm@11.1.3` no `packageManager`.
+
+### Corrigido
+- CI: o workflow de build deixou de fixar uma versão diferente do `pnpm`, usando a versão declarada em `packageManager` para evitar conflito no `pnpm/action-setup`.
+- CI: a política de builds do `pnpm` foi migrada para `allowBuilds`, permitindo explicitamente os scripts necessários de `core-js`, `esbuild`, `sharp` e `unrs-resolver` durante o install no GitHub Actions.
+
+## [2.6.0] - 2026-05-21
+
+Esta versão implementa melhorias pensadas para o uso real do dia a dia. O OpenMonetis passa a lidar melhor com parcelamentos que já começaram, recupera atalhos importantes no extrato, deixa a revisão de importações mais precisa e dá mais controle para quem mantém uma instância self-hosted. Também entram correções de consistência no dashboard, em cartões, no tratamento da categoria `Pagamentos` e nas datas vindas de planilhas.
+
+### Adicionado
+- Autenticação: nova variável `DISABLE_SIGNUP=true` para bloquear novos cadastros. Quando ativa, a tela de cadastro deixa de aparecer na navegação, `/signup` redireciona para login/dashboard e a API de signup responde `403`.
+- Lançamentos: compras parceladas agora podem começar em uma parcela intermediária, como `5 de 10`. O sistema gera apenas as parcelas restantes e preserva o cálculo do valor unitário com base no total original.
+- Logos: adicionado o logo da Bipa à biblioteca local de marcas.
+- Relatórios: a análise de parcelas agora separa parcelas acompanhadas daquelas que ficaram fora do acompanhamento quando o parcelamento começa no meio da série.
+
+### Alterado
+- Contas: a página de extrato em `/accounts/[accountId]` voltou a exibir os botões "Nova Receita" e "Nova Despesa", alinhando o fluxo com as demais telas de lançamentos.
+- Cartões: os cards de `/cards` agora mostram o valor da fatura do mês atual junto dos indicadores de limite. O limite utilizado passa a considerar faturas em aberto, não apenas o status interno do lançamento.
+- Lançamentos: ao criar um lançamento a partir do extrato de uma conta, o diálogo já abre com essa conta selecionada como destino padrão.
+- Importação: os controles globais da revisão de extrato foram realinhados à esquerda, com espaçamento mais compacto e larguras mais consistentes.
+
+### Corrigido
+- Dashboard: o widget "Status de Pagamento" voltou a mostrar corretamente os valores em "A Pagar", somando despesas pelo valor absoluto e mantendo reembolsos como abatimento.
+- Importação: datas vindas de planilhas agora preservam o dia informado no Excel, evitando que `20/05/2026` apareça como `19/05/2026` em fusos como `America/Sao_Paulo`.
+- Importação: o seletor de categoria por linha agora mostra apenas categorias compatíveis com o tipo detectado do lançamento, separando receitas e despesas durante a revisão do extrato.
+- Importação: cada linha da revisão de extrato agora permite escolher uma pessoa específica, enquanto o campo global continua servindo como atalho para aplicar a pessoa nos lançamentos selecionados.
+- Lançamentos: despesas comuns na categoria `Pagamentos` voltaram a poder ser editadas, removidas, copiadas e importadas. A proteção continua valendo apenas para pagamentos automáticos de fatura com nota técnica `AUTO_FATURA:`.
+
+### Dependências
+- Stack core: `pnpm` 10.33.0 → 11.1.3.
+- Auth: `better-auth` e `@better-auth/passkey` 1.6.10 → 1.6.11.
+- AI SDKs: `@ai-sdk/anthropic` 3.0.76 → 3.0.78, `@ai-sdk/google` 3.0.71 → 3.0.75, `@ai-sdk/openai` 3.0.63 → 3.0.64 e `ai` 6.0.177 → 6.0.185.
+- AWS: `@aws-sdk/client-s3` e `@aws-sdk/s3-request-presigner` 3.1045.0 → 3.1050.0.
+- UI e dados: `@tanstack/react-query` 5.100.9 → 5.100.11, `date-fns` 4.1.0 → 4.2.1, `jspdf-autotable` 5.0.7 → 5.0.8, `pg` 8.20.0 → 8.21.0 e `react-day-picker` 10.0.0 → 10.0.1.
+- Dev tooling: `@types/node` 25.6.2 → 25.9.1, `@types/react` 19.2.14 → 19.2.15, `knip` 6.12.2 → 6.14.1, `tsx` 4.21.0 → 4.22.3 e novo `babel-plugin-react-compiler` 1.0.0.
+
+## [2.5.7] - 2026-05-14
+
+Esta versão faz um polimento visual no relatório de análise de parcelas, deixando o estabelecimento como referência principal do card e mantendo o cartão visível de forma mais discreta no contexto da compra.
+
+### Alterado
+- Relatórios: em `/reports/installment-analysis`, os cards de parcelas passam a usar o logo do estabelecimento como avatar principal; o logo do cartão agora aparece menor ao lado do nome do cartão, tanto no card quanto no modal de detalhes.
+- Relatórios: a página de análise de parcelas pré-carrega os mapeamentos de logos de estabelecimentos para evitar troca visual após o primeiro render.
+- Lançamentos: o campo de anexos no modal agora aceita arquivos colados com `Ctrl+V`, mantendo o botão para buscar arquivos normalmente.
+- Lançamentos: o modal agora usa uma única área interna de rolagem, com cabeçalho e rodapé estáveis, reduzindo travadas ao rolar e ao abrir "Condições, anotações e anexos".
+- Anotações: tarefas agora podem ser editadas inline no modal "Atualizar anotação"; clicar no texto abre o input e o botão de remover vira botão de salvar naquela linha.
+
+### Corrigido
+- Relatórios: o join com cartões na análise de parcelas agora também valida `cards.userId`, mantendo o filtro de ownership explícito na consulta.
+
 ## [2.5.6] - 2026-05-07
 
 Esta versão entrega um conjunto de melhorias em torno do fluxo de lançamentos: filtros mais úteis, divisão por porcentagem, indicador de orçamento dentro do modal e correção de um bug em totais por pessoa que considerava contas excluídas do saldo. Também inclui ajustes de robustez no display da calculadora (sem mais overflow do modal com valores longos) e o fix do cache de RSC nos filtros multi-seleção.

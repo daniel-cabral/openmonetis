@@ -49,7 +49,8 @@ export function InstallmentSelectionTable({
 					Nenhuma parcela elegível para antecipação encontrada.
 				</p>
 				<p className="mt-1 text-xs text-muted-foreground">
-					Todas as parcelas desta compra já foram pagas ou antecipadas.
+					Apenas parcelas futuras, ainda não pagas ou antecipadas, aparecem
+					aqui.
 				</p>
 			</div>
 		);

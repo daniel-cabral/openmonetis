@@ -1,12 +1,11 @@
 import type { InstallmentExpense } from "@/features/dashboard/expenses/installment-expenses-queries";
-import {
-	calculateLastInstallmentDate,
-	formatLastInstallmentDate,
-} from "@/shared/lib/installments/utils";
+import { calculateLastInstallmentDate } from "@/shared/lib/installments/utils";
+import { capitalize } from "@/shared/utils/string";
 
 type InstallmentExpenseDisplay = {
 	compactLabel: string | null;
 	isLast: boolean;
+	remainingLabel: "Próximas" | "Em aberto";
 	remainingInstallments: number;
 	remainingAmount: number;
 	endDate: string | null;
@@ -18,7 +17,7 @@ const buildInstallmentCompactLabel = (
 	installmentCount: number | null,
 ) => {
 	if (currentInstallment && installmentCount) {
-		return `${currentInstallment} de ${installmentCount}`;
+		return `Parcela ${currentInstallment} de ${installmentCount}`;
 	}
 
 	return null;
@@ -38,21 +37,30 @@ const isInstallmentLast = (
 const calculateInstallmentRemainingCount = (
 	currentInstallment: number | null,
 	installmentCount: number | null,
+	isSettled: boolean | null,
 ) => {
 	if (!currentInstallment || !installmentCount) {
 		return 0;
 	}
 
-	return Math.max(0, installmentCount - currentInstallment);
+	const includeCurrentInstallment = isSettled !== true;
+	const currentOffset = includeCurrentInstallment ? 1 : 0;
+
+	return Math.max(0, installmentCount - currentInstallment + currentOffset);
 };
 
 const calculateInstallmentRemainingAmount = (
 	amount: number,
 	currentInstallment: number | null,
 	installmentCount: number | null,
+	isSettled: boolean | null,
 ) =>
 	amount *
-	calculateInstallmentRemainingCount(currentInstallment, installmentCount);
+	calculateInstallmentRemainingCount(
+		currentInstallment,
+		installmentCount,
+		isSettled,
+	);
 
 const formatInstallmentEndDate = (
 	period: string,
@@ -69,7 +77,12 @@ const formatInstallmentEndDate = (
 		installmentCount,
 	);
 
-	return formatLastInstallmentDate(lastDate);
+	const month = new Intl.DateTimeFormat("pt-BR", {
+		month: "short",
+		timeZone: "UTC",
+	}).format(lastDate);
+
+	return `${capitalize(month)} de ${lastDate.getFullYear()}`;
 };
 
 const buildInstallmentProgress = (
@@ -89,7 +102,8 @@ const buildInstallmentProgress = (
 export const buildInstallmentExpenseDisplay = (
 	expense: InstallmentExpense,
 ): InstallmentExpenseDisplay => {
-	const { amount, currentInstallment, installmentCount, period } = expense;
+	const { amount, currentInstallment, installmentCount, isSettled, period } =
+		expense;
 
 	return {
 		compactLabel: buildInstallmentCompactLabel(
@@ -97,14 +111,17 @@ export const buildInstallmentExpenseDisplay = (
 			installmentCount,
 		),
 		isLast: isInstallmentLast(currentInstallment, installmentCount),
+		remainingLabel: isSettled === true ? "Próximas" : "Em aberto",
 		remainingInstallments: calculateInstallmentRemainingCount(
 			currentInstallment,
 			installmentCount,
+			isSettled,
 		),
 		remainingAmount: calculateInstallmentRemainingAmount(
 			amount,
 			currentInstallment,
 			installmentCount,
+			isSettled,
 		),
 		endDate: formatInstallmentEndDate(
 			period,

@@ -1,3 +1,5 @@
+import type { InvoicePaymentStatus } from "@/shared/lib/invoices";
+
 export type Card = {
 	id: string;
 	name: string;
@@ -12,6 +14,9 @@ export type Card = {
 	accountName: string;
 	limitInUse: number;
 	limitAvailable: number;
+	currentInvoiceAmount: number;
+	currentInvoiceLabel: string;
+	currentInvoiceStatus: InvoicePaymentStatus | null;
 };
 
 export type CardFormValues = {

@@ -45,12 +45,16 @@ type InstallmentDetail = {
 export type InstallmentGroup = {
 	seriesId: string;
 	name: string;
+	note: string | null;
 	paymentMethod: string;
 	cardId: string | null;
 	cartaoName: string | null;
 	cartaoDueDay: string | null;
 	cartaoLogo: string | null;
 	totalInstallments: number;
+	trackedStartInstallment: number;
+	trackedInstallments: number;
+	untrackedInstallments: number;
 	paidInstallments: number;
 	pendingInstallments: InstallmentDetail[];
 	totalPendingAmount: number;
@@ -77,6 +81,7 @@ export async function fetchInstallmentAnalysis(
 			id: transactions.id,
 			seriesId: transactions.seriesId,
 			name: transactions.name,
+			note: transactions.note,
 			amount: transactions.amount,
 			paymentMethod: transactions.paymentMethod,
 			currentInstallment: transactions.currentInstallment,
@@ -92,7 +97,10 @@ export async function fetchInstallmentAnalysis(
 			cartaoLogo: cards.logo,
 		})
 		.from(transactions)
-		.leftJoin(cards, eq(transactions.cardId, cards.id))
+		.leftJoin(
+			cards,
+			and(eq(transactions.cardId, cards.id), eq(cards.userId, userId)),
+		)
 		.where(
 			and(
 				eq(transactions.userId, userId),
@@ -144,12 +152,19 @@ export async function fetchInstallmentAnalysis(
 			seriesMap.set(row.seriesId, {
 				seriesId: row.seriesId,
 				name: row.name,
+				note: row.note,
 				paymentMethod: row.paymentMethod,
 				cardId: row.cardId,
 				cartaoName: row.cartaoName,
 				cartaoDueDay: row.cartaoDueDay,
 				cartaoLogo: row.cartaoLogo,
 				totalInstallments: row.installmentCount ?? 0,
+				trackedStartInstallment: installmentDetail.currentInstallment,
+				trackedInstallments: 1,
+				untrackedInstallments: Math.max(
+					0,
+					installmentDetail.currentInstallment - 1,
+				),
 				paidInstallments: 0,
 				pendingInstallments: [installmentDetail],
 				totalPendingAmount: amount,
@@ -165,7 +180,13 @@ export async function fetchInstallmentAnalysis(
 			const paidCount = group.pendingInstallments.filter(
 				(i) => i.isSettled,
 			).length;
+			const trackedStartInstallment = Math.min(
+				...group.pendingInstallments.map((i) => i.currentInstallment),
+			);
 			group.paidInstallments = paidCount;
+			group.trackedStartInstallment = trackedStartInstallment;
+			group.trackedInstallments = group.pendingInstallments.length;
+			group.untrackedInstallments = Math.max(0, trackedStartInstallment - 1);
 			return group;
 		})
 		// Filtrar apenas séries que têm pelo menos uma parcela em aberto (não paga)
@@ -174,6 +195,22 @@ export async function fetchInstallmentAnalysis(
 				(i) => !i.isSettled,
 			);
 			return hasUnpaidInstallments;
+		})
+		.sort((a, b) => {
+			const progressA =
+				a.trackedInstallments > 0
+					? a.paidInstallments / a.trackedInstallments
+					: 0;
+			const progressB =
+				b.trackedInstallments > 0
+					? b.paidInstallments / b.trackedInstallments
+					: 0;
+
+			if (progressA !== progressB) {
+				return progressB - progressA;
+			}
+
+			return a.firstPurchaseDate.getTime() - b.firstPurchaseDate.getTime();
 		});
 
 	// Calcular totais

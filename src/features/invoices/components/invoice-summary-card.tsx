@@ -206,32 +206,32 @@ export function InvoiceSummaryCard({
 	};
 
 	return (
-		<Card className="gap-0 py-0">
+		<Card className="gap-0 py-0 space-y-2">
 			<CardContent className="px-4 py-4 sm:px-5 sm:py-5">
 				<div className="flex flex-col gap-4">
 					{/* Linha 1 — identidade */}
-					<div className="flex items-center justify-between gap-3">
-						<div className="flex min-w-0 items-center gap-3">
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+						<div className="flex min-w-0 items-start gap-3">
 							{logoPath ? (
 								<div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full">
 									<Image
 										src={logoPath}
 										alt={`Logo ${cardName}`}
-										width={42}
-										height={42}
+										width={48}
+										height={48}
 										className="h-full w-full object-contain"
 									/>
 								</div>
 							) : cardBrand ? (
-								<span className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-medium text-muted-foreground">
+								<span className="flex size-12 shrink-0 items-center justify-center rounded-full border bg-card text-sm font-semibold text-primary">
 									{cardBrand.slice(0, 2).toUpperCase()}
 								</span>
 							) : null}
-							<div className="min-w-0">
-								<h2 className="truncate text-sm font-semibold text-foreground">
+							<div className="min-w-0 space-y-1">
+								<h2 className="truncate text-xl font-semibold text-foreground sm:text-2xl">
 									{cardName}
 								</h2>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-sm leading-relaxed text-muted-foreground">
 									Fatura de {periodLabel}
 								</p>
 							</div>
@@ -240,13 +240,13 @@ export function InvoiceSummaryCard({
 					</div>
 
 					{/* Linha 2 — valor da fatura (hero) */}
-					<div className="space-y-4">
+					<div className="space-y-3">
 						<p className="text-sm text-muted-foreground">Valor da fatura</p>
 						<div className="flex items-center gap-2">
 							<MoneyValues
 								amount={Math.abs(totalAmount)}
 								className={cn(
-									"text-3xl tracking-tighter font-semibold",
+									"text-3xl leading-none tracking-tighter sm:text-2xl",
 									isPaid ? "text-success" : "text-foreground",
 								)}
 							/>
@@ -259,7 +259,7 @@ export function InvoiceSummaryCard({
 										type="button"
 										variant="ghost"
 										size="icon-sm"
-										className="text-muted-foreground hover:text-foreground"
+										className="text-primary hover:text-primary"
 										aria-label="Ajustar fatura"
 									>
 										<RiEqualizerLine className="size-4" />

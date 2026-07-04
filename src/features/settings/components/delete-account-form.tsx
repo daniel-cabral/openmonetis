@@ -169,7 +169,7 @@ export function DeleteAccountForm() {
 				>
 					<DialogHeader>
 						<DialogTitle>
-							{isResetAction ? "Zerar sua conta?" : "Você tem certeza?"}
+							{isResetAction ? "ZERAR sua conta?" : "Você tem certeza?"}
 						</DialogTitle>
 						<DialogDescription>
 							{isResetAction

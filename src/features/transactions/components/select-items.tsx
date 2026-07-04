@@ -29,7 +29,7 @@ export function PayerSelectContent({
 
 	return (
 		<span className="flex items-center gap-2">
-			<Avatar className="size-5 border border-border/60 bg-background">
+			<Avatar className="size-6 border border-border/60 bg-background">
 				<AvatarImage src={avatarSrc} alt={`Avatar de ${label}`} />
 				<AvatarFallback className="text-xs font-medium uppercase">
 					{initial}

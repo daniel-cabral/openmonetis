@@ -2,7 +2,10 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
-import { CategorySelectContent } from "@/features/transactions/components/select-items";
+import {
+	CategorySelectContent,
+	PayerSelectContent,
+} from "@/features/transactions/components/select-items";
 import type { SelectOption } from "@/features/transactions/components/types";
 import MoneyValues from "@/shared/components/money-values";
 import { TransactionTypeBadge } from "@/shared/components/transaction-type-badge";
@@ -31,17 +34,28 @@ import {
 import type { ImportedTransaction } from "@/shared/lib/import/types";
 import { formatDate } from "@/shared/utils/date";
 
+const categoryGroupByTransactionType: Record<
+	ImportedTransaction["transactionType"],
+	string
+> = {
+	expense: "despesa",
+	income: "receita",
+};
+
 export type ReviewRow = ImportedTransaction & {
 	selected: boolean;
 	isDuplicate: boolean;
 	categoryId: string | null;
+	payerId: string | null;
 };
 
 interface ReviewTableProps {
 	rows: ReviewRow[];
+	payerOptions: SelectOption[];
 	categoryOptions: SelectOption[];
 	onToggle: (index: number) => void;
 	onToggleAll: (selected: boolean) => void;
+	onPayerChange: (index: number, payerId: string | null) => void;
 	onCategoryChange: (index: number, categoryId: string | null) => void;
 	onDescriptionChange: (index: number, description: string) => void;
 	onUndoDuplicate: (index: number) => void;
@@ -49,9 +63,11 @@ interface ReviewTableProps {
 
 export function ReviewTable({
 	rows,
+	payerOptions,
 	categoryOptions,
 	onToggle,
 	onToggleAll,
+	onPayerChange,
 	onCategoryChange,
 	onDescriptionChange,
 	onUndoDuplicate,
@@ -97,6 +113,7 @@ export function ReviewTable({
 							</TableHead>
 							<TableHead className="w-24">Data</TableHead>
 							<TableHead>Descrição</TableHead>
+							<TableHead className="w-44">Pessoa</TableHead>
 							<TableHead className="w-44">Categoria</TableHead>
 							<TableHead className="w-20">Tipo</TableHead>
 							<TableHead className="w-28 text-right">Valor</TableHead>
@@ -106,7 +123,7 @@ export function ReviewTable({
 						{paddingTop > 0 && (
 							<TableRow>
 								<TableCell
-									colSpan={6}
+									colSpan={7}
 									style={{ height: paddingTop, padding: 0 }}
 								/>
 							</TableRow>
@@ -117,6 +134,11 @@ export function ReviewTable({
 								return null;
 							}
 							const index = virtualRow.index;
+							const categoryOptionsForRow = categoryOptions.filter(
+								(option) =>
+									option.group ===
+									categoryGroupByTransactionType[row.transactionType],
+							);
 							return (
 								<TableRow
 									key={row.externalId ?? `${row.date}-${index}`}
@@ -179,6 +201,26 @@ export function ReviewTable({
 									</TableCell>
 									<TableCell>
 										<Select
+											value={row.payerId ?? ""}
+											onValueChange={(v) => onPayerChange(index, v || null)}
+										>
+											<SelectTrigger className="h-8 text-xs">
+												<SelectValue placeholder="Pessoa…" />
+											</SelectTrigger>
+											<SelectContent>
+												{payerOptions.map((opt) => (
+													<SelectItem key={opt.value} value={opt.value}>
+														<PayerSelectContent
+															label={opt.label}
+															avatarUrl={opt.avatarUrl}
+														/>
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</TableCell>
+									<TableCell>
+										<Select
 											value={row.categoryId ?? ""}
 											onValueChange={(v) => onCategoryChange(index, v || null)}
 										>
@@ -186,7 +228,7 @@ export function ReviewTable({
 												<SelectValue placeholder="Categoria…" />
 											</SelectTrigger>
 											<SelectContent>
-												{categoryOptions.map((opt) => (
+												{categoryOptionsForRow.map((opt) => (
 													<SelectItem key={opt.value} value={opt.value}>
 														<CategorySelectContent
 															label={opt.label}
@@ -225,7 +267,7 @@ export function ReviewTable({
 						{paddingBottom > 0 && (
 							<TableRow>
 								<TableCell
-									colSpan={6}
+									colSpan={7}
 									style={{ height: paddingBottom, padding: 0 }}
 								/>
 							</TableRow>

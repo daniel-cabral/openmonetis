@@ -1,7 +1,8 @@
 import { passkey } from "@better-auth/passkey";
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import type { GoogleProfile } from "better-auth/social-providers";
+import { isSignupDisabled } from "@/shared/lib/auth/signup";
 import { seedDefaultCategoriesForUser } from "@/shared/lib/categories/defaults";
 import { db, schema } from "@/shared/lib/db";
 import { ensureDefaultPayerForUser } from "@/shared/lib/payers/defaults";
@@ -13,6 +14,25 @@ import { normalizeNameFromEmail } from "@/shared/lib/payers/utils";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const DEFAULT_SESSION_EXPIRES_IN_DAYS = 30;
+const DEFAULT_SESSION_UPDATE_AGE_HOURS = 24;
+
+function parsePositiveIntegerEnv(name: string, fallback: number): number {
+	const value = process.env[name];
+	if (!value) return fallback;
+
+	const parsed = Number.parseInt(value, 10);
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+const sessionExpiresInDays = parsePositiveIntegerEnv(
+	"AUTH_SESSION_EXPIRES_IN_DAYS",
+	DEFAULT_SESSION_EXPIRES_IN_DAYS,
+);
+const sessionUpdateAgeHours = parsePositiveIntegerEnv(
+	"AUTH_SESSION_UPDATE_AGE_HOURS",
+	DEFAULT_SESSION_UPDATE_AGE_HOURS,
+);
 
 /**
  * Extrai nome do usuário do perfil do Google com fallback hierárquico:
@@ -76,6 +96,8 @@ export const auth = betterAuth({
 
 	// Session configuration - Safari compatibility
 	session: {
+		expiresIn: sessionExpiresInDays * 24 * 60 * 60,
+		updateAge: sessionUpdateAgeHours * 60 * 60,
 		cookieCache: {
 			enabled: true,
 			maxAge: 60 * 5, // 5 minutes
@@ -122,6 +144,13 @@ export const auth = betterAuth({
 	databaseHooks: {
 		user: {
 			create: {
+				before: async () => {
+					if (!isSignupDisabled()) return;
+
+					throw new APIError("FORBIDDEN", {
+						message: "Novos cadastros estão desativados.",
+					});
+				},
 				/**
 				 * Após criar novo usuário, inicializa:
 				 * 1. Categorias padrão (Receitas/Despesas)

@@ -74,16 +74,16 @@ export function GlobalFields({
 	return (
 		<div className="flex flex-col gap-2">
 			<p className="text-muted-foreground text-sm">
-				Aplicado a todos os lançamentos importados.
+				Aplicado aos lançamentos selecionados.
 			</p>
-			<div className="flex flex-wrap gap-4">
-				<div className="flex min-w-44 flex-col gap-1.5">
+			<div className="grid w-full grid-cols-1 items-end justify-start gap-3 sm:grid-cols-[repeat(2,minmax(0,14rem))] lg:grid-cols-[16rem_14rem_18rem_14rem]">
+				<div className="flex min-w-0 flex-col gap-1.5">
 					<Label>Conta / Cartão</Label>
 					<Select
 						value={accountCardValue ?? ""}
 						onValueChange={(v) => onAccountCardChange(v || null)}
 					>
-						<SelectTrigger>
+						<SelectTrigger className="w-full">
 							<SelectValue placeholder="Selecionar conta ou cartão…" />
 						</SelectTrigger>
 						<SelectContent>
@@ -122,14 +122,14 @@ export function GlobalFields({
 					</Select>
 				</div>
 
-				<div className="flex min-w-44 flex-col gap-1.5">
+				<div className="flex min-w-0 flex-col gap-1.5">
 					<Label>Pessoa</Label>
 					<Select
 						value={payerId ?? ""}
 						onValueChange={(v) => onPayerChange(v || null)}
 					>
-						<SelectTrigger>
-							<SelectValue placeholder="Selecionar pessoa…" />
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="Aplicar pessoa…" />
 						</SelectTrigger>
 						<SelectContent>
 							{payerOptions.map((opt) => (
@@ -144,10 +144,10 @@ export function GlobalFields({
 					</Select>
 				</div>
 
-				<div className="flex min-w-44 flex-col gap-1.5">
+				<div className="flex min-w-0 flex-col gap-1.5">
 					<Label>Categoria</Label>
 					<Select onValueChange={onBulkCategoryChange}>
-						<SelectTrigger>
+						<SelectTrigger className="w-full">
 							<SelectValue placeholder="Aplicar a todas selecionadas…" />
 						</SelectTrigger>
 						<SelectContent>
@@ -185,7 +185,7 @@ export function GlobalFields({
 				</div>
 
 				{isCard && (
-					<div className="flex min-w-44 flex-col gap-1.5">
+					<div className="flex min-w-0 flex-col gap-1.5">
 						<Label>Fatura</Label>
 						<PeriodPicker
 							value={invoicePeriod ?? ""}

@@ -1,6 +1,6 @@
-import { RiExternalLinkLine } from "@remixicon/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { dashboardWidgetListStyles as styles } from "@/features/dashboard/components/dashboard-widget-list-styles";
 import {
 	formatPaymentBreakdownPercentage,
 	formatPaymentBreakdownTransactionsLabel,
@@ -24,13 +24,16 @@ export type PaymentBreakdownListItemData = {
 
 type PaymentBreakdownListItemProps = {
 	item: PaymentBreakdownListItemData;
+	position: number;
 };
 
 export function PaymentBreakdownListItem({
 	item,
+	position,
 }: PaymentBreakdownListItemProps) {
 	return (
-		<div className="flex items-center gap-3 transition-all duration-300 py-1.5">
+		<div className={styles.row}>
+			<span className={styles.rank}>{position}</span>
 			<div
 				className="flex size-9.5 shrink-0 items-center justify-center rounded-full"
 				style={{
@@ -41,30 +44,28 @@ export function PaymentBreakdownListItem({
 				{item.icon}
 			</div>
 
-			<div className="min-w-0 flex-1">
-				<div className="flex items-center justify-between">
+			<div className={styles.textStack}>
+				<div className="flex items-center justify-between gap-2">
 					{item.href ? (
-						<Link
-							href={item.href}
-							className="inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-2 hover:text-primary hover:underline"
-						>
+						<Link href={item.href} className={styles.titleLink}>
 							<span className="truncate">{item.title}</span>
-							<RiExternalLinkLine
-								className="size-3 shrink-0 text-muted-foreground"
-								aria-hidden
-							/>
 						</Link>
 					) : (
-						<p className="text-sm font-medium text-foreground">{item.title}</p>
+						<p className={styles.title}>{item.title}</p>
 					)}
-					<MoneyValues className="font-medium" amount={item.amount} />
+					<MoneyValues
+						className={`shrink-0 ${styles.trailingValue}`}
+						amount={item.amount}
+					/>
 				</div>
 
-				<div className="flex items-center justify-between text-xs text-muted-foreground">
+				<div className={styles.meta}>
 					<span>
 						{formatPaymentBreakdownTransactionsLabel(item.transactions)}
 					</span>
-					<span>{formatPaymentBreakdownPercentage(item.percentage)}</span>
+					<span className="ml-auto">
+						{formatPaymentBreakdownPercentage(item.percentage)} do total
+					</span>
 				</div>
 
 				<div className="mt-1">

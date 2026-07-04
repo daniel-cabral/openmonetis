@@ -17,6 +17,7 @@ export interface TransactionDialogProps {
 	estabelecimentos: string[];
 	transaction?: TransactionItem;
 	defaultPeriod?: string;
+	defaultAccountId?: string | null;
 	defaultCardId?: string | null;
 	defaultPaymentMethod?: string | null;
 	defaultPurchaseDate?: string | null;
@@ -95,7 +96,7 @@ export interface CategorySectionProps extends BaseFieldSectionProps {
 
 export interface PayerSectionProps extends BaseFieldSectionProps {
 	payerOptions: SelectOption[];
-	secondaryPayerOptions: SelectOption[];
+	splitPayerOptions: SelectOption[];
 	totalAmount: number;
 }
 

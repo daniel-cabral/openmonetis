@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
 	Field,
 	FieldDescription,
@@ -21,15 +22,24 @@ import { GoogleAuthButton } from "./google-auth-button";
 
 type DivProps = React.ComponentProps<"div">;
 
+interface LoginFormProps extends DivProps {
+	signupDisabled?: boolean;
+}
+
 const authLinkClassName =
 	"font-medium text-foreground/88 underline decoration-border underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground/30 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
 
-export function LoginForm({ className, ...props }: DivProps) {
+export function LoginForm({
+	className,
+	signupDisabled = false,
+	...props
+}: LoginFormProps) {
 	const router = useRouter();
 	const isGoogleAvailable = googleSignInAvailable;
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [rememberMe, setRememberMe] = useState(false);
 
 	const [error, setError] = useState("");
 	const [loadingEmail, setLoadingEmail] = useState(false);
@@ -52,7 +62,7 @@ export function LoginForm({ className, ...props }: DivProps) {
 				email,
 				password,
 				callbackURL: "/dashboard",
-				rememberMe: false,
+				rememberMe,
 			},
 			{
 				onRequest: () => {
@@ -178,6 +188,24 @@ export function LoginForm({ className, ...props }: DivProps) {
 							/>
 						</Field>
 
+						<div className="flex items-start gap-3">
+							<Checkbox
+								id="remember-me"
+								checked={rememberMe}
+								onCheckedChange={(checked) => setRememberMe(checked === true)}
+								disabled={loadingEmail || loadingGoogle || loadingPasskey}
+								className="mt-0.5"
+							/>
+							<div className="grid gap-1">
+								<FieldLabel
+									htmlFor="remember-me"
+									className="cursor-pointer font-medium"
+								>
+									Manter conectado neste dispositivo
+								</FieldLabel>
+							</div>
+						</div>
+
 						<Field>
 							<Button
 								type="submit"
@@ -233,12 +261,14 @@ export function LoginForm({ className, ...props }: DivProps) {
 							</div>
 						</Field>
 
-						<FieldDescription className="pt-1 text-center">
-							Não tem uma conta?{" "}
-							<a href="/signup" className={authLinkClassName}>
-								Inscreva-se
-							</a>
-						</FieldDescription>
+						{!signupDisabled && (
+							<FieldDescription className="pt-1 text-center">
+								Não tem uma conta?{" "}
+								<a href="/signup" className={authLinkClassName}>
+									Inscreva-se
+								</a>
+							</FieldDescription>
+						)}
 
 						<FieldDescription className="text-center text-sm text-muted-foreground">
 							<a href="/" className={authLinkClassName}>

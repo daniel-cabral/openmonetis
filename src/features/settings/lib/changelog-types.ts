@@ -1,6 +1,6 @@
 export type SectionType = "Adicionado" | "Alterado" | "Corrigido" | "Removido";
 
-export const SECTION_TYPES: readonly SectionType[] = [
+const SECTION_TYPES: readonly SectionType[] = [
 	"Adicionado",
 	"Alterado",
 	"Corrigido",

@@ -5,12 +5,13 @@
 # ============================================
 FROM node:22-alpine AS deps
 
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+ARG PNPM_VERSION=11.1.3
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
 # Copiar apenas arquivos de dependências para aproveitar cache
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 
 # Criar pasta public para o postinstall do pdfjs-dist
 RUN mkdir -p public
@@ -23,7 +24,8 @@ RUN pnpm install --frozen-lockfile
 # ============================================
 FROM node:22-alpine AS builder
 
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+ARG PNPM_VERSION=11.1.3
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
@@ -52,7 +54,8 @@ RUN pnpm build
 # ============================================
 FROM node:22-alpine AS runner
 
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+ARG PNPM_VERSION=11.1.3
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 

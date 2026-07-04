@@ -7,6 +7,7 @@ import {
 	TRANSACTION_CONDITIONS,
 	TRANSACTION_TYPES,
 } from "@/features/transactions/lib/constants";
+import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
 import { handleActionError } from "@/shared/lib/actions/helpers";
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
@@ -30,6 +31,7 @@ import {
 	fetchOwnedPayerIds,
 	formatPaidInvoicePeriods,
 	getPaidInvoicePeriods,
+	isInitialBalanceTransaction,
 	type MassAddInput,
 	massAddSchema,
 	resolvePeriod,
@@ -47,6 +49,19 @@ const getPeriodOffset = (basePeriod: string, targetPeriod: string) => {
 	return (target.year - base.year) * 12 + (target.month - base.month);
 };
 
+type ProtectedTransactionCandidate = {
+	note: string | null;
+	transactionType: string | null;
+	condition: string | null;
+	paymentMethod: string | null;
+};
+
+const isProtectedTransaction = (
+	record: ProtectedTransactionCandidate,
+): boolean =>
+	Boolean(record.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) ||
+	isInitialBalanceTransaction(record);
+
 export async function deleteTransactionBulkAction(
 	input: DeleteBulkInput,
 ): Promise<ActionResult> {
@@ -61,6 +76,9 @@ export async function deleteTransactionBulkAction(
 				seriesId: true,
 				period: true,
 				condition: true,
+				transactionType: true,
+				paymentMethod: true,
+				note: true,
 			},
 			where: and(
 				eq(transactions.id, data.id),
@@ -76,6 +94,13 @@ export async function deleteTransactionBulkAction(
 			return {
 				success: false,
 				error: "Este lançamento não faz parte de uma série.",
+			};
+		}
+
+		if (isProtectedTransaction(existing)) {
+			return {
+				success: false,
+				error: "Lançamentos protegidos não podem ser removidos em massa.",
 			};
 		}
 
@@ -171,6 +196,7 @@ export async function updateTransactionBulkAction(
 				purchaseDate: true,
 				payerId: true,
 				cardId: true,
+				note: true,
 			},
 			where: and(
 				eq(transactions.id, data.id),
@@ -186,6 +212,13 @@ export async function updateTransactionBulkAction(
 			return {
 				success: false,
 				error: "Este lançamento não faz parte de uma série.",
+			};
+		}
+
+		if (isProtectedTransaction(existing)) {
+			return {
+				success: false,
+				error: "Lançamentos protegidos não podem ser atualizados em massa.",
 			};
 		}
 
@@ -751,6 +784,13 @@ export async function deleteMultipleTransactionsAction(
 
 		if (existing.length === 0) {
 			return { success: false, error: "Nenhum lançamento encontrado." };
+		}
+
+		if (existing.some(isProtectedTransaction)) {
+			return {
+				success: false,
+				error: "Lançamentos protegidos não podem ser removidos em massa.",
+			};
 		}
 
 		const linkedAttachments = await db

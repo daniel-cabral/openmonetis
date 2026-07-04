@@ -1,7 +1,27 @@
-import { and, eq, ilike, isNull, ne, not, or, sql } from "drizzle-orm";
-import { cards, financialAccounts, transactions } from "@/db/schema";
+import {
+	and,
+	eq,
+	ilike,
+	isNotNull,
+	isNull,
+	ne,
+	not,
+	or,
+	sql,
+} from "drizzle-orm";
+import { cards, financialAccounts, invoices, transactions } from "@/db/schema";
 import { db } from "@/shared/lib/db";
+import {
+	INVOICE_PAYMENT_STATUS,
+	INVOICE_STATUS_VALUES,
+	type InvoicePaymentStatus,
+} from "@/shared/lib/invoices";
 import { loadLogoOptions } from "@/shared/lib/logo/options";
+import {
+	formatPeriodMonthShort,
+	getCurrentPeriod,
+	parsePeriod,
+} from "@/shared/utils/period";
 
 type CardData = {
 	id: string;
@@ -15,6 +35,9 @@ type CardData = {
 	limit: number;
 	limitInUse: number;
 	limitAvailable: number;
+	currentInvoiceAmount: number;
+	currentInvoiceLabel: string;
+	currentInvoiceStatus: InvoicePaymentStatus | null;
 	accountId: string;
 	accountName: string;
 };
@@ -25,6 +48,17 @@ type AccountSimple = {
 	logo: string | null;
 };
 
+function formatCurrentInvoiceLabel(period: string) {
+	const { year } = parsePeriod(period);
+	return `Fatura ${formatPeriodMonthShort(period)}. ${year}`;
+}
+
+function parseInvoiceStatus(value: unknown): InvoicePaymentStatus | null {
+	return INVOICE_STATUS_VALUES.includes(value as InvoicePaymentStatus)
+		? (value as InvoicePaymentStatus)
+		: null;
+}
+
 async function fetchCardsByStatus(
 	userId: string,
 	archived: boolean,
@@ -33,7 +67,16 @@ async function fetchCardsByStatus(
 	accounts: AccountSimple[];
 	logoOptions: string[];
 }> {
-	const [cardRows, accountRows, logoOptions, usageRows] = await Promise.all([
+	const currentPeriod = getCurrentPeriod();
+	const currentInvoiceLabel = formatCurrentInvoiceLabel(currentPeriod);
+	const [
+		cardRows,
+		accountRows,
+		logoOptions,
+		usageRows,
+		invoiceRows,
+		invoiceStatusRows,
+	] = await Promise.all([
 		db.query.cards.findMany({
 			orderBy: (table, { desc }) => [desc(table.name)],
 			where: and(
@@ -67,10 +110,22 @@ async function fetchCardsByStatus(
 				total: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
 			})
 			.from(transactions)
+			.leftJoin(
+				invoices,
+				and(
+					eq(invoices.userId, transactions.userId),
+					eq(invoices.cardId, transactions.cardId),
+					eq(invoices.period, transactions.period),
+				),
+			)
 			.where(
 				and(
 					eq(transactions.userId, userId),
-					or(isNull(transactions.isSettled), eq(transactions.isSettled, false)),
+					isNotNull(transactions.cardId),
+					or(
+						isNull(invoices.paymentStatus),
+						ne(invoices.paymentStatus, INVOICE_PAYMENT_STATUS.PAID),
+					),
 					// Recorrente no cartão: só consome limite quando a data da ocorrência já passou
 					or(
 						ne(transactions.condition, "Recorrente"),
@@ -79,12 +134,48 @@ async function fetchCardsByStatus(
 				),
 			)
 			.groupBy(transactions.cardId),
+		db
+			.select({
+				cardId: transactions.cardId,
+				total: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
+			})
+			.from(transactions)
+			.where(
+				and(
+					eq(transactions.userId, userId),
+					eq(transactions.period, currentPeriod),
+				),
+			)
+			.groupBy(transactions.cardId),
+		db
+			.select({
+				cardId: invoices.cardId,
+				paymentStatus: invoices.paymentStatus,
+			})
+			.from(invoices)
+			.where(
+				and(eq(invoices.userId, userId), eq(invoices.period, currentPeriod)),
+			),
 	]);
 
 	const usageMap = new Map<string, number>();
 	usageRows.forEach((row: { cardId: string | null; total: number | null }) => {
 		if (!row.cardId) return;
 		usageMap.set(row.cardId, Number(row.total ?? 0));
+	});
+	const invoiceMap = new Map<string, number>();
+	invoiceRows.forEach(
+		(row: { cardId: string | null; total: number | null }) => {
+			if (!row.cardId) return;
+			invoiceMap.set(row.cardId, Math.abs(Number(row.total ?? 0)));
+		},
+	);
+	const invoiceStatusMap = new Map<string, InvoicePaymentStatus>();
+	invoiceStatusRows.forEach((row) => {
+		if (!row.cardId) return;
+		const status = parseInvoiceStatus(row.paymentStatus);
+		if (!status) return;
+		invoiceStatusMap.set(row.cardId, status);
 	});
 
 	const cardList = cardRows.map((card) => ({
@@ -99,13 +190,16 @@ async function fetchCardsByStatus(
 		limit: Number(card.limit),
 		limitInUse: (() => {
 			const total = usageMap.get(card.id) ?? 0;
-			return total < 0 ? Math.abs(total) : 0;
+			return Math.abs(total);
 		})(),
 		limitAvailable: (() => {
 			const total = usageMap.get(card.id) ?? 0;
-			const inUse = total < 0 ? Math.abs(total) : 0;
+			const inUse = Math.abs(total);
 			return Math.max(Number(card.limit) - inUse, 0);
 		})(),
+		currentInvoiceAmount: invoiceMap.get(card.id) ?? 0,
+		currentInvoiceLabel,
+		currentInvoiceStatus: invoiceStatusMap.get(card.id) ?? null,
 		accountId: card.accountId,
 		accountName:
 			(card.financialAccount as { name?: string } | null)?.name ??

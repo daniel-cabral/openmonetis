@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { AccountDialog } from "@/features/accounts/components/account-dialog";
 import { AccountStatementCard } from "@/features/accounts/components/account-statement-card";
+import { AddYieldDialog } from "@/features/accounts/components/add-yield-dialog";
 import { AdjustBalanceDialog } from "@/features/accounts/components/adjust-balance-dialog";
 import type { Account } from "@/features/accounts/components/types";
 import {
@@ -31,6 +32,7 @@ import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { Button } from "@/shared/components/ui/button";
 import { getUserId } from "@/shared/lib/auth/server";
 import { loadLogoOptions } from "@/shared/lib/logo/options";
+import { getBusinessDateString } from "@/shared/utils/date";
 import { parsePeriodParam } from "@/shared/utils/period";
 
 type PageSearchParams = Promise<ResolvedSearchParams>;
@@ -42,6 +44,26 @@ type PageProps = {
 
 const capitalize = (value: string) =>
 	value.length > 0 ? value[0]?.toUpperCase().concat(value.slice(1)) : value;
+
+const resolveDefaultPaymentMethod = (
+	accountType: string | null | undefined,
+) => {
+	if (accountType === "Dinheiro") return "Dinheiro";
+	if (accountType === "Pré-Pago | VR/VA") return "Pré-Pago | VR/VA";
+
+	return "Pix";
+};
+
+const resolveDefaultYieldDate = (period: string) => {
+	const today = getBusinessDateString();
+	if (today.startsWith(period)) return today;
+
+	const [year, month] = period.split("-").map((part) => Number(part));
+	if (!year || !month) return today;
+
+	const lastDay = new Date(year, month, 0).getDate();
+	return `${period}-${String(lastDay).padStart(2, "0")}`;
+};
 
 export default async function Page({ params, searchParams }: PageProps) {
 	await connection();
@@ -87,6 +109,8 @@ export default async function Page({ params, searchParams }: PageProps) {
 		filters: searchFilters,
 		slugMaps,
 		accountId: account.id,
+		hideAnticipatedInstallments:
+			userPreferences?.hideAnticipatedInstallments ?? false,
 	});
 
 	const transactionsPage = await fetchAccountTransactionsPage(
@@ -100,6 +124,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 		accountSummary;
 
 	const periodLabel = `${capitalize(monthName)} de ${year}`;
+	const defaultYieldDate = resolveDefaultYieldDate(selectedPeriod);
 
 	const accountDialogData: Account = {
 		id: account.id,
@@ -143,11 +168,17 @@ export default async function Page({ params, searchParams }: PageProps) {
 				totalExpenses={totalExpenses}
 				logo={account.logo}
 				balanceAdjustment={
-					<AdjustBalanceDialog
-						accountId={account.id}
-						period={selectedPeriod}
-						currentBalance={currentBalance}
-					/>
+					<>
+						<AddYieldDialog
+							accountId={account.id}
+							defaultDate={defaultYieldDate}
+						/>
+						<AdjustBalanceDialog
+							accountId={account.id}
+							period={selectedPeriod}
+							currentBalance={currentBalance}
+						/>
+					</>
 				}
 				actions={
 					<AccountDialog
@@ -197,9 +228,16 @@ export default async function Page({ params, searchParams }: PageProps) {
 						accountId: account.id,
 						settledOnly: true,
 					}}
-					allowCreate={false}
+					allowCreate
+					defaultAccountId={account.id}
+					defaultPaymentMethod={resolveDefaultPaymentMethod(
+						account.accountType,
+					)}
 					noteAsColumn={userPreferences?.statementNoteAsColumn ?? false}
 					columnOrder={userPreferences?.transactionsColumnOrder ?? null}
+					groupTransactionsByDate={
+						userPreferences?.groupTransactionsByDate ?? true
+					}
 					attachmentMaxSizeMb={userPreferences?.attachmentMaxSizeMb ?? 50}
 				/>
 			</section>

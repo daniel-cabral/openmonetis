@@ -39,8 +39,8 @@ export function SplitPairDialog({
 				<DialogHeader>
 					<DialogTitle>Editar lançamento dividido</DialogTitle>
 					<DialogDescription>
-						Este lançamento está dividido com outra pessoa. Escolha o que deseja
-						editar:
+						Este lançamento está dividido com outras pessoas. Escolha o que
+						deseja editar:
 					</DialogDescription>
 				</DialogHeader>
 
@@ -63,7 +63,7 @@ export function SplitPairDialog({
 									Apenas este lançamento
 								</Label>
 								<p className="text-xs text-muted-foreground">
-									Aplica a alteração somente neste lado da divisão
+									Aplica a alteração somente nesta parte da divisão
 								</p>
 							</div>
 						</div>
@@ -75,11 +75,11 @@ export function SplitPairDialog({
 									htmlFor="split-both"
 									className="text-sm cursor-pointer font-medium"
 								>
-									Atualizar os dois lançamentos
+									Atualizar toda a divisão
 								</Label>
 								<p className="text-xs text-muted-foreground">
-									Aplica nome, data, categoria e outros campos compartilhados
-									nos dois lados da divisão
+									Aplica nome, data, categoria e outros campos compartilhados em
+									todo o grupo da divisão
 								</p>
 							</div>
 						</div>

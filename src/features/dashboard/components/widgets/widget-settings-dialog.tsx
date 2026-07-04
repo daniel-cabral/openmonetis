@@ -21,6 +21,7 @@ type WidgetSettingsDialogProps = {
 	onToggleWidget: (widgetId: string) => void;
 	onReset: () => void;
 	triggerClassName?: string;
+	triggerLabel?: string;
 };
 
 export function WidgetSettingsDialog({
@@ -28,6 +29,7 @@ export function WidgetSettingsDialog({
 	onToggleWidget,
 	onReset,
 	triggerClassName,
+	triggerLabel = "Widgets",
 }: WidgetSettingsDialogProps) {
 	const [open, setOpen] = useState(false);
 
@@ -40,12 +42,12 @@ export function WidgetSettingsDialog({
 					className={cn("gap-2", triggerClassName)}
 				>
 					<RiSettings4Line className="size-4" />
-					Widgets
+					{triggerLabel}
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle>Configurar Widgets</DialogTitle>
+					<DialogTitle>Configurar widgets</DialogTitle>
 					<DialogDescription>
 						Escolha quais widgets deseja exibir no seu dashboard.
 					</DialogDescription>
@@ -73,6 +75,7 @@ export function WidgetSettingsDialog({
 										</div>
 									</div>
 									<Switch
+										aria-label={`${isVisible ? "Ocultar" : "Exibir"} widget ${widget.title}`}
 										checked={isVisible}
 										onCheckedChange={() => onToggleWidget(widget.id)}
 									/>
@@ -90,7 +93,7 @@ export function WidgetSettingsDialog({
 						className="gap-2"
 					>
 						<RiRefreshLine className="size-4" />
-						Restaurar Padrão
+						Restaurar padrão
 					</Button>
 				</DialogFooter>
 			</DialogContent>

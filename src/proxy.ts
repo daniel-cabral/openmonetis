@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/shared/lib/auth/config";
+import { isSignupDisabled } from "@/shared/lib/auth/signup";
 
 // Rotas protegidas que requerem autenticação
 const PROTECTED_ROUTES = [
@@ -85,6 +86,22 @@ export default async function proxy(request: NextRequest) {
 	});
 
 	const isAuthenticated = !!session?.user;
+	const signupDisabled = isSignupDisabled();
+
+	if (signupDisabled) {
+		if (pathname === "/signup" || pathname.startsWith("/signup/")) {
+			return NextResponse.redirect(
+				new URL(isAuthenticated ? "/dashboard" : "/login", request.url),
+			);
+		}
+
+		if (pathname.startsWith("/api/auth/sign-up")) {
+			return NextResponse.json(
+				{ error: "Novos cadastros estão desativados." },
+				{ status: 403 },
+			);
+		}
+	}
 
 	// Redirect authenticated users away from login/signup pages
 	if (isAuthenticated && PUBLIC_AUTH_ROUTES.includes(pathname)) {

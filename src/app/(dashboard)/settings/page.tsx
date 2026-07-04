@@ -82,6 +82,15 @@ export default async function Page() {
 									userPreferences?.transactionsColumnOrder ?? null
 								}
 								attachmentMaxSizeMb={userPreferences?.attachmentMaxSizeMb ?? 50}
+								showTransactionSummary={
+									userPreferences?.showTransactionSummary ?? true
+								}
+								groupTransactionsByDate={
+									userPreferences?.groupTransactionsByDate ?? true
+								}
+								hideAnticipatedInstallments={
+									userPreferences?.hideAnticipatedInstallments ?? false
+								}
 							/>
 						</div>
 					</Card>

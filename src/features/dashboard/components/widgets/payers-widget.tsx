@@ -1,11 +1,8 @@
 "use client";
 
-import {
-	RiExternalLinkLine,
-	RiGroupLine,
-	RiVerifiedBadgeFill,
-} from "@remixicon/react";
+import { RiGroupLine, RiVerifiedBadgeFill } from "@remixicon/react";
 import Link from "next/link";
+import { dashboardWidgetListStyles as styles } from "@/features/dashboard/components/dashboard-widget-list-styles";
 import { PercentageChangeIndicator } from "@/features/dashboard/components/percentage-change-indicator";
 import type { DashboardPagador } from "@/features/dashboard/lib/payers-queries";
 import MoneyValues from "@/shared/components/money-values";
@@ -14,6 +11,11 @@ import {
 	AvatarFallback,
 	AvatarImage,
 } from "@/shared/components/ui/avatar";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 import { WidgetEmptyState } from "@/shared/components/widgets/widget-empty-state";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
 import { buildInitials } from "@/shared/utils/initials";
@@ -33,7 +35,7 @@ export function PayersWidget({ payers }: PayersWidgetProps) {
 				/>
 			) : (
 				<div className="flex flex-col">
-					{payers.map((payer) => {
+					{payers.map((payer, index) => {
 						const initials = buildInitials(payer.name);
 						const hasValidPercentageChange =
 							typeof payer.percentageChange === "number" &&
@@ -43,11 +45,9 @@ export function PayersWidget({ payers }: PayersWidgetProps) {
 							: null;
 
 						return (
-							<div
-								key={payer.id}
-								className="flex items-center justify-between transition-all duration-300 py-1.5"
-							>
-								<div className="flex min-w-0 flex-1 items-center gap-2 py-1">
+							<div key={payer.id} className={styles.row}>
+								<span className={styles.rank}>{index + 1}</span>
+								<div className={styles.main}>
 									<Avatar className="size-9.5 shrink-0">
 										<AvatarImage
 											src={getAvatarSrc(payer.avatarUrl)}
@@ -56,36 +56,47 @@ export function PayersWidget({ payers }: PayersWidgetProps) {
 										<AvatarFallback>{initials}</AvatarFallback>
 									</Avatar>
 
-									<div className="min-w-0">
+									<div className={styles.textStack}>
 										<Link
 											prefetch
 											href={`/payers/${payer.id}`}
-											className="inline-flex max-w-full items-center gap-1 text-sm text-foreground underline-offset-2 hover:text-primary hover:underline"
+											className={styles.titleLink}
 										>
 											<span className="truncate font-medium">{payer.name}</span>
 											{payer.isAdmin && (
-												<RiVerifiedBadgeFill
-													className="size-4 shrink-0 text-blue-500"
-													aria-hidden
-												/>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<span className="inline-flex shrink-0">
+															<RiVerifiedBadgeFill
+																className="size-4 text-blue-500"
+																aria-hidden
+															/>
+															<span className="sr-only">Pessoa principal</span>
+														</span>
+													</TooltipTrigger>
+													<TooltipContent side="top">
+														Pessoa principal
+													</TooltipContent>
+												</Tooltip>
 											)}
-											<RiExternalLinkLine
-												className="size-3 shrink-0 text-muted-foreground"
-												aria-hidden
-											/>
 										</Link>
-										<p className="truncate text-xs text-muted-foreground">
-											{payer.email ?? "Sem email cadastrado"}
-										</p>
+										<p className={styles.meta}>Despesas no período</p>
 									</div>
 								</div>
 
-								<div className="flex shrink-0 flex-col items-end">
+								<div className={styles.trailing}>
 									<MoneyValues
-										className="font-medium"
+										className={styles.trailingValue}
 										amount={payer.totalExpenses}
 									/>
-									<PercentageChangeIndicator value={percentageChange} />
+									<div
+										className={`${styles.trailingMeta} text-muted-foreground`}
+									>
+										<PercentageChangeIndicator value={percentageChange} />
+										{percentageChange !== null ? (
+											<span>vs. mês ant.</span>
+										) : null}
+									</div>
 								</div>
 							</div>
 						);

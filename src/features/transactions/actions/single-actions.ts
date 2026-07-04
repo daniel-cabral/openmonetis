@@ -8,6 +8,7 @@ import {
 	transactionAttachments,
 	transactions,
 } from "@/db/schema";
+import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
 import { handleActionError } from "@/shared/lib/actions/helpers";
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
@@ -22,12 +23,17 @@ import {
 	parseLocalDateString,
 } from "@/shared/utils/date";
 import { copyAttachmentsForImport } from "../lib/attachment-copy";
+import { detectInstallmentFromName } from "../lib/installment-detection";
 import { cleanupAttachmentsAfterTransactionDelete } from "./attachments";
 import {
 	buildShares,
 	buildTransactionRecords,
+	type ConvertToInstallmentInput,
+	type ConvertToRecurringInput,
 	type CreateInput,
 	centsToDecimalString,
+	convertToInstallmentSchema,
+	convertToRecurringSchema,
 	createSchema,
 	type DeleteInput,
 	deleteSchema,
@@ -55,6 +61,7 @@ export async function createTransactionAction(
 		const ownershipError = await validateAllOwnership(user.id, {
 			payerId: data.payerId,
 			secondaryPayerId: data.secondaryPayerId,
+			splitPayerIds: data.splitShares?.map((share) => share.payerId),
 			categoryId: data.categoryId,
 			accountId: data.accountId,
 			cardId: data.cardId,
@@ -83,6 +90,7 @@ export async function createTransactionAction(
 			payerId: data.payerId ?? null,
 			isSplit: data.isSplit ?? false,
 			secondaryPayerId: data.secondaryPayerId,
+			splitShares: data.splitShares,
 			primarySplitAmountCents: data.primarySplitAmount
 				? Math.round(data.primarySplitAmount * 100)
 				: undefined,
@@ -206,6 +214,7 @@ export async function updateTransactionAction(
 		const ownershipError = await validateAllOwnership(user.id, {
 			payerId: data.payerId,
 			secondaryPayerId: data.secondaryPayerId,
+			splitPayerIds: data.splitShares?.map((share) => share.payerId),
 			categoryId: data.categoryId,
 			accountId: data.accountId,
 			cardId: data.cardId,
@@ -230,13 +239,6 @@ export async function updateTransactionAction(
 				eq(transactions.id, data.id),
 				eq(transactions.userId, user.id),
 			),
-			with: {
-				category: {
-					columns: {
-						name: true,
-					},
-				},
-			},
 		})) as
 			| {
 					id: string;
@@ -248,7 +250,6 @@ export async function updateTransactionAction(
 					accountId: string | null;
 					cardId: string | null;
 					categoryId: string | null;
-					category: { name: string } | null;
 			  }
 			| undefined;
 
@@ -256,14 +257,17 @@ export async function updateTransactionAction(
 			return { success: false, error: "Lançamento não encontrado." };
 		}
 
-		const categoriasProtegidasEdicao = ["Saldo inicial", "Pagamentos"];
-		if (
-			existing.category?.name &&
-			categoriasProtegidasEdicao.includes(existing.category.name)
-		) {
+		if (existing.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
 			return {
 				success: false,
-				error: `Lançamentos com a categoria '${existing.category.name}' não podem ser editados.`,
+				error: "Pagamentos automáticos de fatura não podem ser editados.",
+			};
+		}
+
+		if (isInitialBalanceTransaction(existing)) {
+			return {
+				success: false,
+				error: "Lançamentos de saldo inicial não podem ser editados.",
 			};
 		}
 
@@ -391,13 +395,6 @@ export async function deleteTransactionAction(
 				eq(transactions.id, data.id),
 				eq(transactions.userId, user.id),
 			),
-			with: {
-				category: {
-					columns: {
-						name: true,
-					},
-				},
-			},
 		})) as
 			| {
 					id: string;
@@ -411,7 +408,6 @@ export async function deleteTransactionAction(
 					period: string;
 					note: string | null;
 					categoryId: string | null;
-					category: { name: string } | null;
 			  }
 			| undefined;
 
@@ -419,14 +415,17 @@ export async function deleteTransactionAction(
 			return { success: false, error: "Lançamento não encontrado." };
 		}
 
-		const categoriasProtegidasRemocao = ["Saldo inicial", "Pagamentos"];
-		if (
-			existing.category?.name &&
-			categoriasProtegidasRemocao.includes(existing.category.name)
-		) {
+		if (existing.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
 			return {
 				success: false,
-				error: `Lançamentos com a categoria '${existing.category.name}' não podem ser removidos.`,
+				error: "Pagamentos automáticos de fatura não podem ser removidos.",
+			};
+		}
+
+		if (isInitialBalanceTransaction(existing)) {
+			return {
+				success: false,
+				error: "Lançamentos de saldo inicial não podem ser removidos.",
 			};
 		}
 
@@ -477,6 +476,357 @@ export async function deleteTransactionAction(
 	}
 }
 
+export async function convertTransactionToInstallmentAction(
+	input: ConvertToInstallmentInput,
+): Promise<ActionResult<{ createdCount: number }>> {
+	try {
+		const user = await getUser();
+		const data = convertToInstallmentSchema.parse(input);
+
+		const existing = await db.query.transactions.findFirst({
+			where: and(
+				eq(transactions.id, data.id),
+				eq(transactions.userId, user.id),
+			),
+		});
+
+		if (!existing) {
+			return { success: false, error: "Lançamento não encontrado." };
+		}
+
+		if (existing.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
+			return {
+				success: false,
+				error: "Pagamentos automáticos de fatura não podem ser convertidos.",
+			};
+		}
+
+		if (isInitialBalanceTransaction(existing)) {
+			return {
+				success: false,
+				error: "Lançamentos de saldo inicial não podem ser convertidos.",
+			};
+		}
+
+		if (
+			existing.paymentMethod !== "Cartão de crédito" ||
+			!existing.cardId ||
+			existing.condition !== "À vista"
+		) {
+			return {
+				success: false,
+				error:
+					"Apenas lançamentos à vista de cartão de crédito podem ser convertidos.",
+			};
+		}
+
+		if (existing.splitGroupId || existing.isDivided) {
+			return {
+				success: false,
+				error:
+					"Lançamentos divididos ainda não podem ser convertidos em parcelamento.",
+			};
+		}
+
+		const detected = detectInstallmentFromName(existing.name);
+		const transactionName =
+			detected?.installmentCount === data.installmentCount
+				? detected.name
+				: existing.name;
+		const amountSign: 1 | -1 = existing.transactionType === "Despesa" ? -1 : 1;
+		const totalCents = Math.round(Math.abs(Number(existing.amount)) * 100);
+		const seriesId = randomUUID();
+		const records = buildTransactionRecords({
+			data: {
+				purchaseDate: existing.purchaseDate.toISOString().slice(0, 10),
+				period: existing.period,
+				name: transactionName,
+				transactionType: existing.transactionType as "Receita" | "Despesa",
+				amount: totalCents / 100,
+				condition: "Parcelado",
+				paymentMethod: "Cartão de crédito",
+				payerId: existing.payerId,
+				isSplit: false,
+				accountId: null,
+				cardId: existing.cardId,
+				categoryId: existing.categoryId,
+				note: existing.note,
+				installmentCount: data.installmentCount,
+				startInstallment: 1,
+				dueDate: existing.dueDate?.toISOString().slice(0, 10),
+				isSettled: null,
+			},
+			userId: user.id,
+			period: existing.period,
+			purchaseDate: existing.purchaseDate,
+			dueDate: existing.dueDate,
+			boletoPaymentDate: null,
+			shares: [{ payerId: existing.payerId, amountCents: totalCents }],
+			amountSign,
+			shouldNullifySettled: true,
+			seriesId,
+		}).map((record) => ({
+			...record,
+			importBatchId: existing.importBatchId,
+		}));
+
+		const currentRow = records[0];
+		const rowsToInsert = records.slice(1);
+		if (!currentRow) {
+			throw new Error("Não foi possível montar o parcelamento.");
+		}
+
+		const periodsToUpdate = records
+			.map((row) => row.period)
+			.filter((period): period is string => Boolean(period));
+		const paidPeriods = await getPaidInvoicePeriods(
+			user.id,
+			existing.cardId,
+			periodsToUpdate,
+		);
+
+		if (paidPeriods.length > 0) {
+			return {
+				success: false,
+				error: `As faturas dos meses ${formatPaidInvoicePeriods(
+					paidPeriods,
+				)} já estão pagas. Desfaça o pagamento antes de converter este lançamento.`,
+			};
+		}
+
+		if (existing.transactionType === "Despesa") {
+			const limitCheck = await validateCardLimit({
+				userId: user.id,
+				cardId: existing.cardId,
+				addAmount: records.reduce(
+					(acc, row) => acc + Math.abs(Number(row.amount)),
+					0,
+				),
+				excludeTransactionIds: [existing.id],
+			});
+
+			if (!limitCheck.ok) {
+				return { success: false, error: limitCheck.error };
+			}
+		}
+
+		await db.transaction(async (tx: typeof db) => {
+			await tx
+				.update(transactions)
+				.set({
+					condition: currentRow.condition,
+					name: currentRow.name,
+					amount: currentRow.amount,
+					installmentCount: currentRow.installmentCount,
+					currentInstallment: currentRow.currentInstallment,
+					recurrenceCount: null,
+					period: currentRow.period,
+					dueDate: currentRow.dueDate,
+					isSettled: null,
+					seriesId,
+				})
+				.where(
+					and(
+						eq(transactions.id, existing.id),
+						eq(transactions.userId, user.id),
+					),
+				);
+
+			if (rowsToInsert.length > 0) {
+				await tx.insert(transactions).values(rowsToInsert);
+			}
+		});
+
+		revalidate(user.id);
+
+		return {
+			success: true,
+			message: `Lançamento convertido em ${data.installmentCount} parcelas.`,
+			data: { createdCount: rowsToInsert.length },
+		};
+	} catch (error) {
+		return handleActionError(error) as ActionResult<{ createdCount: number }>;
+	}
+}
+
+export async function convertTransactionToRecurringAction(
+	input: ConvertToRecurringInput,
+): Promise<ActionResult<{ createdCount: number }>> {
+	try {
+		const user = await getUser();
+		const data = convertToRecurringSchema.parse(input);
+
+		const existing = await db.query.transactions.findFirst({
+			where: and(
+				eq(transactions.id, data.id),
+				eq(transactions.userId, user.id),
+			),
+		});
+
+		if (!existing) {
+			return { success: false, error: "Lançamento não encontrado." };
+		}
+
+		if (existing.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
+			return {
+				success: false,
+				error: "Pagamentos automáticos de fatura não podem ser convertidos.",
+			};
+		}
+
+		if (isInitialBalanceTransaction(existing)) {
+			return {
+				success: false,
+				error: "Lançamentos de saldo inicial não podem ser convertidos.",
+			};
+		}
+
+		if (existing.condition !== "À vista") {
+			return {
+				success: false,
+				error:
+					"Apenas lançamentos à vista podem ser convertidos em recorrência.",
+			};
+		}
+
+		if (existing.splitGroupId || existing.isDivided) {
+			return {
+				success: false,
+				error:
+					"Lançamentos divididos ainda não podem ser convertidos em recorrência.",
+			};
+		}
+
+		const amountSign: 1 | -1 = existing.transactionType === "Despesa" ? -1 : 1;
+		const totalCents = Math.round(Math.abs(Number(existing.amount)) * 100);
+		const seriesId = randomUUID();
+		const isCreditCard = existing.paymentMethod === "Cartão de crédito";
+		const records = buildTransactionRecords({
+			data: {
+				purchaseDate: existing.purchaseDate.toISOString().slice(0, 10),
+				period: existing.period,
+				name: existing.name,
+				transactionType: existing.transactionType as "Receita" | "Despesa",
+				amount: totalCents / 100,
+				condition: "Recorrente",
+				paymentMethod: existing.paymentMethod as
+					| "Pix"
+					| "Boleto"
+					| "Dinheiro"
+					| "Cartão de débito"
+					| "Cartão de crédito"
+					| "Pré-Pago | VR/VA"
+					| "Transferência bancária",
+				payerId: existing.payerId,
+				isSplit: false,
+				accountId: isCreditCard ? null : existing.accountId,
+				cardId: isCreditCard ? existing.cardId : null,
+				categoryId: existing.categoryId,
+				note: existing.note,
+				recurrenceCount: data.recurrenceCount,
+				dueDate: existing.dueDate?.toISOString().slice(0, 10),
+				boletoPaymentDate: existing.boletoPaymentDate
+					?.toISOString()
+					.slice(0, 10),
+				isSettled: existing.isSettled,
+			},
+			userId: user.id,
+			period: existing.period,
+			purchaseDate: existing.purchaseDate,
+			dueDate: existing.dueDate,
+			boletoPaymentDate: existing.boletoPaymentDate,
+			shares: [{ payerId: existing.payerId, amountCents: totalCents }],
+			amountSign,
+			shouldNullifySettled: isCreditCard,
+			seriesId,
+		}).map((record) => ({
+			...record,
+			importBatchId: existing.importBatchId,
+		}));
+
+		const currentRow = records[0];
+		const rowsToInsert = records.slice(1);
+		if (!currentRow) {
+			throw new Error("Não foi possível montar a recorrência.");
+		}
+
+		if (isCreditCard && existing.cardId) {
+			const periodsToUpdate = records
+				.map((row) => row.period)
+				.filter((period): period is string => Boolean(period));
+			const paidPeriods = await getPaidInvoicePeriods(
+				user.id,
+				existing.cardId,
+				periodsToUpdate,
+			);
+
+			if (paidPeriods.length > 0) {
+				return {
+					success: false,
+					error: `As faturas dos meses ${formatPaidInvoicePeriods(
+						paidPeriods,
+					)} já estão pagas. Desfaça o pagamento antes de converter este lançamento.`,
+				};
+			}
+
+			if (existing.transactionType === "Despesa") {
+				const limitCheck = await validateCardLimit({
+					userId: user.id,
+					cardId: existing.cardId,
+					addAmount: records.reduce(
+						(acc, row) => acc + Math.abs(Number(row.amount)),
+						0,
+					),
+					excludeTransactionIds: [existing.id],
+				});
+
+				if (!limitCheck.ok) {
+					return { success: false, error: limitCheck.error };
+				}
+			}
+		}
+
+		await db.transaction(async (tx: typeof db) => {
+			await tx
+				.update(transactions)
+				.set({
+					condition: currentRow.condition,
+					name: currentRow.name,
+					amount: currentRow.amount,
+					recurrenceCount: currentRow.recurrenceCount,
+					installmentCount: null,
+					currentInstallment: null,
+					period: currentRow.period,
+					purchaseDate: currentRow.purchaseDate,
+					dueDate: currentRow.dueDate,
+					isSettled: currentRow.isSettled,
+					boletoPaymentDate: currentRow.boletoPaymentDate,
+					seriesId,
+				})
+				.where(
+					and(
+						eq(transactions.id, existing.id),
+						eq(transactions.userId, user.id),
+					),
+				);
+
+			if (rowsToInsert.length > 0) {
+				await tx.insert(transactions).values(rowsToInsert);
+			}
+		});
+
+		revalidate(user.id);
+
+		return {
+			success: true,
+			message: `Lançamento convertido em recorrência de ${data.recurrenceCount} meses.`,
+			data: { createdCount: rowsToInsert.length },
+		};
+	} catch (error) {
+		return handleActionError(error) as ActionResult<{ createdCount: number }>;
+	}
+}
+
 export async function updateTransactionSplitPairAction(
 	input: UpdateInput,
 ): Promise<ActionResult> {
@@ -486,6 +836,7 @@ export async function updateTransactionSplitPairAction(
 
 		const ownershipError = await validateAllOwnership(user.id, {
 			payerId: data.payerId,
+			splitPayerIds: data.splitShares?.map((share) => share.payerId),
 			categoryId: data.categoryId,
 			accountId: data.accountId,
 			cardId: data.cardId,
@@ -613,7 +964,12 @@ export async function toggleTransactionSettlementAction(
 		const data = toggleSettlementSchema.parse(input);
 
 		const existing = await db.query.transactions.findFirst({
-			columns: { id: true, paymentMethod: true, accountId: true },
+			columns: {
+				id: true,
+				paymentMethod: true,
+				accountId: true,
+				transactionType: true,
+			},
 			where: and(
 				eq(transactions.id, data.id),
 				eq(transactions.userId, user.id),
@@ -632,6 +988,7 @@ export async function toggleTransactionSettlementAction(
 		}
 
 		const isBoleto = existing.paymentMethod === "Boleto";
+		const isIncomeBill = isBoleto && existing.transactionType === "Receita";
 		const customPaymentDate =
 			isBoleto && data.value && data.paymentDate
 				? parseLocalDateString(data.paymentDate)
@@ -657,7 +1014,7 @@ export async function toggleTransactionSettlementAction(
 			if (!paymentAccount) {
 				return {
 					success: false,
-					error: "Conta de pagamento não encontrada.",
+					error: `Conta de ${isIncomeBill ? "recebimento" : "pagamento"} não encontrada.`,
 				};
 			}
 		}
@@ -687,8 +1044,8 @@ export async function toggleTransactionSettlementAction(
 		return {
 			success: true,
 			message: data.value
-				? "Lançamento marcado como pago."
-				: "Pagamento desfeito com sucesso.",
+				? `Lançamento marcado como ${isIncomeBill ? "recebido" : "pago"}.`
+				: `${isIncomeBill ? "Recebimento" : "Pagamento"} desfeito com sucesso.`,
 		};
 	} catch (error) {
 		return handleActionError(error);
