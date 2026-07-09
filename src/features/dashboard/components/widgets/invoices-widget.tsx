@@ -26,6 +26,9 @@ export function InvoicesWidget({
 		setPaymentAccountId,
 		paymentDate,
 		setPaymentDate,
+		paymentAmount,
+		setPaymentAmount,
+		lastPaymentWasPartial,
 		openPaymentDialog,
 		closePaymentDialog,
 		confirmPayment,
@@ -42,6 +45,9 @@ export function InvoicesWidget({
 			onPaymentAccountChange={setPaymentAccountId}
 			paymentDate={paymentDate}
 			onPaymentDateChange={setPaymentDate}
+			paymentAmount={paymentAmount}
+			onPaymentAmountChange={setPaymentAmount}
+			lastPaymentWasPartial={lastPaymentWasPartial}
 			paymentAccountOptions={paymentAccountOptions}
 			onOpenPaymentDialog={openPaymentDialog}
 			onClosePaymentDialog={closePaymentDialog}

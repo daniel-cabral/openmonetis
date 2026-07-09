@@ -74,6 +74,10 @@ export type DashboardInvoice = {
 	period: string;
 	paymentStatus: InvoicePaymentStatus;
 	totalAmount: number;
+	/** Soma dos pagamentos (cheio + parciais) já lançados para esta fatura. */
+	paidAmount: number;
+	/** Saldo restante da fatura: `|totalAmount| − paidAmount`, nunca negativo. */
+	outstandingAmount: number;
 	paidAt: string | null;
 	pagadorBreakdown: InvoicePagadorBreakdown[];
 	defaultPaymentAccountId: string | null;
@@ -121,6 +125,7 @@ export async function fetchDashboardInvoices(
 	const paymentRows = await db
 		.select({
 			note: transactions.note,
+			amount: transactions.amount,
 			purchaseDate: transactions.purchaseDate,
 			createdAt: transactions.createdAt,
 		})
@@ -133,6 +138,9 @@ export async function fetchDashboardInvoices(
 		);
 
 	const paymentMap = new Map<string, string>();
+	// Soma dos pagamentos (cheio + parciais) por `cardId:period`, usada para
+	// derivar o saldo em aberto de cada fatura.
+	const paidAmountByKey = new Map<string, number>();
 	for (const row of paymentRows) {
 		const note = row.note;
 		if (!note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
@@ -148,6 +156,10 @@ export async function fetchDashboardInvoices(
 			continue;
 		}
 		const key = `${cardIdPart}:${periodPart}`;
+		paidAmountByKey.set(
+			key,
+			(paidAmountByKey.get(key) ?? 0) + Math.abs(toNumber(row.amount)),
+		);
 		const resolvedDate =
 			row.purchaseDate instanceof Date &&
 			!Number.isNaN(row.purchaseDate.valueOf())
@@ -360,6 +372,9 @@ export async function fetchDashboardInvoices(
 				? (paymentMap.get(paymentKey) ?? toDateOnlyString(row.invoiceCreatedAt))
 				: null;
 
+		const paidAmount = paidAmountByKey.get(paymentKey) ?? 0;
+		const outstandingAmount = Math.max(0, Math.abs(totalAmount) - paidAmount);
+
 		invoiceList.push({
 			id: row.invoiceId ?? buildFallbackId(row.cardId, period),
 			cardId: row.cardId,
@@ -371,6 +386,8 @@ export async function fetchDashboardInvoices(
 			period: resolvedPeriod,
 			paymentStatus,
 			totalAmount,
+			paidAmount,
+			outstandingAmount,
 			paidAt,
 			pagadorBreakdown: (
 				breakdownMap.get(`${row.cardId}:${resolvedPeriod}`) ?? []

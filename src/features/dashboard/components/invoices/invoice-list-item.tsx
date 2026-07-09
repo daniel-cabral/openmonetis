@@ -32,6 +32,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { INVOICE_PAYMENT_STATUS } from "@/shared/lib/invoices";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
+import { formatCurrency } from "@/shared/utils/currency";
 import { isDateOnlyPast } from "@/shared/utils/date";
 import { InvoiceLogo } from "./invoice-logo";
 
@@ -206,6 +207,11 @@ export function InvoiceListItem({ invoice, onPay }: InvoiceListItemProps) {
 					className={styles.trailingValue}
 					amount={Math.abs(invoice.totalAmount)}
 				/>
+				{!isPaid && invoice.paidAmount > 0 ? (
+					<span className={`${styles.trailingMeta} text-muted-foreground`}>
+						restante {formatCurrency(invoice.outstandingAmount)}
+					</span>
+				) : null}
 				{isPaid ? (
 					<span className={`${styles.trailingMeta} text-success`}>
 						<RiCheckboxCircleFill className="size-3.5" /> Pago
