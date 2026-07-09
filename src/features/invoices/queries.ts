@@ -1,7 +1,10 @@
-import { and, eq, type SQL, sum } from "drizzle-orm";
+import { and, eq, ilike, type SQL, sql, sum } from "drizzle-orm";
 import { cards, invoices, transactions } from "@/db/schema";
 import { fetchTransactionsWithRelations } from "@/features/transactions/queries";
-import { buildInvoicePaymentNote } from "@/shared/lib/accounts/constants";
+import {
+	buildInvoicePaymentNote,
+	buildInvoicePaymentNotePrefix,
+} from "@/shared/lib/accounts/constants";
 import { db } from "@/shared/lib/db";
 import {
 	INVOICE_PAYMENT_STATUS,
@@ -45,10 +48,12 @@ export async function fetchInvoiceData(
 	selectedPeriod: string,
 ): Promise<{
 	totalAmount: number;
+	paidAmount: number;
+	outstandingAmount: number;
 	invoiceStatus: InvoicePaymentStatus;
 	paymentDate: Date | null;
 }> {
-	const [invoiceRow, totalRow] = await Promise.all([
+	const [invoiceRow, totalRow, paidRow] = await Promise.all([
 		db.query.invoices.findFirst({
 			columns: {
 				id: true,
@@ -71,9 +76,26 @@ export async function fetchInvoiceData(
 					eq(transactions.period, selectedPeriod),
 				),
 			),
+		// Soma dos pagamentos parciais (nota AUTO_FATURA:<cardId>:<period>:*).
+		db
+			.select({
+				paid: sql<number>`coalesce(sum(abs(${transactions.amount})), 0)`,
+			})
+			.from(transactions)
+			.where(
+				and(
+					eq(transactions.userId, userId),
+					ilike(
+						transactions.note,
+						`${buildInvoicePaymentNotePrefix(cardId, selectedPeriod)}%`,
+					),
+				),
+			),
 	]);
 
 	const totalAmount = toNumber(totalRow[0]?.totalAmount);
+	const paidAmount = toNumber(paidRow[0]?.paid);
+	const outstandingAmount = Math.max(0, Math.abs(totalAmount) - paidAmount);
 	const isInvoiceStatus = (
 		value: string | null | undefined,
 	): value is InvoicePaymentStatus =>
@@ -101,7 +123,13 @@ export async function fetchInvoiceData(
 			: null;
 	}
 
-	return { totalAmount, invoiceStatus, paymentDate };
+	return {
+		totalAmount,
+		paidAmount,
+		outstandingAmount,
+		invoiceStatus,
+		paymentDate,
+	};
 }
 
 export async function fetchCardTransactions(filters: SQL[]) {

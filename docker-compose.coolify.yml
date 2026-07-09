@@ -1,0 +1,68 @@
+# Compose usado pelo Coolify para ESTE fork.
+#
+# Por que existe: o `docker-compose.yml` vem do upstream
+# (felipegcoutinho/openmonetis) e aponta o serviço `app` para a imagem pronta
+# `felipegcoutinho/openmonetis:latest`. Toda vez que o fork é sincronizado com o
+# upstream, aquele arquivo é sobrescrito e o deploy volta a rodar a imagem do
+# projeto original, ignorando as mudanças deste fork.
+#
+# Este arquivo NÃO existe no upstream, então o sync nunca o sobrescreve. Ele
+# builda o Dockerfile local (com o código do fork). No Coolify, aponte
+# Configuration → Docker Compose Location para `docker-compose.coolify.yml`.
+
+name: openmonetis
+
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: openmonetis_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-openmonetis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openmonetis_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-openmonetis_db}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+      PGDATA: /var/lib/postgresql/data
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openmonetis} -d ${POSTGRES_DB:-openmonetis_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openmonetis_app:local
+    container_name: openmonetis_app
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://openmonetis:openmonetis_dev_password@db:5432/openmonetis_db}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local

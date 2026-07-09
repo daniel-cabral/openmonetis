@@ -141,7 +141,13 @@ export default async function Page({ params, searchParams }: PageProps) {
 		currentInvoiceStatus: null,
 	};
 
-	const { totalAmount, invoiceStatus, paymentDate } = invoiceData;
+	const {
+		totalAmount,
+		paidAmount,
+		outstandingAmount,
+		invoiceStatus,
+		paymentDate,
+	} = invoiceData;
 
 	const periodLabel = `${monthName.charAt(0).toUpperCase()}${monthName.slice(
 		1,
@@ -162,6 +168,8 @@ export default async function Page({ params, searchParams }: PageProps) {
 					dueDay={card.dueDay}
 					periodLabel={periodLabel}
 					totalAmount={totalAmount}
+					paidAmount={paidAmount}
+					outstandingAmount={outstandingAmount}
 					limitAmount={limitAmount}
 					invoiceStatus={invoiceStatus}
 					paymentDate={paymentDate}

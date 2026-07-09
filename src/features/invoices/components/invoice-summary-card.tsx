@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
+	payInvoicePartialAction,
 	updateInvoicePaymentStatusAction,
 	updatePaymentDateAction,
 } from "@/features/invoices/actions";
@@ -16,6 +17,7 @@ import MoneyValues from "@/shared/components/money-values";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { DatePicker } from "@/shared/components/ui/date-picker";
 import {
 	Dialog,
@@ -65,6 +67,8 @@ type InvoiceSummaryCardProps = {
 	dueDay: string;
 	periodLabel: string;
 	totalAmount: number;
+	paidAmount: number;
+	outstandingAmount: number;
 	limitAmount: number | null;
 	invoiceStatus: InvoicePaymentStatus;
 	paymentDate: Date | null;
@@ -112,6 +116,8 @@ export function InvoiceSummaryCard({
 	dueDay,
 	periodLabel,
 	totalAmount,
+	paidAmount,
+	outstandingAmount,
 	limitAmount,
 	invoiceStatus,
 	paymentDate: initialPaymentDate,
@@ -128,11 +134,16 @@ export function InvoiceSummaryCard({
 	const [paymentAccountId, setPaymentAccountId] = useState<string>(
 		defaultPaymentAccountId ?? paymentAccountOptions[0]?.value ?? "",
 	);
+	const [paymentAmount, setPaymentAmount] = useState<number>(outstandingAmount);
 	const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
 	useEffect(() => {
 		setPaymentDate(initialPaymentDate ?? new Date());
 	}, [initialPaymentDate]);
+
+	useEffect(() => {
+		setPaymentAmount(outstandingAmount);
+	}, [outstandingAmount]);
 
 	useEffect(() => {
 		setPaymentAccountId(
@@ -180,6 +191,37 @@ export function InvoiceSummaryCard({
 	const handlePaymentConfirm = () => {
 		if (!paymentAccountId) {
 			toast.error("Selecione uma conta para pagar a fatura.");
+			return;
+		}
+
+		const outstandingCents = Math.round(outstandingAmount * 100);
+		const amountCents = Math.round(paymentAmount * 100);
+
+		if (amountCents <= 0 || amountCents > outstandingCents) {
+			toast.error("Informe um valor válido para esta fatura.");
+			return;
+		}
+
+		// Valor menor que o restante → pagamento parcial; caso contrário, quitação.
+		if (amountCents < outstandingCents) {
+			startTransition(async () => {
+				const result = await payInvoicePartialAction({
+					cardId,
+					period,
+					amount: paymentAmount,
+					paymentAccountId,
+					paymentDate: paymentDate.toISOString().split("T")[0],
+				});
+
+				if (result.success) {
+					toast.success(result.message);
+					setPaymentDialogOpen(false);
+					router.refresh();
+					return;
+				}
+
+				toast.error(result.error);
+			});
 			return;
 		}
 
@@ -242,6 +284,14 @@ export function InvoiceSummaryCard({
 					{/* Linha 2 — valor da fatura (hero) */}
 					<div className="space-y-3">
 						<p className="text-sm text-muted-foreground">Valor da fatura</p>
+						{!isPaid && paidAmount > 0 ? (
+							<p className="text-xs text-muted-foreground">
+								Pago {formatCurrency(paidAmount)} · Restante{" "}
+								<span className="font-medium text-foreground">
+									{formatCurrency(outstandingAmount)}
+								</span>
+							</p>
+						) : null}
 						<div className="flex items-center gap-2">
 							<MoneyValues
 								amount={Math.abs(totalAmount)}
@@ -356,6 +406,10 @@ export function InvoiceSummaryCard({
 									accountId={paymentAccountId}
 									onAccountChange={setPaymentAccountId}
 									accountOptions={paymentAccountOptions}
+									amount={paymentAmount}
+									onAmountChange={setPaymentAmount}
+									paidAmount={paidAmount}
+									outstandingAmount={outstandingAmount}
 									onConfirm={handlePaymentConfirm}
 									trigger={
 										<Button
@@ -417,6 +471,10 @@ type PayInvoiceDialogProps = {
 	accountId: string;
 	onAccountChange: (accountId: string) => void;
 	accountOptions: PaymentAccountOption[];
+	amount: number;
+	onAmountChange: (amount: number) => void;
+	paidAmount: number;
+	outstandingAmount: number;
 	onConfirm: () => void;
 	trigger: ReactNode;
 };
@@ -430,6 +488,10 @@ function PayInvoiceDialog({
 	accountId,
 	onAccountChange,
 	accountOptions,
+	amount,
+	onAmountChange,
+	paidAmount,
+	outstandingAmount,
 	onConfirm,
 	trigger,
 }: PayInvoiceDialogProps) {
@@ -438,6 +500,12 @@ function PayInvoiceDialog({
 		(option) => option.value === accountId,
 	);
 
+	const hasPartialPayments = paidAmount > 0;
+	const outstandingCents = Math.round(outstandingAmount * 100);
+	const amountCents = Math.round(amount * 100);
+	const isAmountValid = amountCents > 0 && amountCents <= outstandingCents;
+	const isFullPayment = amountCents >= outstandingCents;
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -445,11 +513,53 @@ function PayInvoiceDialog({
 				<DialogHeader>
 					<DialogTitle>Confirmar pagamento</DialogTitle>
 					<DialogDescription>
-						Escolha a conta de origem e a data em que a fatura foi paga.
+						Escolha o valor, a conta de origem e a data do pagamento.
 					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4">
+					{hasPartialPayments ? (
+						<div className="flex items-center justify-between rounded-md border border-dashed px-3 py-2 text-sm">
+							<span className="text-muted-foreground">
+								Pago {formatCurrency(paidAmount)}
+							</span>
+							<span className="font-medium text-foreground">
+								Restante {formatCurrency(outstandingAmount)}
+							</span>
+						</div>
+					) : null}
+
+					<div className="space-y-2">
+						<div className="flex items-center justify-between">
+							<Label htmlFor="invoice-payment-amount">Valor a pagar</Label>
+							{amountCents !== outstandingCents ? (
+								<Button
+									type="button"
+									variant="link"
+									className="h-auto p-0 text-xs"
+									onClick={() => onAmountChange(outstandingAmount)}
+									disabled={isPending}
+								>
+									Pagar tudo
+								</Button>
+							) : null}
+						</div>
+						<CurrencyInput
+							id="invoice-payment-amount"
+							value={amount > 0 ? amount.toFixed(2) : ""}
+							onValueChange={(value) =>
+								onAmountChange(value ? Number(value) : 0)
+							}
+							disabled={isPending}
+						/>
+						{!isAmountValid && amount > 0 ? (
+							<p className="text-xs text-destructive">
+								Informe um valor entre {formatCurrency(0.01)} e{" "}
+								{formatCurrency(outstandingAmount)}.
+							</p>
+						) : null}
+					</div>
+
 					<div className="space-y-2">
 						<Label htmlFor="invoice-payment-account">Conta de pagamento</Label>
 						<Select
@@ -507,9 +617,15 @@ function PayInvoiceDialog({
 					<Button
 						type="button"
 						onClick={onConfirm}
-						disabled={isPending || accountOptions.length === 0}
+						disabled={
+							isPending || accountOptions.length === 0 || !isAmountValid
+						}
 					>
-						{isPending ? "Confirmando..." : "Confirmar pagamento"}
+						{isPending
+							? "Confirmando..."
+							: isFullPayment
+								? `Pagar ${formatCurrency(outstandingAmount)}`
+								: `Pagar parcial ${formatCurrency(amount)}`}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
