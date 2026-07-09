@@ -23,7 +23,10 @@ services:
       start_period: 10s
 
   app:
-    image: felipegcoutinho/openmonetis:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openmonetis_app:local
     container_name: openmonetis_app
     restart: unless-stopped
     expose:
