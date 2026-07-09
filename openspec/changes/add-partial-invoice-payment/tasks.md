@@ -37,5 +37,5 @@
 ## 7. Verificação
 
 - [x] 7.1 Rodar `pnpm exec next typegen` (ok), `pnpm exec tsc --noEmit` (exit 0), Biome nos arquivos alterados (limpo). Obs: `biome check .` no repo inteiro falha só por CRLF pré-existente do checkout Windows — a CI roda em LF.
-- [ ] 7.2 Verificação manual e2e no app: registrar parcial, ver restante na lista e no dialog, quitar o restante, conferir dashboard sem inflar renda/despesa (requer instância rodando com dados)
-- [ ] 7.3 Atualizar `CHANGELOG.md`, `package.json` e badge do `README.md` conforme a política de versionamento (na etapa de finalização/release)
+- [~] 7.2 Smoke test de `pnpm run build` passou (exit 0, rotas geradas). e2e manual com dados fica a cargo do usuário no ambiente dele.
+- [x] 7.3 Atualizar `CHANGELOG.md`, `package.json` e badge do `README.md` para 2.8.0
