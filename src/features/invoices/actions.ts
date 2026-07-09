@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	cards,
@@ -11,6 +11,8 @@ import {
 } from "@/db/schema";
 import {
 	buildInvoicePaymentNote,
+	buildInvoicePaymentNotePrefix,
+	buildPartialInvoicePaymentNote,
 	INVOICE_ADJUSTMENT_NAME,
 } from "@/shared/lib/accounts/constants";
 import { revalidateForEntity } from "@/shared/lib/actions/helpers";
@@ -31,9 +33,36 @@ import {
 	getBusinessTodayDate,
 	parseLocalDateString,
 } from "@/shared/utils/date";
+import { createClientSafeId } from "@/shared/utils/id";
 
 const isValidPaymentDate = (value: string) =>
 	!Number.isNaN(parseLocalDateString(value).getTime());
+
+/**
+ * Soma (valor absoluto) dos pagamentos PARCIAIS já lançados para uma fatura,
+ * identificados pela nota `AUTO_FATURA:<cardId>:<period>:<shortId>`. Não inclui
+ * a nota exata (3 partes) do pagamento cheio.
+ */
+async function sumInvoicePartialPayments(
+	tx: typeof db,
+	userId: string,
+	cardId: string,
+	period: string,
+): Promise<number> {
+	const prefix = buildInvoicePaymentNotePrefix(cardId, period);
+	const [row] = await tx
+		.select({
+			total: sql<number>`coalesce(sum(abs(${transactions.amount})), 0)`,
+		})
+		.from(transactions)
+		.where(
+			and(
+				eq(transactions.userId, userId),
+				ilike(transactions.note, `${prefix}%`),
+			),
+		);
+	return Math.abs(Number(row?.total ?? 0));
+}
 
 const updateInvoicePaymentStatusSchema = z.object({
 	cardId: z.string({ message: "Cartão inválido." }).uuid("Cartão inválido."),
@@ -78,10 +107,18 @@ export async function updateInvoicePaymentStatusAction(
 		const adminPayerId = await getAdminPayerId(user.id);
 
 		await db.transaction(async (tx: typeof db) => {
-			const card = await tx.query.cards.findFirst({
-				columns: { id: true, accountId: true, name: true },
-				where: and(eq(cards.id, data.cardId), eq(cards.userId, user.id)),
-			});
+			// `for("update")` serializa quitação e pagamentos parciais concorrentes da
+			// mesma fatura, para que a reconciliação leia `partialsPaid` de forma
+			// consistente.
+			const [card] = await tx
+				.select({
+					id: cards.id,
+					accountId: cards.accountId,
+					name: cards.name,
+				})
+				.from(cards)
+				.where(and(eq(cards.id, data.cardId), eq(cards.userId, user.id)))
+				.for("update");
 
 			if (!card) {
 				throw new Error("Cartão não encontrado.");
@@ -135,10 +172,21 @@ export async function updateInvoicePaymentStatusAction(
 					: [{ total: 0 }];
 
 				const adminShare = Number(adminShareRow?.total ?? 0);
-				const adminPayableAmount = Math.abs(Math.min(adminShare, 0));
+				// Abate os pagamentos parciais já lançados para não cobrar em dobro:
+				// a quitação paga exatamente o saldo restante.
+				const partialsPaid = await sumInvoicePartialPayments(
+					tx,
+					user.id,
+					card.id,
+					data.period,
+				);
+				const adminPayableAmount = Math.max(
+					0,
+					Math.abs(Math.min(adminShare, 0)) - partialsPaid,
+				);
 				const paymentAccountId = data.paymentAccountId ?? card.accountId;
 
-				if (adminPayerId) {
+				if (adminPayerId && adminPayableAmount > 0) {
 					if (!paymentAccountId) {
 						throw new Error("Selecione uma conta para pagar a fatura.");
 					}
@@ -200,6 +248,17 @@ export async function updateInvoicePaymentStatusAction(
 					} else {
 						await tx.insert(transactions).values(payload);
 					}
+				} else if (adminPayerId) {
+					// Pagamentos parciais já cobrem todo o saldo: apenas marca como
+					// paga (feito acima) e remove eventual nota cheia antiga.
+					await tx
+						.delete(transactions)
+						.where(
+							and(
+								eq(transactions.userId, user.id),
+								eq(transactions.note, invoiceNote),
+							),
+						);
 				}
 			} else {
 				await tx
@@ -216,6 +275,197 @@ export async function updateInvoicePaymentStatusAction(
 		revalidateForEntity("cards", user.id);
 
 		return { success: true, message: successMessageByStatus[data.status] };
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			return {
+				success: false,
+				error: error.issues[0]?.message ?? "Dados inválidos.",
+			};
+		}
+
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : "Erro inesperado.",
+		};
+	}
+}
+
+const payInvoicePartialSchema = z.object({
+	cardId: z.string({ message: "Cartão inválido." }).uuid("Cartão inválido."),
+	period: z
+		.string({ message: "Período inválido." })
+		.regex(PERIOD_FORMAT_REGEX, "Período inválido."),
+	amount: z.coerce
+		.number({ message: "Valor inválido." })
+		.positive("Informe um valor maior que zero."),
+	paymentAccountId: z
+		.string({ message: "Conta inválida." })
+		.uuid("Conta inválida.")
+		.nullable()
+		.optional(),
+	paymentDate: z
+		.string()
+		.optional()
+		.refine((value) => !value || isValidPaymentDate(value), {
+			message: "Data de pagamento inválida.",
+		}),
+});
+
+type PayInvoicePartialInput = z.infer<typeof payInvoicePartialSchema>;
+
+/**
+ * Registra o pagamento de um valor arbitrário (parcial) de uma fatura. O valor
+ * sai de uma conta como uma `Despesa` com nota `AUTO_FATURA:<cardId>:<period>:<id>`,
+ * já excluída de renda/despesa. Se o pagamento zera o saldo em aberto, marca a
+ * fatura como paga e liquida as compras do cartão.
+ */
+export async function payInvoicePartialAction(
+	input: PayInvoicePartialInput,
+): Promise<ActionResult> {
+	try {
+		const user = await getUser();
+		const data = payInvoicePartialSchema.parse(input);
+		const adminPayerId = await getAdminPayerId(user.id);
+
+		if (!adminPayerId) {
+			throw new Error("Não foi possível processar o pagamento.");
+		}
+
+		await db.transaction(async (tx: typeof db) => {
+			// `for("update")` trava a linha do cartão durante a transação, serializando
+			// pagamentos concorrentes da mesma fatura — sem isso, dois pagamentos
+			// simultâneos leriam o mesmo saldo e passariam ambos pelo guard (READ
+			// COMMITTED não isola inserts não commitados).
+			const [card] = await tx
+				.select({
+					id: cards.id,
+					name: cards.name,
+					accountId: cards.accountId,
+				})
+				.from(cards)
+				.where(and(eq(cards.id, data.cardId), eq(cards.userId, user.id)))
+				.for("update");
+
+			if (!card) {
+				throw new Error("Cartão não encontrado.");
+			}
+
+			const paymentAccountId = data.paymentAccountId ?? card.accountId;
+			if (!paymentAccountId) {
+				throw new Error("Selecione uma conta para pagar a fatura.");
+			}
+
+			const paymentAccount = await tx.query.financialAccounts.findFirst({
+				columns: { id: true },
+				where: and(
+					eq(financialAccounts.id, paymentAccountId),
+					eq(financialAccounts.userId, user.id),
+				),
+			});
+
+			if (!paymentAccount) {
+				throw new Error("Conta de pagamento não encontrada.");
+			}
+
+			// Saldo em aberto calculado sob o lock do cartão: |total das compras do
+			// cartão| − parciais pagos.
+			const [totalRow] = await tx
+				.select({
+					total: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
+				})
+				.from(transactions)
+				.where(
+					and(
+						eq(transactions.userId, user.id),
+						eq(transactions.cardId, card.id),
+						eq(transactions.period, data.period),
+					),
+				);
+
+			const grossOutstanding = Math.abs(
+				Math.min(Number(totalRow?.total ?? 0), 0),
+			);
+			const partialsPaid = await sumInvoicePartialPayments(
+				tx,
+				user.id,
+				card.id,
+				data.period,
+			);
+			const outstandingCents = Math.round(
+				Math.max(0, grossOutstanding - partialsPaid) * 100,
+			);
+			const amountCents = Math.round(data.amount * 100);
+
+			if (outstandingCents <= 0) {
+				throw new Error("Esta fatura já está quitada.");
+			}
+			if (amountCents > outstandingCents) {
+				throw new Error("Valor inválido para esta fatura.");
+			}
+
+			const paymentCategory = await tx.query.categories.findFirst({
+				columns: { id: true },
+				where: and(
+					eq(categories.userId, user.id),
+					eq(categories.name, "Pagamentos"),
+				),
+			});
+
+			const paymentDate = data.paymentDate
+				? parseLocalDateString(data.paymentDate)
+				: getBusinessTodayDate();
+
+			await tx.insert(transactions).values({
+				condition: "À vista",
+				name: `Pagamento fatura - ${card.name}`,
+				paymentMethod: "Pix",
+				note: buildPartialInvoicePaymentNote(
+					card.id,
+					data.period,
+					createClientSafeId(),
+				),
+				amount: `-${formatDecimalForDbRequired(data.amount)}`,
+				purchaseDate: paymentDate,
+				transactionType: "Despesa" as const,
+				period: data.period,
+				isSettled: true,
+				userId: user.id,
+				accountId: paymentAccountId,
+				categoryId: paymentCategory?.id ?? null,
+				payerId: adminPayerId,
+			});
+
+			// Se este pagamento zera o saldo, quita a fatura e liquida as compras.
+			if (amountCents >= outstandingCents) {
+				await tx
+					.insert(invoices)
+					.values({
+						cardId: card.id,
+						period: data.period,
+						paymentStatus: INVOICE_PAYMENT_STATUS.PAID,
+						userId: user.id,
+					})
+					.onConflictDoUpdate({
+						target: [invoices.userId, invoices.cardId, invoices.period],
+						set: { paymentStatus: INVOICE_PAYMENT_STATUS.PAID },
+					});
+
+				await tx
+					.update(transactions)
+					.set({ isSettled: true })
+					.where(
+						and(
+							eq(transactions.userId, user.id),
+							eq(transactions.cardId, card.id),
+							eq(transactions.period, data.period),
+						),
+					);
+			}
+		});
+
+		revalidateForEntity("cards", user.id);
+
+		return { success: true, message: "Pagamento parcial registrado." };
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return {

@@ -19,6 +19,7 @@ import MoneyValues from "@/shared/components/money-values";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { DatePicker } from "@/shared/components/ui/date-picker";
 import {
 	Dialog,
@@ -41,6 +42,7 @@ import {
 	INVOICE_PAYMENT_STATUS,
 	INVOICE_STATUS_LABEL,
 } from "@/shared/lib/invoices";
+import { formatCurrency } from "@/shared/utils/currency";
 import { InvoiceLogo } from "./invoice-logo";
 
 type InvoicePaymentDialogProps = {
@@ -52,6 +54,9 @@ type InvoicePaymentDialogProps = {
 	onPaymentAccountChange: (accountId: string) => void;
 	paymentDate: Date;
 	onPaymentDateChange: (date: Date) => void;
+	paymentAmount: number;
+	onPaymentAmountChange: (amount: number) => void;
+	lastPaymentWasPartial: boolean;
 	paymentAccountOptions: InvoicePaymentAccountOption[];
 	onClose: () => void;
 	onConfirm: () => void;
@@ -66,6 +71,9 @@ export function InvoicePaymentDialog({
 	onPaymentAccountChange,
 	paymentDate,
 	onPaymentDateChange,
+	paymentAmount,
+	onPaymentAmountChange,
+	lastPaymentWasPartial,
 	paymentAccountOptions,
 	onClose,
 	onConfirm,
@@ -81,6 +89,14 @@ export function InvoicePaymentDialog({
 	const selectedAccount = paymentAccountOptions.find(
 		(option) => option.value === paymentAccountId,
 	);
+
+	const outstandingAmount = invoice?.outstandingAmount ?? 0;
+	const paidAmount = invoice?.paidAmount ?? 0;
+	const hasPartialPayments = paidAmount > 0;
+	const outstandingCents = Math.round(outstandingAmount * 100);
+	const amountCents = Math.round(paymentAmount * 100);
+	const isAmountValid = amountCents > 0 && amountCents <= outstandingCents;
+	const isFullPayment = amountCents >= outstandingCents;
 
 	return (
 		<Dialog
@@ -107,8 +123,16 @@ export function InvoicePaymentDialog({
 			>
 				{modalState === "success" ? (
 					<PaymentSuccess
-						title="Pagamento confirmado!"
-						description="Atualizamos o status da fatura. O lançamento do pagamento aparecerá no extrato em instantes."
+						title={
+							lastPaymentWasPartial
+								? "Pagamento parcial registrado!"
+								: "Pagamento confirmado!"
+						}
+						description={
+							lastPaymentWasPartial
+								? "Registramos o pagamento parcial e atualizamos o saldo restante da fatura. O lançamento aparecerá no extrato em instantes."
+								: "Atualizamos o status da fatura. O lançamento do pagamento aparecerá no extrato em instantes."
+						}
 						onClose={onClose}
 					/>
 				) : (
@@ -184,6 +208,54 @@ export function InvoicePaymentDialog({
 
 								{isInvoicePending ? (
 									<div className="space-y-3">
+										{hasPartialPayments ? (
+											<div className="flex items-center justify-between rounded-xl border border-dashed p-3 text-sm">
+												<span className="text-muted-foreground">
+													Pago {formatCurrency(paidAmount)}
+												</span>
+												<span className="font-medium text-foreground">
+													Restante {formatCurrency(outstandingAmount)}
+												</span>
+											</div>
+										) : null}
+
+										<div className="space-y-2">
+											<div className="flex items-center justify-between">
+												<Label htmlFor="invoice-widget-payment-amount">
+													Valor a pagar
+												</Label>
+												{amountCents !== outstandingCents ? (
+													<Button
+														type="button"
+														variant="link"
+														className="h-auto p-0 text-xs"
+														onClick={() =>
+															onPaymentAmountChange(outstandingAmount)
+														}
+														disabled={isProcessing}
+													>
+														Pagar tudo
+													</Button>
+												) : null}
+											</div>
+											<CurrencyInput
+												id="invoice-widget-payment-amount"
+												value={
+													paymentAmount > 0 ? paymentAmount.toFixed(2) : ""
+												}
+												onValueChange={(value) =>
+													onPaymentAmountChange(value ? Number(value) : 0)
+												}
+												disabled={isProcessing}
+											/>
+											{!isAmountValid && paymentAmount > 0 ? (
+												<p className="text-xs text-destructive">
+													Informe um valor entre {formatCurrency(0.01)} e{" "}
+													{formatCurrency(outstandingAmount)}.
+												</p>
+											) : null}
+										</div>
+
 										<div className="space-y-2">
 											<Label htmlFor="invoice-widget-payment-account">
 												Conta de pagamento
@@ -270,7 +342,9 @@ export function InvoicePaymentDialog({
 									isProcessing ||
 									!invoice ||
 									(isInvoicePending &&
-										(!paymentAccountId || paymentAccountOptions.length === 0))
+										(!paymentAccountId ||
+											paymentAccountOptions.length === 0 ||
+											!isAmountValid))
 								}
 							>
 								{isProcessing ? (
@@ -278,6 +352,12 @@ export function InvoicePaymentDialog({
 										<RiLoader4Line className="mr-1.5 size-4 animate-spin" />
 										Processando...
 									</>
+								) : isInvoicePending ? (
+									isFullPayment ? (
+										`Pagar ${formatCurrency(outstandingAmount)}`
+									) : (
+										`Pagar parcial ${formatCurrency(paymentAmount)}`
+									)
 								) : (
 									"Confirmar"
 								)}

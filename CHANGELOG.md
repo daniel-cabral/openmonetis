@@ -5,6 +5,17 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.8.0] - 2026-07-09
+
+Esta versão traz o pagamento parcial de faturas de cartão. Antes só era possível quitar a fatura inteira de uma vez, e quem precisava abater parte dela improvisava lançando uma receita no cartão — o que reduzia a fatura mas inflava a renda no dashboard, como se fosse dinheiro recebido. Agora dá para pagar um valor arbitrário de uma fatura, quantas vezes quiser no período, com o dinheiro saindo corretamente de uma conta e sem contar como renda nem como despesa. O saldo restante é calculado automaticamente e a fatura só é marcada como paga quando totalmente quitada.
+
+### Adicionado
+- Pagamento parcial de fatura de cartão: campo "Valor a pagar" no diálogo de pagamento (pré-preenchido com o saldo em aberto e com atalho "Pagar tudo"), bloco "Pago / Restante" e exibição do valor restante na lista de faturas.
+- Saldo em aberto da fatura calculado automaticamente a partir do total menos os pagamentos já realizados no período.
+
+### Alterado
+- A quitação de uma fatura passa a cobrar apenas o saldo restante quando já houve pagamentos parciais, evitando cobrança em dobro.
+
 ## [2.7.12] - 2026-06-30
 
 Esta versão corrige a seleção de faturas e períodos em popovers usados dentro de diálogos, alinhando esses componentes ao mesmo comportamento seguro aplicado recentemente aos seletores de data.

@@ -146,6 +146,8 @@ export const markInvoiceAsPaid = (
 ): DashboardInvoice => ({
 	...invoice,
 	paymentStatus: INVOICE_PAYMENT_STATUS.PAID,
+	paidAmount: Math.abs(invoice.totalAmount),
+	outstandingAmount: 0,
 	paidAt,
 });
 

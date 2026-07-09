@@ -16,6 +16,9 @@ type InvoicesWidgetViewProps = {
 	onPaymentAccountChange: (accountId: string) => void;
 	paymentDate: Date;
 	onPaymentDateChange: (date: Date) => void;
+	paymentAmount: number;
+	onPaymentAmountChange: (amount: number) => void;
+	lastPaymentWasPartial: boolean;
 	paymentAccountOptions: InvoicePaymentAccountOption[];
 	onOpenPaymentDialog: (invoiceId: string) => void;
 	onClosePaymentDialog: () => void;
@@ -32,6 +35,9 @@ export function InvoicesWidgetView({
 	onPaymentAccountChange,
 	paymentDate,
 	onPaymentDateChange,
+	paymentAmount,
+	onPaymentAmountChange,
+	lastPaymentWasPartial,
 	paymentAccountOptions,
 	onOpenPaymentDialog,
 	onClosePaymentDialog,
@@ -50,6 +56,9 @@ export function InvoicesWidgetView({
 				onPaymentAccountChange={onPaymentAccountChange}
 				paymentDate={paymentDate}
 				onPaymentDateChange={onPaymentDateChange}
+				paymentAmount={paymentAmount}
+				onPaymentAmountChange={onPaymentAmountChange}
+				lastPaymentWasPartial={lastPaymentWasPartial}
 				paymentAccountOptions={paymentAccountOptions}
 				onClose={onClosePaymentDialog}
 				onConfirm={onConfirmPayment}
