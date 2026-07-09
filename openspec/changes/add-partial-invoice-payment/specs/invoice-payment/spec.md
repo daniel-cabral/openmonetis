@@ -56,8 +56,8 @@ O sistema SHALL calcular o saldo em aberto de uma fatura como `|SUM(amount) das 
 #### Scenario: Cancelamento de um pagamento parcial
 
 - **WHEN** o usuário apaga o lançamento de um pagamento parcial pela UI de lançamentos
-- **THEN** o saldo em aberto da fatura volta a incluir aquele valor, sem ação adicional
-- **AND** se a fatura estava `pago` apenas por causa daquele pagamento, o status volta a `pendente` ao desfazer o pagamento
+- **THEN** o saldo em aberto da fatura volta a incluir aquele valor, sem ação adicional (o saldo é derivado)
+- **AND** o campo `paymentStatus` NÃO é revertido automaticamente pela exclusão — permanece uma flag explícita, revertida apenas pela ação "desfazer pagamento" (`updateInvoicePaymentStatusAction` com status `pendente`), consistente com o comportamento pré-existente do pagamento cheio
 
 ### Requirement: Pagamentos de fatura não contam como renda nem despesa
 

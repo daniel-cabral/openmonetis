@@ -373,6 +373,9 @@ export async function fetchDashboardInvoices(
 				: null;
 
 		const paidAmount = paidAmountByKey.get(paymentKey) ?? 0;
+		// Saldo em aberto derivado. `totalAmount` é o total BRUTO da fatura (todas as
+		// pessoas); em cartão compartilhado isso diverge da cota do admin cobrada na
+		// quitação — limitação conhecida (ver design da change add-partial-invoice-payment).
 		const outstandingAmount = Math.max(0, Math.abs(totalAmount) - paidAmount);
 
 		invoiceList.push({

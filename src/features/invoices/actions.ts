@@ -107,10 +107,18 @@ export async function updateInvoicePaymentStatusAction(
 		const adminPayerId = await getAdminPayerId(user.id);
 
 		await db.transaction(async (tx: typeof db) => {
-			const card = await tx.query.cards.findFirst({
-				columns: { id: true, accountId: true, name: true },
-				where: and(eq(cards.id, data.cardId), eq(cards.userId, user.id)),
-			});
+			// `for("update")` serializa quitação e pagamentos parciais concorrentes da
+			// mesma fatura, para que a reconciliação leia `partialsPaid` de forma
+			// consistente.
+			const [card] = await tx
+				.select({
+					id: cards.id,
+					accountId: cards.accountId,
+					name: cards.name,
+				})
+				.from(cards)
+				.where(and(eq(cards.id, data.cardId), eq(cards.userId, user.id)))
+				.for("update");
 
 			if (!card) {
 				throw new Error("Cartão não encontrado.");
@@ -319,11 +327,24 @@ export async function payInvoicePartialAction(
 		const data = payInvoicePartialSchema.parse(input);
 		const adminPayerId = await getAdminPayerId(user.id);
 
+		if (!adminPayerId) {
+			throw new Error("Não foi possível processar o pagamento.");
+		}
+
 		await db.transaction(async (tx: typeof db) => {
-			const card = await tx.query.cards.findFirst({
-				columns: { id: true, name: true, accountId: true },
-				where: and(eq(cards.id, data.cardId), eq(cards.userId, user.id)),
-			});
+			// `for("update")` trava a linha do cartão durante a transação, serializando
+			// pagamentos concorrentes da mesma fatura — sem isso, dois pagamentos
+			// simultâneos leriam o mesmo saldo e passariam ambos pelo guard (READ
+			// COMMITTED não isola inserts não commitados).
+			const [card] = await tx
+				.select({
+					id: cards.id,
+					name: cards.name,
+					accountId: cards.accountId,
+				})
+				.from(cards)
+				.where(and(eq(cards.id, data.cardId), eq(cards.userId, user.id)))
+				.for("update");
 
 			if (!card) {
 				throw new Error("Cartão não encontrado.");
@@ -346,8 +367,8 @@ export async function payInvoicePartialAction(
 				throw new Error("Conta de pagamento não encontrada.");
 			}
 
-			// Saldo em aberto calculado dentro da transação (evita corrida entre
-			// pagamentos simultâneos): |total das compras do cartão| − parciais pagos.
+			// Saldo em aberto calculado sob o lock do cartão: |total das compras do
+			// cartão| − parciais pagos.
 			const [totalRow] = await tx
 				.select({
 					total: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
