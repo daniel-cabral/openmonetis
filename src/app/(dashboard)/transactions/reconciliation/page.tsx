@@ -9,7 +9,13 @@ export default async function Page() {
 	const userId = await getUserId();
 	const filterSources = await fetchTransactionFilterSources(userId);
 	const sluggedFilters = buildSluggedFilters(filterSources);
-	const { accountOptions, cardOptions } = buildOptionSets({
+	const {
+		accountOptions,
+		cardOptions,
+		payerOptions,
+		categoryOptions,
+		defaultPayerId,
+	} = buildOptionSets({
 		...sluggedFilters,
 		payerRows: filterSources.payerRows,
 	});
@@ -19,6 +25,9 @@ export default async function Page() {
 			<ReconciliationPage
 				accountOptions={accountOptions}
 				cardOptions={cardOptions}
+				payerOptions={payerOptions}
+				categoryOptions={categoryOptions}
+				defaultPayerId={defaultPayerId}
 			/>
 		</main>
 	);

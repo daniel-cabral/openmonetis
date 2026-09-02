@@ -1,6 +1,7 @@
 "use client";
 import {
 	RiArrowLeftRightLine,
+	RiCheckDoubleLine,
 	RiFileExcel2Line,
 	RiFlashlightFill,
 } from "@remixicon/react";
@@ -360,6 +361,22 @@ export function TransactionsTable({
 								</TooltipTrigger>
 								<TooltipContent>
 									<p>Importar extrato</p>
+								</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										onClick={() => router.push("/transactions/reconciliation")}
+										variant="outline"
+										size="icon"
+										className="hidden size-9 sm:inline-flex"
+									>
+										<RiCheckDoubleLine className="size-4" />
+										<span className="sr-only">Conciliar extrato</span>
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Conciliar extrato</p>
 								</TooltipContent>
 							</Tooltip>
 						</div>

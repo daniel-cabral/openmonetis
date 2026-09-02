@@ -59,10 +59,10 @@
 - [x] 9.1 `src/app/(dashboard)/transactions/reconciliation/page.tsx` — rota fina no padrão do projeto
 - [x] 9.2 Componente de upload reaproveitando `upload-zone` onde couber
 - [x] 9.3 Passo de confirmação de origem: select de **perfil de banco** (pré-selecionado pelo detectado, sempre editável) e select de **conta ou cartão de destino** (pré-preenchido quando o arquivo trouxer a informação, obrigatório quando não trouxer) — nenhum parsing final antes dessa confirmação
-- [ ] 9.4 Tela de resumo: contagem por balde e painel de fechamento aritmético
-- [ ] 9.5 Tela de revisão com os quatro baldes e as ações por linha (confirmar, criar, ignorar, escolher candidato, marcar duplicata)
-- [ ] 9.6 Botão de aplicar como única escrita, com toast de desfazer no padrão do import atual
-- [ ] 9.7 Adicionar a entrada na navegação
+- [x] 9.4 Tela de resumo: contagem por balde e painel de fechamento aritmético
+- [x] 9.5 Tela de revisão com os quatro baldes e as ações por linha (confirmar, criar, ignorar, escolher candidato, marcar duplicata)
+- [x] 9.6 Botão de aplicar como única escrita, com toast de desfazer no padrão do import atual
+- [x] 9.7 Adicionar a entrada na navegação
 
 ## 10. Fechamento
 
