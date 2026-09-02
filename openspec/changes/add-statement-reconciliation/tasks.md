@@ -11,8 +11,8 @@
 
 ## 3. Parsers do C6
 
-- [ ] 3.1 `src/shared/lib/import/parsers/c6-statement-csv.ts` — pular preâmbulo até a linha de cabeçalho, remover BOM, extrair `accountNumber` de `Agência: <a> / Conta: <c>` e `period` de `Extrato de <d1> a <d2>`
-- [ ] 3.2 No mesmo parser, mapear cada linha: `date` = Data Lançamento, `postedDate` = Data Contábil, `dayBalance` = Saldo do Dia, sinal derivado de `Entrada(R$)`/`Saída(R$)`, descrição combinando `Título` e `Descrição` sem duplicar quando forem iguais
+- [x] 3.1 `src/shared/lib/import/parsers/c6-statement-csv.ts` — pular preâmbulo até a linha de cabeçalho, remover BOM, extrair `accountNumber` de `Agência: <a> / Conta: <c>` e `period` de `Extrato de <d1> a <d2>`
+- [x] 3.2 No mesmo parser, mapear cada linha: `date` = Data Lançamento, `postedDate` = Data Contábil, `dayBalance` = Saldo do Dia, sinal derivado de `Entrada(R$)`/`Saída(R$)`, descrição combinando `Título` e `Descrição` sem duplicar quando forem iguais
 - [ ] 3.3 `src/shared/lib/import/parsers/c6-invoice-csv.ts` — separador `;`, mapear `Data de Compra`, `cardLast4`, `holderName`, `categoryRaw`, `fx` e `installment` a partir de `Parcela` (`N/M` ou `Única`)
 - [ ] 3.4 No parser de fatura, marcar `isPurchase: false` para linhas de valor negativo (`Pag Fatura Boleto`, `Estorno`) preservando-as no resultado
 - [ ] 3.5 `src/shared/lib/import/parsers/registry.ts` — registro explícito de perfis `{ id, label, kind: "statement" | "invoice", matches(headerSample), parse(content) }`, exportando a lista completa para a UI oferecer como opção
