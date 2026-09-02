@@ -77,6 +77,7 @@ describe("checkStatementClosure", () => {
 			})),
 			transactions: transactions.map((row, index) => ({
 				id: `t-${index}`,
+				name: row.description,
 				date: row.date,
 				amount: row.amount,
 				transactionType: row.transactionType,
@@ -134,12 +135,12 @@ describe("checkStatementClosure", () => {
 
 describe("checkInvoiceClosure", () => {
 	it("soma apenas as compras e fecha contra o total informado", () => {
-		const result = checkInvoiceClosure(invoiceTransactions(), 13034.33);
+		const result = checkInvoiceClosure(invoiceTransactions(), 23440.5);
 
 		expect(result).toEqual({
 			closes: true,
-			purchasesSum: 13034.33,
-			expectedTotal: 13034.33,
+			purchasesSum: 23440.5,
+			expectedTotal: 23440.5,
 			difference: 0,
 		});
 	});
@@ -151,13 +152,13 @@ describe("checkInvoiceClosure", () => {
 		);
 
 		expect(naoCompras).toHaveLength(2);
-		// Se as não-compras entrassem na soma, o total seria 772.23.
-		expect(checkInvoiceClosure(transactions, 772.23).closes).toBe(false);
+		// Se as não-compras entrassem na soma, o total seria 13865.50.
+		expect(checkInvoiceClosure(transactions, 13865.5).closes).toBe(false);
 	});
 
 	it("reporta a diferença quando a soma das compras não bate com o total", () => {
-		const result = checkInvoiceClosure(invoiceTransactions(), 13000);
+		const result = checkInvoiceClosure(invoiceTransactions(), 23400);
 
-		expect(result).toMatchObject({ closes: false, difference: -34.33 });
+		expect(result).toMatchObject({ closes: false, difference: -40.5 });
 	});
 });

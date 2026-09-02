@@ -14,7 +14,10 @@ import { ReconciliationSummary } from "@/features/transactions/components/reconc
 import { ReconciliationUploadZone } from "@/features/transactions/components/reconciliation/upload-zone";
 import type { SelectOption } from "@/features/transactions/components/types";
 import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
-import { destinationKindForProfile } from "@/features/transactions/lib/reconciliation-origin";
+import {
+	destinationKindForProfile,
+	matchAccountOptionByNumber,
+} from "@/features/transactions/lib/reconciliation-origin";
 import { buildReconciliationApplyPayload } from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -26,6 +29,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { type DetectResult, detectParserProfile } from "@/shared/lib/import/parsers/detect";
+import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 import type { ImportStatement } from "@/shared/lib/import/types";
 import {
 	checkInvoiceClosure,
@@ -91,18 +95,33 @@ export function ReconciliationPage({
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [destinationId, setDestinationId] = useState<string | null>(null);
 	const [invoiceTotalInput, setInvoiceTotalInput] = useState("");
+	const [invoicePeriodInput, setInvoicePeriodInput] = useState("");
 	const [review, setReview] = useState<ReviewState | null>(null);
 
 	const selectedProfile =
 		detectResult?.profiles.find((p) => p.id === profileId) ?? null;
 	const destinationKind = destinationKindForProfile(selectedProfile);
 
+	// Só o preâmbulo é lido aqui; o parse definitivo continua depois da
+	// confirmação de origem.
+	const suggestDestination = (
+		profile: ParserProfile | null,
+		content: string | null,
+	) =>
+		profile && content
+			? matchAccountOptionByNumber(
+					profile.peekAccountNumber?.(content),
+					accountOptions,
+				)
+			: null;
+
 	const handleFileRead = (content: string) => {
 		const result = detectParserProfile(content);
+		const profile = result.detected ?? result.profiles[0] ?? null;
 		setFileContent(content);
 		setDetectResult(result);
-		setProfileId(result.detected?.id ?? result.profiles[0]?.id ?? null);
-		setDestinationId(null);
+		setProfileId(profile?.id ?? null);
+		setDestinationId(suggestDestination(profile, content));
 		setReview(null);
 	};
 
@@ -192,7 +211,14 @@ export function ReconciliationPage({
 		});
 	};
 
-	const canAdvance = !!fileContent && !!selectedProfile && !!destinationId;
+	// Numa fatura o período é obrigatório: a data da linha é a da compra
+	// original, que pode ser de anos atrás, e não serve para derivar o período
+	// do lançamento criado.
+	const canAdvance =
+		!!fileContent &&
+		!!selectedProfile &&
+		!!destinationId &&
+		(destinationKind !== "card" || /^\d{4}-\d{2}$/.test(invoicePeriodInput));
 
 	const handleAdvance = () => {
 		if (!fileContent || !selectedProfile) return;
@@ -237,7 +263,7 @@ export function ReconciliationPage({
 			const result = await applyReconciliationAction({
 				destination: { type: destinationKind, id: destinationId },
 				paymentMethod: destinationKind === "card" ? "Cartão de crédito" : "Pix",
-				invoicePeriod: null,
+				invoicePeriod: destinationKind === "card" ? invoicePeriodInput : null,
 				payerId,
 				confirmations: payload.confirmations,
 				creations: payload.creations,
@@ -272,6 +298,8 @@ export function ReconciliationPage({
 			setDetectResult(null);
 			setProfileId(null);
 			setDestinationId(null);
+			setInvoiceTotalInput("");
+			setInvoicePeriodInput("");
 			setReview(null);
 		});
 	};
@@ -297,6 +325,12 @@ export function ReconciliationPage({
 						cardOptions={cardOptions}
 						onProfileChange={(id) => {
 							setProfileId(id);
+							setDestinationId(
+								suggestDestination(
+									detectResult.profiles.find((p) => p.id === id) ?? null,
+									fileContent,
+								),
+							);
 							setReview(null);
 						}}
 						onDestinationChange={(id) => {
@@ -307,14 +341,29 @@ export function ReconciliationPage({
 
 					{destinationKind === "card" && (
 						<Card>
-							<CardContent className="flex flex-col gap-1.5 pt-6">
-								<Label>Total da fatura (R$), para o fechamento aritmético</Label>
-								<Input
-									className="w-48"
-									placeholder="0,00"
-									value={invoiceTotalInput}
-									onChange={(e) => setInvoiceTotalInput(e.target.value)}
-								/>
+							<CardContent className="flex flex-wrap gap-6 pt-6">
+								<div className="flex flex-col gap-1.5">
+									<Label>Período da fatura</Label>
+									<Input
+										className="w-48"
+										type="month"
+										value={invoicePeriodInput}
+										onChange={(e) => setInvoicePeriodInput(e.target.value)}
+									/>
+									<span className="text-muted-foreground text-xs">
+										Os lançamentos criados entram neste período, não no mês da
+										compra original.
+									</span>
+								</div>
+								<div className="flex flex-col gap-1.5">
+									<Label>Total da fatura (R$), para o fechamento aritmético</Label>
+									<Input
+										className="w-48"
+										placeholder="0,00"
+										value={invoiceTotalInput}
+										onChange={(e) => setInvoiceTotalInput(e.target.value)}
+									/>
+								</div>
 							</CardContent>
 						</Card>
 					)}

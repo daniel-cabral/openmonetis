@@ -7,7 +7,6 @@ import {
 } from "@/features/transactions/components/select-items";
 import type { SelectOption } from "@/features/transactions/components/types";
 import type { ReconciliationRowDecision } from "@/features/transactions/lib/reconciliation-review";
-import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -73,7 +72,6 @@ export function ReconciliationReview({
 			}
 		>
 	>({});
-	const [duplicateAppIds, setDuplicateAppIds] = useState<Set<string>>(new Set());
 
 	const getBankOnly = (fingerprint: string, categoryRaw: string | null | undefined) =>
 		bankOnlyState[fingerprint] ?? {
@@ -309,29 +307,12 @@ export function ReconciliationReview({
 			<BucketSection title={`Só no app (${appOnlyTransactions.length})`}>
 				{appOnlyTransactions.map((tx) => (
 					<RowCard key={tx.id}>
-						<div className="flex items-center gap-3">
-							<Checkbox
-								checked={duplicateAppIds.has(tx.id)}
-								onCheckedChange={(checked) =>
-									setDuplicateAppIds((prev) => {
-										const next = new Set(prev);
-										if (checked === true) next.add(tx.id);
-										else next.delete(tx.id);
-										return next;
-									})
-								}
-							/>
-							<div className="flex flex-1 flex-col">
-								<span className="text-muted-foreground text-xs">
-									{formatDate(tx.date)} ·{" "}
-									{formatCurrency(signedAmount(tx.amount, tx.transactionType))}
-								</span>
-								{duplicateAppIds.has(tx.id) && (
-									<Badge variant="outline" className="mt-1 w-fit">
-										Marcado como possível duplicata
-									</Badge>
-								)}
-							</div>
+						<div className="flex flex-col">
+							<span className="font-medium">{tx.name}</span>
+							<span className="text-muted-foreground text-xs">
+								{formatDate(tx.date)} ·{" "}
+								{formatCurrency(signedAmount(tx.amount, tx.transactionType))}
+							</span>
 						</div>
 					</RowCard>
 				))}
@@ -392,7 +373,7 @@ export function ReconciliationReview({
 												return (
 													<SelectItem key={candidateId} value={candidateId}>
 														{candidate
-															? `${formatDate(candidate.date)} · ${formatCurrency(
+															? `${candidate.name} · ${formatDate(candidate.date)} · ${formatCurrency(
 																	signedAmount(candidate.amount, candidate.transactionType),
 																)}`
 															: candidateId}

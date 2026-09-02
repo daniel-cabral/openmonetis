@@ -14,6 +14,7 @@ export type MatchRule = "fingerprint" | "installment" | "exact" | "cents";
 /** Lançamento do app, reduzido ao que o matcher precisa comparar. */
 export type AppTransaction = {
 	id: string;
+	name: string; // descrição do lançamento, exibida na revisão manual
 	date: string; // YYYY-MM-DD, data da compra
 	amount: number; // sempre positivo; o sinal vem de transactionType
 	transactionType: "income" | "expense";

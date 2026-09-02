@@ -3,6 +3,7 @@ import type { DetectResult } from "@/shared/lib/import/parsers/detect";
 import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 import {
 	destinationKindForProfile,
+	matchAccountOptionByNumber,
 	resolveDefaultProfileId,
 } from "./reconciliation-origin";
 
@@ -60,5 +61,40 @@ describe("destinationKindForProfile", () => {
 
 	it("sem perfil selecionado não há destino resolvido", () => {
 		expect(destinationKindForProfile(null)).toBeNull();
+	});
+});
+
+describe("matchAccountOptionByNumber", () => {
+	const options = [
+		{ value: "conta-1", label: "C6 Bank 99999999" },
+		{ value: "conta-2", label: "Nubank 12345678" },
+		{ value: "conta-3", label: "Carteira" },
+	];
+
+	it("pré-seleciona a conta cujo nome traz o número do arquivo", () => {
+		expect(matchAccountOptionByNumber("1/99999999", options)).toBe("conta-1");
+	});
+
+	it("ignora a agência, que não identifica conta", () => {
+		expect(matchAccountOptionByNumber("12345678/99999999", options)).toBe(
+			"conta-1",
+		);
+	});
+
+	it("não escolhe nada quando o arquivo não traz identificação", () => {
+		expect(matchAccountOptionByNumber(null, options)).toBeNull();
+	});
+
+	it("não escolhe nada quando nenhuma conta corresponde", () => {
+		expect(matchAccountOptionByNumber("1/55555555", options)).toBeNull();
+	});
+
+	it("não escolhe nada quando mais de uma conta corresponde", () => {
+		expect(
+			matchAccountOptionByNumber("1/99999999", [
+				...options,
+				{ value: "conta-4", label: "C6 Bank 99999999 conjunta" },
+			]),
+		).toBeNull();
 	});
 });

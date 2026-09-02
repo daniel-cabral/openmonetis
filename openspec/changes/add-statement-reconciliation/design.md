@@ -80,11 +80,13 @@ Independente do matcher: no extrato, `saldo[d] − saldo[d−1]` contra a soma d
 A tabela existe, está vazia, e a preocupação é idêntica. O que falta é a normalização: a atual (`toLowerCase().trim().replace(/\s+/g," ")`) não agrupa nada contra descriptors reais. O normalizador novo derruba prefixo de adquirente e sufixo numérico de loja:
 
 ```
-PG *ABC SUPERMERCADOS CONTAGEM BRA  ->  abc supermercados
-DM*hostingercomb SAO PAULO BRA      ->  hostingercomb
-MERCADOLIVRE*MERCADOL               ->  mercadolivre
-DROGASIL2919                        ->  drogasil
+PG *ABC SUPERMERCADOS CONTAGEM BRA     ->  abc supermercados
+DM*HOSTINGERCOMB   SAO PAULO   BRA     ->  hostingercomb
+MERCADOLIVRE*MERCADOL                  ->  mercadolivre
+DROGASIL2919                           ->  drogasil
 ```
+
+Duas decisões dentro dessa regra. Em torno do `*` fica o **segmento mais longo**, não o da direita: em `PG *` e `DM*` o lojista está à direita, mas em `MERCADOLIVRE*MERCADOL` está à esquerda e o da direita é um fragmento truncado que não agrupa nada. O sufixo de praça só cai quando o marcador de país (`BRA`/`BR`) está presente, e a cidade é delimitada pela corrida de espaços com que o C6 a separa do lojista; quando essa corrida não existe no arquivo, resta descartar o último token, que resolve cidade de uma palavra e não resolve cidade de duas.
 
 A tabela se popula **a partir dos matches**: ao casar uma linha com um lançamento já categorizado à mão, grava-se `descriptor → categoria`. A categoria aprendida entra sempre pré-preenchida e editável, nunca aplicada em silêncio — `descriptor → categoria` não é 1:1 (`MERCADOLIVRE*MERCADOL` pode ser Compras ou Presentes). A `Categoria` que o C6 manda é terceiro recurso, atrás do aprendido, por ser comprovadamente ruidosa.
 

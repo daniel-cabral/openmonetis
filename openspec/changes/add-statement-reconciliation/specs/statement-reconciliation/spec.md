@@ -134,7 +134,7 @@ O sistema SHALL classificar cada linha do arquivo e cada lançamento do período
 
 - **WHEN** existe no app um lançamento dentro do período do arquivo que não corresponde a nenhuma linha
 - **THEN** o lançamento é classificado como só no app
-- **AND** é apresentado com a opção de marcá-lo como duplicata
+- **AND** é apresentado com descrição, data e valor, como balde informativo — o app não tem onde registrar "duplicata", e um controle que não grava nada seria pior que a ausência dele
 
 ### Requirement: Verificação aritmética de fechamento
 

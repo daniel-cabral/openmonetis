@@ -7,11 +7,12 @@ import {
 	validateCartaoOwnership,
 	validateContaOwnership,
 } from "@/features/transactions/actions/core";
+import { toAppTransaction } from "@/features/transactions/lib/reconciliation-candidates";
 import { getUserId } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
 import type { AppTransaction } from "@/shared/lib/reconciliation/matcher";
 import { uuidSchema } from "@/shared/lib/schemas/common";
-import { parseUtcDateString, toDateOnlyString } from "@/shared/utils/date";
+import { parseUtcDateString } from "@/shared/utils/date";
 
 const destinationSchema = z.discriminatedUnion("type", [
 	z.object({ type: z.literal("account"), id: uuidSchema("Conta") }),
@@ -84,6 +85,7 @@ export async function fetchReconciliationCandidatesAction(
 		db
 			.select({
 				id: transactions.id,
+				name: transactions.name,
 				purchaseDate: transactions.purchaseDate,
 				amount: transactions.amount,
 				transactionType: transactions.transactionType,
@@ -114,15 +116,7 @@ export async function fetchReconciliationCandidatesAction(
 
 	return {
 		success: true,
-		transactions: candidateRows.map((row) => ({
-			id: row.id,
-			date: toDateOnlyString(row.purchaseDate) ?? "",
-			amount: Math.abs(Number(row.amount)),
-			transactionType: row.transactionType as "income" | "expense",
-			installmentCount: row.installmentCount ?? null,
-			currentInstallment: row.currentInstallment ?? null,
-			fingerprint: row.ofxImportFingerprint ?? null,
-		})),
+		transactions: candidateRows.map(toAppTransaction),
 		ignoredFingerprints: fingerprints.filter((fp) => ignoredSet.has(fp)),
 	};
 }

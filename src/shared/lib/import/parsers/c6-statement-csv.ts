@@ -8,7 +8,12 @@ function parseBrDate(raw: string): string {
 	return `${year}-${month}-${day}`;
 }
 
-function parseAccountNumber(content: string): string | null {
+/**
+ * Lê só a identificação de conta do preâmbulo. Exportada para a confirmação de
+ * origem pré-preencher o destino sem fazer o parse definitivo do arquivo, que
+ * só acontece depois da confirmação.
+ */
+export function readC6StatementAccountNumber(content: string): string | null {
 	const match = content.match(/Agência:\s*(\S+)\s*\/\s*Conta:\s*(\S+)/);
 	return match ? `${match[1]}/${match[2]}` : null;
 }
@@ -31,7 +36,7 @@ export function parseC6StatementCsv(rawContent: string): ImportStatement {
 	const content =
 		rawContent.charCodeAt(0) === 0xfeff ? rawContent.slice(1) : rawContent;
 
-	const accountNumber = parseAccountNumber(content);
+	const accountNumber = readC6StatementAccountNumber(content);
 	const period = parsePeriod(content);
 
 	const lines = content.split(/\r\n|\n/);

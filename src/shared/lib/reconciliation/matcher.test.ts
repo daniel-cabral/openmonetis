@@ -38,6 +38,7 @@ function entry(
 function transaction(overrides: Partial<AppTransaction> = {}): AppTransaction {
 	return {
 		id: "tx-1",
+		name: "Lançamento teste",
 		date: "2026-07-10",
 		amount: 25.9,
 		transactionType: "expense",
@@ -443,9 +444,9 @@ describe("matchReconciliationRows", () => {
 	it("casa a linha de 86,59 da fixture de fatura contra o lançamento de 86,61 do app", () => {
 		const parsed = parseC6InvoiceCsv(readFileSync(faturaPath, "utf8"));
 		const target = parsed.transactions.find(
-			(candidate) => candidate.description === "LOJA SPACE BC",
+			(candidate) => candidate.description === "LOJA ESPACO TESTE",
 		);
-		if (!target) throw new Error("fixture sem a linha LOJA SPACE BC");
+		if (!target) throw new Error("fixture sem a linha LOJA ESPACO TESTE");
 
 		const result = matchReconciliationRows({
 			rows: [{ fingerprint: "fp-space", row: target }],

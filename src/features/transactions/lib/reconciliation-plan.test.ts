@@ -100,7 +100,7 @@ describe("buildReconciliationPlan", () => {
 		expect(plan.categoryMappings).toEqual([
 			{
 				userId: "user-1",
-				descriptionKey: "abc supermercados contagem bra",
+				descriptionKey: "abc supermercados",
 				categoryId: "category-9",
 			},
 		]);

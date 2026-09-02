@@ -31,23 +31,23 @@ describe("parseC6InvoiceCsv", () => {
 		const result = parseC6InvoiceCsv(readFixture());
 		const first = result.transactions[0];
 		expect(first).toMatchObject({
-			date: "2025-11-26",
+			date: "2025-01-14",
 			cardLast4: "1000",
 			holderName: "Titular Teste 1",
-			categoryRaw: "Recreativo",
-			description: "FORMULA BIKE",
+			categoryRaw: "Casa / Escritório Mobiliário",
+			description: "LOJA DE FERRAGENS TESTE",
 		});
 	});
 
 	it("interpreta Parcela no formato N/M", () => {
 		const result = parseC6InvoiceCsv(readFixture());
 		const first = result.transactions[0];
-		expect(first.installment).toEqual({ number: 8, total: 12 });
+		expect(first.installment).toEqual({ number: 7, total: 8 });
 	});
 
 	it("interpreta Parcela 'Única' como ausência de parcelamento", () => {
 		const result = parseC6InvoiceCsv(readFixture());
-		const unica = result.transactions.find((t) => t.description === "GOOGLE ONE");
+		const unica = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
 		expect(unica?.installment).toBeUndefined();
 	});
 
@@ -62,29 +62,29 @@ describe("parseC6InvoiceCsv", () => {
 		expect(pagamento).toBeDefined();
 		expect(pagamento?.isPurchase).toBe(false);
 		expect(pagamento?.transactionType).toBe("income");
-		expect(pagamento?.amount).toBe(12164.1);
+		expect(pagamento?.amount).toBe(9500);
 
 		expect(estorno).toBeDefined();
 		expect(estorno?.isPurchase).toBe(false);
-		expect(estorno?.amount).toBe(98);
+		expect(estorno?.amount).toBe(75);
 	});
 
 	it("marca isPurchase: true para linhas de compra normais", () => {
 		const result = parseC6InvoiceCsv(readFixture());
-		const compra = result.transactions.find((t) => t.description === "GOOGLE ONE");
+		const compra = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
 		expect(compra?.isPurchase).toBe(true);
 		expect(compra?.transactionType).toBe("expense");
-		expect(compra?.amount).toBe(9.99);
+		expect(compra?.amount).toBe(19.9);
 	});
 
 	it("extrai fx quando há valor em moeda estrangeira", () => {
 		const result = parseC6InvoiceCsv(readFixture());
-		const claude = result.transactions.find(
-			(t) => t.description === "ANTHROPIC* CLAUDE SUB  SA" && t.amount === 577.26,
+		const emDolar = result.transactions.find(
+			(t) => t.description === "PLATAFORMA IA TESTE  SA" && t.amount === 270,
 		);
-		expect(claude?.fx).toEqual({ currency: "USD", amount: 107.37 });
+		expect(emDolar?.fx).toEqual({ currency: "USD", amount: 50 });
 
-		const semFx = result.transactions.find((t) => t.description === "GOOGLE ONE");
+		const semFx = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
 		expect(semFx?.fx).toBeUndefined();
 	});
 

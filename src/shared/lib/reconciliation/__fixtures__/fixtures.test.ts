@@ -87,22 +87,39 @@ describe("fixtures mascaradas do C6", () => {
 		expect(Number(estorno?.split(";").at(-1))).toBeLessThan(0);
 	});
 
-	it("fatura contém o valor 86.59 (LOJA SPACE BC) usado no caso de divergência de centavos com o app (86.61)", () => {
+	it("fatura contém o valor 86.59 usado no caso de divergência de centavos com o app (86.61)", () => {
 		const raw = readRaw(faturaPath);
 		const lines = raw.split(/\r\n/);
-		const linha = lines.find((l) => l.includes("LOJA SPACE BC"));
+		const linha = lines.find((l) => l.includes("LOJA ESPACO TESTE"));
 		expect(linha).toBeDefined();
 		expect(Number(linha?.split(";").at(-1))).toBeCloseTo(86.59, 2);
 		// O lado "app" (86.61) não vem de arquivo: é o lançamento pré-existente
 		// no sistema, usado como fixture inline nos testes do matcher (task 6.6).
 	});
 
-	it("fixtures não contêm nomes reais de pessoas do arquivo original", () => {
-		const extrato = readRaw(extratoPath);
-		const fatura = readRaw(faturaPath);
-		for (const nomeReal of ["Daniel Cabral", "Aline", "Ludmila Helena", "Fernanda M Fernandes"]) {
-			expect(extrato).not.toContain(nomeReal);
-			expect(fatura).not.toContain(nomeReal);
+	it("fatura só traz portadores fictícios na coluna Nome no Cartão", () => {
+		const raw = readRaw(faturaPath);
+		const portadores = raw
+			.split(/\r\n/)
+			.filter((l) => l.trim() !== "")
+			.slice(1)
+			.map((l) => l.split(";")[1]);
+
+		expect(portadores.length).toBeGreaterThan(0);
+		for (const portador of portadores) {
+			expect(portador).toMatch(/^Titular Teste \d+$/);
+		}
+	});
+
+	it("extrato só nomeia contrapartes fictícias", () => {
+		const raw = readRaw(extratoPath);
+		const contrapartes = [
+			...raw.matchAll(/Pix (?:enviado para|recebido de|recebido c6 de) ([^,]+)/g),
+		].map((match) => match[1]);
+
+		expect(contrapartes.length).toBeGreaterThan(0);
+		for (const contraparte of contrapartes) {
+			expect(contraparte).toMatch(/^(Pessoa|Empresa) Teste \d+( LTDA)?$/);
 		}
 	});
 });
