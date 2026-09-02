@@ -321,6 +321,44 @@ describe("matchReconciliationRows", () => {
 		});
 	});
 
+	it("não deixa regra mais fraca resolver linha que a regra mais forte achou ambígua", () => {
+		const result = matchReconciliationRows({
+			rows: [
+				entry(
+					{
+						date: "2026-07-10",
+						amount: 1800,
+						installment: { number: 2, total: 12 },
+					},
+					"fp-a",
+				),
+			],
+			transactions: [
+				transaction({
+					id: "tx-serie-a",
+					amount: 1800,
+					date: "2026-01-10",
+					installmentCount: 12,
+					currentInstallment: 2,
+				}),
+				transaction({
+					id: "tx-serie-b",
+					amount: 1800,
+					date: "2026-02-10",
+					installmentCount: 12,
+					currentInstallment: 2,
+				}),
+				transaction({ id: "tx-avista", amount: 1800, date: "2026-07-10" }),
+			],
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "ambiguous",
+			candidateIds: ["tx-serie-a", "tx-serie-b"],
+		});
+		expect(result.appOnlyIds).toEqual(["tx-avista"]);
+	});
+
 	it("não devolve como só no app o candidato de uma linha ambígua", () => {
 		const result = matchReconciliationRows({
 			rows: [entry({}, "fp-a")],

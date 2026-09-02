@@ -157,8 +157,9 @@ type Decision = { rule: MatchRule; transactionId: string };
 /**
  * Classifica cada linha do arquivo e devolve, do outro lado, os lançamentos do
  * período que nenhuma linha reivindicou. Regras são avaliadas na ordem da spec
- * e a primeira que produz candidato único vence; 2+ candidatos param a linha
- * como ambígua, nunca resolvida automaticamente.
+ * e a primeira que produz candidato decide a linha: candidato único vence, 2+
+ * param a linha como ambígua, nunca resolvida automaticamente por uma regra
+ * mais fraca.
  */
 export function matchReconciliationRows(input: {
 	rows: ReconciliationRow[];
@@ -166,23 +167,40 @@ export function matchReconciliationRows(input: {
 }): ReconciliationMatch {
 	const decisions = new Map<number, Decision>();
 	const consumed = new Set<string>();
+	// Ambiguidades da passada corrente: a linha parou na primeira regra que
+	// achou candidato, e essa regra achou 2+.
+	let ambiguities = new Map<number, string[]>();
 
 	const available = () =>
 		input.transactions.filter((candidate) => !consumed.has(candidate.id));
 
 	// Uma linha que casa libera candidatos disputados por outra, então as regras
 	// rodam até o resultado estabilizar. Sem isso, uma linha ambígua poderia
-	// sobrar com um candidato só, que a regra 3 já resolveria.
+	// sobrar com um candidato só, que a regra 3 já resolveria. As ambiguidades
+	// são recalculadas a cada passada, justamente por dependerem do que sobrou.
 	let changed = true;
 	while (changed) {
 		changed = false;
+		ambiguities = new Map();
 
 		for (const { rule, find } of MATCH_RULES) {
 			input.rows.forEach((entry, index) => {
-				if (decisions.has(index)) return;
+				// Linha já decidida ou já parada numa regra mais forte não é
+				// reavaliada pelas regras seguintes desta passada: deixar uma regra
+				// mais fraca escolher sozinha esconderia a ambiguidade detectada
+				// pela mais forte.
+				if (decisions.has(index) || ambiguities.has(index)) return;
 
 				const candidates = find(entry, available());
-				if (candidates.length !== 1) return;
+				if (candidates.length === 0) return;
+
+				if (candidates.length > 1) {
+					ambiguities.set(
+						index,
+						candidates.map((candidate) => candidate.id),
+					);
+					return;
+				}
 
 				decisions.set(index, { rule, transactionId: candidates[0].id });
 				consumed.add(candidates[0].id);
@@ -192,6 +210,9 @@ export function matchReconciliationRows(input: {
 	}
 
 	const ambiguousCandidateIds = new Set<string>();
+	for (const candidateIds of ambiguities.values()) {
+		for (const id of candidateIds) ambiguousCandidateIds.add(id);
+	}
 
 	const rows: RowClassification[] = input.rows.map((entry, index) => {
 		const base = { index, fingerprint: entry.fingerprint, row: entry.row };
@@ -206,20 +227,10 @@ export function matchReconciliationRows(input: {
 			};
 		}
 
-		const remaining = available();
-		const candidates = MATCH_RULES.map(({ find }) => find(entry, remaining)).find(
-			(found) => found.length > 0,
-		);
+		const candidateIds = ambiguities.get(index);
+		if (!candidateIds) return { ...base, status: "bank-only" };
 
-		if (!candidates) return { ...base, status: "bank-only" };
-
-		for (const candidate of candidates) ambiguousCandidateIds.add(candidate.id);
-
-		return {
-			...base,
-			status: "ambiguous",
-			candidateIds: candidates.map((candidate) => candidate.id),
-		};
+		return { ...base, status: "ambiguous", candidateIds };
 	});
 
 	const appOnlyIds = input.transactions
