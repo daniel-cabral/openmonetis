@@ -33,8 +33,8 @@ describe("parseC6StatementCsv", () => {
 
 	it("pula o preâmbulo e mapeia todas as linhas de dados", () => {
 		const result = parseC6StatementCsv(readFixture());
-		// 122 linhas no arquivo, 9 de preâmbulo/header, 1 linha em branco no meio removida via slice mas aqui contamos as não vazias
-		expect(result.transactions.length).toBeGreaterThan(0);
+		// 113 linhas de dados após os 9 de preâmbulo/header (contagem por inspeção da fixture)
+		expect(result.transactions).toHaveLength(113);
 		expect(result.transactions[0]).toMatchObject({
 			date: "2026-07-05",
 			postedDate: "2026-07-06",

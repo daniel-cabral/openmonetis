@@ -17,7 +17,7 @@
 - [x] 3.4 No parser de fatura, marcar `isPurchase: false` para linhas de valor negativo (`Pag Fatura Boleto`, `Estorno`) preservando-as no resultado
 - [x] 3.5 `src/shared/lib/import/parsers/registry.ts` — registro explícito de perfis `{ id, label, kind: "statement" | "invoice", matches(headerSample), parse(content) }`, exportando a lista completa para a UI oferecer como opção
 - [x] 3.6 `src/shared/lib/import/parsers/detect.ts` — percorrer o registro e devolver o perfil detectado (ou nenhum) **junto com** a lista de perfis disponíveis; detecção é sugestão, não decisão final
-- [ ] 3.7 Testes dos parsers contra as fixtures: contagem de linhas, defasagem de datas presente, `Parcela` interpretada, negativos marcados, BOM tratado, perfil correto detectado, e arquivo desconhecido devolvendo lista de perfis sem erro fatal
+- [x] 3.7 Testes dos parsers contra as fixtures: contagem de linhas, defasagem de datas presente, `Parcela` interpretada, negativos marcados, BOM tratado, perfil correto detectado, e arquivo desconhecido devolvendo lista de perfis sem erro fatal
 
 ## 4. Identidade de linha
 

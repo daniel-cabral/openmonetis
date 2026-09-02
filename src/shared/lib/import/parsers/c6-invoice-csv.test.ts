@@ -21,6 +21,12 @@ function readFixture() {
 }
 
 describe("parseC6InvoiceCsv", () => {
+	it("mapeia todas as linhas de dados da fatura", () => {
+		const result = parseC6InvoiceCsv(readFixture());
+		// 98 linhas de dados após o cabeçalho (contagem por inspeção da fixture)
+		expect(result.transactions).toHaveLength(98);
+	});
+
 	it("mapeia data de compra, final do cartão, titular e categoria", () => {
 		const result = parseC6InvoiceCsv(readFixture());
 		const first = result.transactions[0];
