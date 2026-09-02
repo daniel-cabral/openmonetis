@@ -21,8 +21,8 @@
 
 ## 4. Identidade de linha
 
-- [ ] 4.1 `src/shared/lib/reconciliation/fingerprint.ts` — construir fingerprint de linha de CSV sem `FITID`, com ocorrência posicional calculada dentro do grupo de linhas idênticas, na ordem do arquivo
-- [ ] 4.2 Testes: linhas idênticas no mesmo arquivo recebem fingerprints distintos; o mesmo arquivo processado duas vezes gera exatamente os mesmos fingerprints
+- [x] 4.1 `src/shared/lib/reconciliation/fingerprint.ts` — construir fingerprint de linha de CSV sem `FITID`, com ocorrência posicional calculada dentro do grupo de linhas idênticas, na ordem do arquivo
+- [x] 4.2 Testes: linhas idênticas no mesmo arquivo recebem fingerprints distintos; o mesmo arquivo processado duas vezes gera exatamente os mesmos fingerprints
 
 ## 5. Normalizador de descriptor
 
