@@ -66,9 +66,9 @@
 
 ## 10. Fechamento
 
-- [ ] 10.1 Remover `src/shared/lib/reconciliation/smoke.test.ts` (provisório, só existia para o runner não sair com erro antes do primeiro teste real)
-- [ ] 10.2 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit`, `pnpm run test` e `pnpm exec biome check --formatter-enabled=false .`
-- [ ] 10.3 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md` conforme a regra 6 do `AGENTS.md`
+- [x] 10.1 Remover `src/shared/lib/reconciliation/smoke.test.ts` (provisório, só existia para o runner não sair com erro antes do primeiro teste real)
+- [x] 10.2 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit`, `pnpm run test` e `pnpm exec biome check --formatter-enabled=false .`
+- [x] 10.3 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md` conforme a regra 6 do `AGENTS.md`
 
 ## 11. Validação com dados reais (manual, fora do workflow)
 

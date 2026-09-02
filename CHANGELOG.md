@@ -5,6 +5,16 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.9.0] - 2026-09-02
+
+Esta versão traz conciliação de extrato e fatura contra o CSV exportado do C6. Até aqui todo lançamento era digitado à mão sem nenhuma conferência contra a fonte, e a proteção contra duplicata existente cobria só OFX com FITID — nada de CSV ou lançamento manual. Agora o app importa o CSV de extrato e de fatura do C6, casa cada linha do banco com um lançamento do período (ou aponta o que falta de cada lado, sem nunca resolver ambiguidade sozinho) e prova o fechamento por aritmética: saldo dia a dia no extrato, soma das compras contra o total na fatura. Conciliar grava a identidade da linha no lançamento — inclusive nos digitados à mão, que passam a ganhar proteção contra duplicata de graça — e linhas que deliberadamente não viram lançamento (como pagamento de fatura por boleto, já registrado como transferência) podem ser marcadas para ignorar.
+
+### Adicionado
+- Nova rota `/transactions/reconciliation` para conciliar extrato ou fatura do C6 contra os lançamentos do período, classificando cada linha em casada, só no banco, só no app ou ambígua.
+- Parsers de CSV do C6 (extrato e fatura) com detecção automática por assinatura de cabeçalho.
+- Verificação aritmética de fechamento: saldo do dia no extrato e total de compras na fatura.
+- Tela para marcar linhas do banco para ignorar permanentemente (ex.: pagamento de fatura já lançado como transferência).
+
 ## [2.8.0] - 2026-09-02
 
 Esta versão traz o pagamento parcial de faturas de cartão. Antes só era possível quitar a fatura inteira de uma vez, e quem precisava abater parte dela improvisava lançando uma receita no cartão — o que reduzia a fatura mas inflava a renda no dashboard, como se fosse dinheiro recebido. Agora dá para pagar um valor arbitrário de uma fatura, quantas vezes quiser no período, com o dinheiro saindo corretamente de uma conta e sem contar como renda nem como despesa. O saldo restante é calculado automaticamente e a fatura só é marcada como paga quando totalmente quitada.
