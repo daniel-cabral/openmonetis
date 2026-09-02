@@ -1116,3 +1116,25 @@ export const establishmentLogosRelations = relations(
 		}),
 	}),
 );
+
+// Linhas de extrato/fatura marcadas deliberadamente como não lançáveis na
+// conciliação. O fingerprint já embute banco, conta/cartão e conteúdo da linha,
+// então basta ele junto do usuário como chave.
+export const reconciliationIgnores = pgTable(
+	"reconciliation_ignores",
+	{
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		fingerprint: text("fingerprint").notNull(),
+		reason: text("reason").notNull(),
+		createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.userId, table.fingerprint] }),
+	}),
+);
+
+export type ReconciliationIgnore = typeof reconciliationIgnores.$inferSelect;

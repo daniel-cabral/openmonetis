@@ -47,12 +47,12 @@
 
 ## 8. Persistência
 
-- [ ] 8.1 Adicionar a tabela `reconciliationIgnores` em `src/db/schema.ts` (`user_id`, `fingerprint`, `reason`, `created_at`; chave primária `user_id + fingerprint`) — **acrescentar ao final do arquivo**, sem tocar em nenhuma declaração existente, para manter o conflito com o upstream restrito a um bloco novo no fim
-- [ ] 8.2 Gerar a migration com `pnpm run db:generate` e conferir que ela é puramente aditiva
-- [ ] 8.3 `src/features/transactions/actions/reconciliation-action.ts` — action de aplicação em lote dentro de `db.transaction()`: criar lançamentos novos, gravar `ofx_import_fingerprint` nos lançamentos casados preexistentes, gravar ignorados, alimentar `import_category_mappings`
-- [ ] 8.4 Todas as escritas sob o mesmo `importBatchId`, com `revalidateForEntity` após a mutação
-- [ ] 8.5 Action de desfazer: remover lançamentos criados no lote e limpar os fingerprints gravados em lançamentos preexistentes do mesmo lote
-- [ ] 8.6 Guards de ownership por `userId` em toda leitura e escrita
+- [x] 8.1 Adicionar a tabela `reconciliationIgnores` em `src/db/schema.ts` (`user_id`, `fingerprint`, `reason`, `created_at`; chave primária `user_id + fingerprint`) — **acrescentar ao final do arquivo**, sem tocar em nenhuma declaração existente, para manter o conflito com o upstream restrito a um bloco novo no fim
+- [x] 8.2 Gerar a migration com `pnpm run db:generate` e conferir que ela é puramente aditiva
+- [x] 8.3 `src/features/transactions/actions/reconciliation-action.ts` — action de aplicação em lote dentro de `db.transaction()`: criar lançamentos novos, gravar `ofx_import_fingerprint` nos lançamentos casados preexistentes, gravar ignorados, alimentar `import_category_mappings`
+- [x] 8.4 Todas as escritas sob o mesmo `importBatchId`, com `revalidateForEntity` após a mutação — só os lançamentos **criados** recebem o `importBatchId`; os preexistentes ficam sem, senão o desfazer os apagaria junto. O vínculo do lote com eles volta no retorno da action (`reconciled`), que a UI guarda para o desfazer
+- [x] 8.5 Action de desfazer: remover lançamentos criados no lote e limpar os fingerprints gravados em lançamentos preexistentes do mesmo lote
+- [x] 8.6 Guards de ownership por `userId` em toda leitura e escrita
 
 ## 9. UI
 
