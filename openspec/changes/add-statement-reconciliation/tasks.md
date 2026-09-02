@@ -1,8 +1,8 @@
 ## 1. Pré-requisitos e fixtures
 
-- [ ] 1.1 Confirmar que a migration `0034_superb_blonde_phantom.sql` está aplicada no ambiente (coluna `ofx_import_fingerprint` e índice único parcial existem) — sem ela nada desta change funciona
-- [ ] 1.2 Mover `.examples/extrato.csv` e `.examples/cartao-Fatura_2026-08-15.csv` para fixtures de teste com valores e descrições mascarados, preservando estrutura, defasagens de data, linhas negativas e o caso `86,59 / 86,61`
-- [ ] 1.3 Adicionar `.examples/` ao `.gitignore` (dados financeiros reais não vão para o repositório)
+- [x] 1.1 Conferir por inspeção que `drizzle/0034_superb_blonde_phantom.sql` existe e que `src/db/schema.ts` já declara `ofxImportFingerprint` com o índice único parcial — confirmado (schema.ts linhas 685 e 740-744). A aplicação da migration no ambiente real é a task 11.0, não bloqueia código
+- [x] 1.2 Mover `.examples/extrato.csv` e `.examples/cartao-Fatura_2026-08-15.csv` para fixtures de teste com valores e descrições mascarados, preservando estrutura, defasagens de data, linhas negativas e o caso `86,59 / 86,61`
+- [x] 1.3 Adicionar `.examples/` ao `.gitignore` — já feito, linha 141
 
 ## 2. Contrato de tipos
 
@@ -47,7 +47,7 @@
 
 ## 8. Persistência
 
-- [ ] 8.1 Adicionar a tabela `reconciliationIgnores` em `src/db/schema.ts` (`user_id`, `fingerprint`, `reason`, `created_at`; chave primária `user_id + fingerprint`)
+- [ ] 8.1 Adicionar a tabela `reconciliationIgnores` em `src/db/schema.ts` (`user_id`, `fingerprint`, `reason`, `created_at`; chave primária `user_id + fingerprint`) — **acrescentar ao final do arquivo**, sem tocar em nenhuma declaração existente, para manter o conflito com o upstream restrito a um bloco novo no fim
 - [ ] 8.2 Gerar a migration com `pnpm run db:generate` e conferir que ela é puramente aditiva
 - [ ] 8.3 `src/features/transactions/actions/reconciliation-action.ts` — action de aplicação em lote dentro de `db.transaction()`: criar lançamentos novos, gravar `ofx_import_fingerprint` nos lançamentos casados preexistentes, gravar ignorados, alimentar `import_category_mappings`
 - [ ] 8.4 Todas as escritas sob o mesmo `importBatchId`, com `revalidateForEntity` após a mutação
@@ -66,7 +66,12 @@
 
 ## 10. Fechamento
 
-- [ ] 10.1 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit` e a suíte de testes
-- [ ] 10.2 Conciliar de ponta a ponta os dois arquivos reais do C6 no ambiente e registrar o resultado: quantas casaram por qual regra, quantas ambíguas, se o fechamento bateu
-- [ ] 10.3 Calibrar a janela de data da fatura com base nesse resultado e resolver a questão em aberto do `design.md`
-- [ ] 10.4 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md` conforme a regra 6 do `AGENTS.md`
+- [ ] 10.1 Remover `src/shared/lib/reconciliation/smoke.test.ts` (provisório, só existia para o runner não sair com erro antes do primeiro teste real)
+- [ ] 10.2 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit`, `pnpm run test` e `pnpm exec biome check --formatter-enabled=false .`
+- [ ] 10.3 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md` conforme a regra 6 do `AGENTS.md`
+
+## 11. Validação com dados reais (manual, fora do workflow)
+
+- [ ] 11.0 Aplicar as migrations no ambiente (`pnpm run db:migrate`) e confirmar que a coluna `ofx_import_fingerprint`, seu índice único parcial e a tabela `reconciliation_ignores` existem
+- [ ] 11.1 Conciliar de ponta a ponta os dois arquivos reais do C6 no ambiente e registrar o resultado: quantas casaram por qual regra, quantas ambíguas, se o fechamento bateu
+- [ ] 11.2 Calibrar a janela de data da fatura com base nesse resultado e resolver as questões em aberto do `design.md`
