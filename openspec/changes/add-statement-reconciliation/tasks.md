@@ -41,9 +41,9 @@
 
 ## 7. Verificação aritmética
 
-- [ ] 7.1 `src/shared/lib/reconciliation/closure.ts` — para extrato, agrupar por `Data Contábil` e comparar `saldo[d] − saldo[d−1]` com a soma dos lançamentos do dia
-- [ ] 7.2 Para fatura, somar apenas linhas com `isPurchase` e comparar com o total do cartão no período
-- [ ] 7.3 Teste com a fixture de extrato provando que todos os dias fecham; teste com um dia adulterado provando que a divergência é reportada com o dia e o valor
+- [x] 7.1 `src/shared/lib/reconciliation/closure.ts` — para extrato, agrupar por `Data Contábil` e comparar `saldo[d] − saldo[d−1]` com a soma dos lançamentos do dia
+- [x] 7.2 Para fatura, somar apenas linhas com `isPurchase` e comparar com o total do cartão no período
+- [x] 7.3 Teste com a fixture de extrato provando que todos os dias fecham; teste com um dia adulterado provando que a divergência é reportada com o dia e o valor
 
 ## 8. Persistência
 
