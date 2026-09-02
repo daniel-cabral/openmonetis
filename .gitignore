@@ -133,3 +133,6 @@ local/
 scratch/
 playground/
 /docs
+
+# graphify
+graphify-out/

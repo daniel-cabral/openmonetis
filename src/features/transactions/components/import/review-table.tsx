@@ -43,8 +43,10 @@ const categoryGroupByTransactionType: Record<
 };
 
 export type ReviewRow = ImportedTransaction & {
+	reviewId: string;
 	selected: boolean;
 	isDuplicate: boolean;
+	existingTransactionId: string | null;
 	categoryId: string | null;
 	payerId: string | null;
 };
@@ -80,6 +82,7 @@ export function ReviewTable({
 	const virtualizer = useVirtualizer({
 		count: rows.length,
 		getScrollElement: () => parentRef.current,
+		getItemKey: (index) => rows[index]?.reviewId ?? index,
 		estimateSize: () => 44,
 		overscan: 8,
 	});
@@ -141,7 +144,7 @@ export function ReviewTable({
 							);
 							return (
 								<TableRow
-									key={row.externalId ?? `${row.date}-${index}`}
+									key={row.reviewId}
 									className={
 										row.isDuplicate && !row.selected ? "opacity-50" : ""
 									}
