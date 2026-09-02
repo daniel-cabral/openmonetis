@@ -136,3 +136,6 @@ playground/
 
 # graphify
 graphify-out/
+
+# dados financeiros reais usados como amostra
+.examples/
