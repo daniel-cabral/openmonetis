@@ -32,12 +32,12 @@
 
 ## 6. Motor de matching
 
-- [ ] 6.1 `src/shared/lib/reconciliation/matcher.ts` — implementar as regras na ordem da spec, cada uma como função isolada e testável: fingerprint já gravado, parcela, exato, tolerância de centavos
-- [ ] 6.2 Garantir que a regra de tolerância de ±R$ 0,05 só se aplica quando há `installment`
-- [ ] 6.3 Comparar data contra `date` e `postedDate` com folga ±1 dia
-- [ ] 6.4 Produzir ambiguidade com a lista de candidatos quando houver 2+; nunca escolher automaticamente
-- [ ] 6.5 Calcular o lado inverso: lançamentos do período sem linha correspondente vão para o balde "só no app"
-- [ ] 6.6 Testes por regra, incluindo: o caso `86,59 / 86,61` casa com parcela e não casa sem; linha com 2 candidatos vira ambígua; lançamento órfão é detectado
+- [x] 6.1 `src/shared/lib/reconciliation/matcher.ts` — implementar as regras na ordem da spec, cada uma como função isolada e testável: fingerprint já gravado, parcela, exato, tolerância de centavos
+- [x] 6.2 Garantir que a regra de tolerância de ±R$ 0,05 só se aplica quando há `installment`
+- [x] 6.3 Comparar data contra `date` e `postedDate` com folga ±1 dia
+- [x] 6.4 Produzir ambiguidade com a lista de candidatos quando houver 2+; nunca escolher automaticamente
+- [x] 6.5 Calcular o lado inverso: lançamentos do período sem linha correspondente vão para o balde "só no app"
+- [x] 6.6 Testes por regra, incluindo: o caso `86,59 / 86,61` casa com parcela e não casa sem; linha com 2 candidatos vira ambígua; lançamento órfão é detectado
 
 ## 7. Verificação aritmética
 
