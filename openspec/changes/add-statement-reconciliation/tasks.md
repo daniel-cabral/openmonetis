@@ -26,9 +26,9 @@
 
 ## 5. Normalizador de descriptor
 
-- [ ] 5.1 Em `src/features/transactions/lib/import-utils.ts`, fortalecer `normalizeDescriptionKey` para derrubar prefixo de adquirente (`PG *`, `MP *`, `DM*`, `B91*` e variantes `XXX*`) e sufixo numérico de loja
-- [ ] 5.2 Testes cobrindo os casos reais: `PG *ABC SUPERMERCADOS CONTAGEM BRA`, `DM*hostingercomb SAO PAULO BRA`, `MERCADOLIVRE*MERCADOL`, `DROGASIL2919`, `223 LIV CTBA 23439130`
-- [ ] 5.3 Verificar que `category-memory-action.ts` e `import-page.tsx`, que consomem a função, continuam funcionando
+- [x] 5.1 Em `src/features/transactions/lib/import-utils.ts`, fortalecer `normalizeDescriptionKey` para derrubar prefixo de adquirente (`PG *`, `MP *`, `DM*`, `B91*` e variantes `XXX*`) e sufixo numérico de loja
+- [x] 5.2 Testes cobrindo os casos reais: `PG *ABC SUPERMERCADOS CONTAGEM BRA`, `DM*hostingercomb SAO PAULO BRA`, `MERCADOLIVRE*MERCADOL`, `DROGASIL2919`, `223 LIV CTBA 23439130`
+- [x] 5.3 Verificar que `category-memory-action.ts` e `import-page.tsx`, que consomem a função, continuam funcionando
 
 ## 6. Motor de matching
 
