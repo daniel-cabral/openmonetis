@@ -9,6 +9,8 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "biome check .",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"lint:deadcode": "knip --reporter compact",
 		"lint:fix": "biome check --write .",
 		"env:setup": "node setup.mjs",
@@ -108,6 +110,7 @@
 		"knip": "^6.22.0",
 		"tailwindcss": "4.3.0",
 		"tsx": "4.22.4",
-		"typescript": "7.0.2"
+		"typescript": "7.0.2",
+		"vitest": "^4.1.11"
 	}
 }
