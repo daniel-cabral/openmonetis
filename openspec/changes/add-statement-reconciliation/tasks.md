@@ -6,8 +6,8 @@
 
 ## 2. Contrato de tipos
 
-- [ ] 2.1 Em `src/shared/lib/import/types.ts`, adicionar a `ImportedTransaction` os campos opcionais `postedDate`, `dayBalance`, `installment`, `cardLast4`, `holderName`, `fx` e `isPurchase` — todos aditivos, sem alterar campo existente
-- [ ] 2.2 Verificar por `tsc --noEmit` que `ofx-parser.ts` e `xls-parser.ts` continuam compilando sem alteração
+- [x] 2.1 Em `src/shared/lib/import/types.ts`, adicionar a `ImportedTransaction` os campos opcionais `postedDate`, `dayBalance`, `installment`, `cardLast4`, `holderName`, `fx` e `isPurchase` — todos aditivos, sem alterar campo existente
+- [x] 2.2 Verificar por `tsc --noEmit` que `ofx-parser.ts` e `xls-parser.ts` continuam compilando sem alteração
 
 ## 3. Parsers do C6
 

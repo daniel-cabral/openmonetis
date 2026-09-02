@@ -7,6 +7,13 @@ export type ImportedTransaction = {
 	sourceDescription: string; // descrição original, preservada para deduplicação
 	transactionType: "income" | "expense";
 	categoryRaw?: string | null;
+	postedDate?: string; // YYYY-MM-DD, data contábil (quando difere da data de lançamento)
+	dayBalance?: number; // saldo do dia, usado no fechamento aritmético do extrato
+	installment?: { number: number; total: number }; // parcela N/M da fatura
+	cardLast4?: string; // últimos 4 dígitos do cartão (fatura)
+	holderName?: string; // titular do cartão (fatura)
+	fx?: { currency: string; amount: number }; // valor em moeda estrangeira, quando houver
+	isPurchase?: boolean; // false para linhas de pagamento/estorno na fatura
 };
 
 export type ImportStatement = {
