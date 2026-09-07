@@ -39,7 +39,17 @@ export function summarizeReconciliationMatch(
 
 /** Decisão do usuário para uma linha da revisão. */
 export type ReconciliationRowDecision =
-	| { action: "confirm"; transactionId: string; descriptor: string }
+	| {
+			action: "confirm";
+			transactionId: string;
+			descriptor: string;
+			/** Escolha explícita de atualizar o valor do lançamento ao do arquivo. */
+			amountUpdate?: {
+				amount: number;
+				transactionType: "income" | "expense";
+				isDivided: boolean;
+			};
+	  }
 	| {
 			action: "create";
 			date: string;
@@ -85,6 +95,12 @@ export type ReconciliationApplyPayload = {
 		descriptor: string;
 		name: string;
 	}[];
+	amountUpdates: {
+		transactionId: string;
+		amount: number;
+		transactionType: "income" | "expense";
+		isDivided: boolean;
+	}[];
 	ignores: { fingerprint: string; reason: string }[];
 };
 
@@ -101,6 +117,7 @@ export function buildReconciliationApplyPayload(
 		confirmations: [],
 		creations: [],
 		manualLinks: [],
+		amountUpdates: [],
 		ignores: [],
 	};
 
@@ -111,6 +128,14 @@ export function buildReconciliationApplyPayload(
 				transactionId: decision.transactionId,
 				descriptor: decision.descriptor,
 			});
+			if (decision.amountUpdate) {
+				payload.amountUpdates.push({
+					transactionId: decision.transactionId,
+					amount: decision.amountUpdate.amount,
+					transactionType: decision.amountUpdate.transactionType,
+					isDivided: decision.amountUpdate.isDivided,
+				});
+			}
 		} else if (decision.action === "create") {
 			payload.creations.push({
 				fingerprint,
@@ -233,6 +258,33 @@ export function buildConsumedTransactionIds(
 	}
 
 	return consumed;
+}
+
+/** Resultado da avaliação do bloqueio do botão "Aplicar". */
+export type ApplyBlock = { blocked: false } | { blocked: true; reason: string };
+
+/**
+ * Bloqueia o "Aplicar" enquanto houver linha casada com divergência de valor
+ * sem escolha (manter/atualizar) ou linha marcada para criação com nome
+ * vazio — em ambos os casos o motivo fica visível na tela.
+ */
+export function evaluateApplyBlock(params: {
+	unresolvedDivergentCount: number;
+	emptyNameCreationCount: number;
+}): ApplyBlock {
+	const reasons: string[] = [];
+
+	if (params.unresolvedDivergentCount > 0) {
+		reasons.push(
+			`${params.unresolvedDivergentCount} linha(s) com divergência de valor sem escolha`,
+		);
+	}
+	if (params.emptyNameCreationCount > 0) {
+		reasons.push(`${params.emptyNameCreationCount} criação(ões) sem nome`);
+	}
+
+	if (reasons.length === 0) return { blocked: false };
+	return { blocked: true, reason: reasons.join(" · ") };
 }
 
 export type LinkCandidate = { transaction: AppTransaction; consumed: boolean };

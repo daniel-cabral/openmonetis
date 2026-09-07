@@ -8,6 +8,7 @@ import {
 import type { SelectOption } from "@/features/transactions/components/types";
 import {
 	buildConsumedTransactionIds,
+	evaluateApplyBlock,
 	initialRowName,
 	isNonPurchaseLine,
 	linkPeriodForRow,
@@ -78,6 +79,9 @@ export function ReconciliationReview({
 
 	const [confirmedByFingerprint, setConfirmedByFingerprint] = useState<
 		Record<string, boolean>
+	>({});
+	const [divergenceChoiceByFingerprint, setDivergenceChoiceByFingerprint] = useState<
+		Record<string, "keep" | "update">
 	>({});
 	const [bankOnlyState, setBankOnlyState] = useState<
 		Record<
@@ -153,6 +157,30 @@ export function ReconciliationReview({
 
 		for (const row of matchedRows) {
 			if (row.status !== "matched") continue;
+
+			if (row.amountDivergence) {
+				const app = appTransactionsById.get(row.transactionId);
+				const isDivided = app?.isDivided ?? false;
+				const choice = divergenceChoiceByFingerprint[row.fingerprint];
+				entries.push({
+					fingerprint: row.fingerprint,
+					decision: {
+						action: "confirm",
+						transactionId: row.transactionId,
+						descriptor: row.row.description,
+						amountUpdate:
+							choice === "update" && !isDivided
+								? {
+										amount: row.row.amount,
+										transactionType: row.row.transactionType,
+										isDivided,
+									}
+								: undefined,
+					},
+				});
+				continue;
+			}
+
 			const confirmed = confirmedByFingerprint[row.fingerprint] ?? true;
 			entries.push({
 				fingerprint: row.fingerprint,
@@ -232,8 +260,26 @@ export function ReconciliationReview({
 		return entries;
 	})();
 
+	const unresolvedDivergentCount = matchedRows.filter(
+		(row) =>
+			row.status === "matched" &&
+			row.amountDivergence &&
+			divergenceChoiceByFingerprint[row.fingerprint] === undefined,
+	).length;
+
+	const emptyNameCreationCount = bankOnlyRows.filter((row) => {
+		const state = getBankOnly(row.fingerprint, row.row.description, row.row.categoryRaw);
+		return state.action === "create" && state.name.trim() === "";
+	}).length;
+
+	const applyBlock = evaluateApplyBlock({
+		unresolvedDivergentCount,
+		emptyNameCreationCount,
+	});
+
 	const canApply =
 		!isApplying &&
+		!applyBlock.blocked &&
 		decisions.some((entry) => entry.decision.action !== "skip");
 
 	return (
@@ -242,6 +288,77 @@ export function ReconciliationReview({
 				{matchedRows.map((row) => {
 					if (row.status !== "matched") return null;
 					const app = appTransactionsById.get(row.transactionId);
+
+					if (row.amountDivergence) {
+						const isDivided = app?.isDivided ?? false;
+						const choice = divergenceChoiceByFingerprint[row.fingerprint];
+						return (
+							<RowCard key={row.fingerprint}>
+								<div className="flex flex-col gap-2">
+									<div className="flex flex-col">
+										<span className="font-medium">{row.row.description}</span>
+										<span className="text-muted-foreground text-xs">
+											{formatDate(row.row.date)} · app{" "}
+											{formatCurrency(
+												signedAmount(
+													row.amountDivergence.appAmount,
+													row.row.transactionType,
+												),
+											)}{" "}
+											→ arquivo{" "}
+											{formatCurrency(
+												signedAmount(
+													row.amountDivergence.rowAmount,
+													row.row.transactionType,
+												),
+											)}
+										</span>
+									</div>
+									<div className="flex flex-wrap items-center gap-2">
+										<Button
+											type="button"
+											size="sm"
+											variant={choice === "keep" ? "default" : "outline"}
+											onClick={() =>
+												setDivergenceChoiceByFingerprint((prev) => ({
+													...prev,
+													[row.fingerprint]: "keep",
+												}))
+											}
+										>
+											Manter valor do app
+										</Button>
+										<Button
+											type="button"
+											size="sm"
+											variant={choice === "update" ? "default" : "outline"}
+											disabled={isDivided}
+											onClick={() =>
+												setDivergenceChoiceByFingerprint((prev) => ({
+													...prev,
+													[row.fingerprint]: "update",
+												}))
+											}
+										>
+											Atualizar para o valor do arquivo
+										</Button>
+										{isDivided && (
+											<span className="text-muted-foreground text-xs">
+												Lançamento dividido: o valor vive rateado entre as
+												partes, não dá para atualizar aqui.
+											</span>
+										)}
+										{!isDivided && !choice && (
+											<span className="text-destructive text-xs">
+												Escolha pendente.
+											</span>
+										)}
+									</div>
+								</div>
+							</RowCard>
+						);
+					}
+
 					const confirmed = confirmedByFingerprint[row.fingerprint] ?? true;
 					return (
 						<RowCard key={row.fingerprint}>
@@ -561,7 +678,10 @@ export function ReconciliationReview({
 				{ambiguousRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
-			<div className="flex justify-end">
+			<div className="flex flex-col items-end gap-1">
+				{applyBlock.blocked && (
+					<span className="text-destructive text-xs">{applyBlock.reason}</span>
+				)}
 				<Button disabled={!canApply} onClick={() => onApply(decisions)}>
 					{isApplying ? "Aplicando…" : "Aplicar"}
 				</Button>

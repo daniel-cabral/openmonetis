@@ -9,6 +9,7 @@ import {
 	buildConsumedTransactionIds,
 	buildReconciliationApplyPayload,
 	deriveReconciliationClosure,
+	evaluateApplyBlock,
 	filterAppOnlyByScope,
 	initialRowName,
 	isNonPurchaseLine,
@@ -119,8 +120,57 @@ describe("buildReconciliationApplyPayload", () => {
 				},
 			],
 			manualLinks: [],
+			amountUpdates: [],
 			ignores: [{ fingerprint: "fp-ignore", reason: "Pagamento de fatura" }],
 		});
+	});
+
+	it("mapeia amountUpdate da escolha de atualizar em confirm", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-divergente",
+					decision: {
+						action: "confirm",
+						transactionId: "tx-1",
+						descriptor: "LOJA TESTE",
+						amountUpdate: {
+							amount: 30,
+							transactionType: "expense",
+							isDivided: false,
+						},
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.amountUpdates).toEqual([
+			{
+				transactionId: "tx-1",
+				amount: 30,
+				transactionType: "expense",
+				isDivided: false,
+			},
+		]);
+	});
+
+	it("nao gera amountUpdate quando a escolha e manter", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-mantido",
+					decision: {
+						action: "confirm",
+						transactionId: "tx-1",
+						descriptor: "LOJA TESTE",
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.amountUpdates).toEqual([]);
 	});
 
 	it("mapeia link em manualLinks, com descriptor bruto e nome do lançamento", () => {
@@ -391,5 +441,41 @@ describe("listLinkCandidates", () => {
 		expect(result.find((c) => c.transaction.id === "tx-1")?.consumed).toBe(true);
 		// o escolhido pela própria linha continua disponível para ela
 		expect(result.find((c) => c.transaction.id === "tx-2")?.consumed).toBe(false);
+	});
+});
+
+describe("evaluateApplyBlock", () => {
+	it("não bloqueia quando não há divergência pendente nem criação sem nome", () => {
+		expect(
+			evaluateApplyBlock({ unresolvedDivergentCount: 0, emptyNameCreationCount: 0 }),
+		).toEqual({ blocked: false });
+	});
+
+	it("bloqueia com o motivo à vista quando há divergência sem escolha", () => {
+		const result = evaluateApplyBlock({
+			unresolvedDivergentCount: 2,
+			emptyNameCreationCount: 0,
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.blocked && result.reason).toMatch(/divergência/);
+	});
+
+	it("bloqueia com o motivo à vista quando há criação sem nome", () => {
+		const result = evaluateApplyBlock({
+			unresolvedDivergentCount: 0,
+			emptyNameCreationCount: 1,
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.blocked && result.reason).toMatch(/nome/);
+	});
+
+	it("combina os dois motivos quando ambos ocorrem", () => {
+		const result = evaluateApplyBlock({
+			unresolvedDivergentCount: 1,
+			emptyNameCreationCount: 1,
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.blocked && result.reason).toMatch(/divergência/);
+		expect(result.blocked && result.reason).toMatch(/nome/);
 	});
 });

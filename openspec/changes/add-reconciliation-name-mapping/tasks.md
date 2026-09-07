@@ -31,8 +31,8 @@
 - [x] 4.4 Filtrar o balde "só no app" por escopo: intervalo real `[from, to]` do arquivo quando o destino é conta, `period = invoicePeriod` quando é cartão
 - [x] 4.5 Campo de nome por linha no balde "só no banco", pré-preenchido com o nome aprendido quando houver e com o descriptor quando não. A decisão da linha SHALL carregar **dois campos separados**: o `descriptor` bruto do arquivo (imutável, chave do de-para) e o `name` editável (nome do lançamento). Ver 5.0
 - [x] 4.6 Ação `Vincular a lançamento existente` no balde "só no banco", nos dois tipos de destino: lista os lançamentos do destino no período da linha, com os já consumidos visíveis e desabilitados
-- [ ] 4.7 Decisão por linha nas casadas com divergência de valor: exibir `app → arquivo` e dois controles (manter / atualizar), sem escolha padrão; quando `isDivided`, "atualizar" fica indisponível com o motivo à vista
-- [ ] 4.8 Bloquear o botão "Aplicar" enquanto houver linha divergente sem escolha ou linha marcada para criação com nome vazio, com a razão visível na tela
+- [x] 4.7 Decisão por linha nas casadas com divergência de valor: exibir `app → arquivo` e dois controles (manter / atualizar), sem escolha padrão; quando `isDivided`, "atualizar" fica indisponível com o motivo à vista
+- [x] 4.8 Bloquear o botão "Aplicar" enquanto houver linha divergente sem escolha ou linha marcada para criação com nome vazio, com a razão visível na tela
 
 ## 5. Aplicação
 

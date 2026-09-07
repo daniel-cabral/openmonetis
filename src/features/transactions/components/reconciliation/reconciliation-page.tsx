@@ -295,6 +295,7 @@ export function ReconciliationPage({
 				creations: payload.creations,
 				ignores: payload.ignores,
 				manualLinks: payload.manualLinks,
+				amountUpdates: payload.amountUpdates,
 			});
 
 			if (!result.success) {
