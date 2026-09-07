@@ -58,6 +58,7 @@ type ReviewState = {
 	match: ReconciliationMatch;
 	appTransactionsById: Map<string, AppTransaction>;
 	learnedCategoryByFingerprint: Map<string, string>;
+	nameMappings: Record<string, string>;
 };
 
 function extendedDateRange(statement: ImportStatement): { from: string; to: string } {
@@ -189,6 +190,7 @@ export function ReconciliationPage({
 			match,
 			appTransactionsById,
 			learnedCategoryByFingerprint,
+			nameMappings,
 		});
 	};
 
@@ -275,6 +277,7 @@ export function ReconciliationPage({
 				confirmations: payload.confirmations,
 				creations: payload.creations,
 				ignores: payload.ignores,
+				manualLinks: payload.manualLinks,
 			});
 
 			if (!result.success) {
@@ -393,6 +396,9 @@ export function ReconciliationPage({
 						appOnlyTransactions={appOnlyTransactions}
 						appTransactionsById={review.appTransactionsById}
 						learnedCategoryByFingerprint={review.learnedCategoryByFingerprint}
+						nameMappings={review.nameMappings}
+						destinationKind={destinationKind}
+						invoicePeriod={invoicePeriodInput}
 						categoryOptions={categoryOptions}
 						payerOptions={payerOptions}
 						defaultPayerId={payerId}

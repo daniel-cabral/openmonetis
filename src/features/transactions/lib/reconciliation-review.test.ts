@@ -6,10 +6,14 @@ import type {
 	RowClassification,
 } from "@/shared/lib/reconciliation/matcher";
 import {
+	buildConsumedTransactionIds,
 	buildReconciliationApplyPayload,
 	deriveReconciliationClosure,
 	filterAppOnlyByScope,
+	initialRowName,
 	isNonPurchaseLine,
+	linkPeriodForRow,
+	listLinkCandidates,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
 
@@ -114,8 +118,36 @@ describe("buildReconciliationApplyPayload", () => {
 					payerId: defaultPayerId,
 				},
 			],
+			manualLinks: [],
 			ignores: [{ fingerprint: "fp-ignore", reason: "Pagamento de fatura" }],
 		});
+	});
+
+	it("mapeia link em manualLinks, com descriptor bruto e nome do lançamento", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-link",
+					decision: {
+						action: "link",
+						transactionId: "tx-9",
+						descriptor: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
+						name: "Aluguel",
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.manualLinks).toEqual([
+			{
+				fingerprint: "fp-link",
+				transactionId: "tx-9",
+				descriptor: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
+				name: "Aluguel",
+			},
+		]);
+		expect(payload.confirmations).toEqual([]);
 	});
 
 	it("mantém payerId explícito da criação quando informado", () => {
@@ -252,5 +284,112 @@ describe("deriveReconciliationClosure", () => {
 			false,
 		);
 		expect(fechado?.kind === "invoice" && fechado.result.closes).toBe(true);
+	});
+});
+
+describe("initialRowName", () => {
+	it("usa o nome aprendido quando a chave do descriptor está no de-para", () => {
+		expect(
+			initialRowName("CASA NOVA LOCADORA LTDA - EPP - Boleto", {
+				"casa nova locadora ltda - epp - boleto": "Aluguel",
+			}),
+		).toBe("Aluguel");
+	});
+
+	it("cai no descriptor bruto quando não há nome aprendido", () => {
+		expect(initialRowName("LOJA TESTE", {})).toBe("LOJA TESTE");
+	});
+});
+
+describe("linkPeriodForRow", () => {
+	it("usa o período da fatura quando o destino é cartão", () => {
+		expect(
+			linkPeriodForRow({
+				date: "2026-07-28",
+				destinationKind: "card",
+				invoicePeriod: "2026-08",
+			}),
+		).toBe("2026-08");
+	});
+
+	it("deriva o período da data da linha quando o destino é conta", () => {
+		expect(
+			linkPeriodForRow({
+				date: "2026-08-11",
+				destinationKind: "account",
+				invoicePeriod: "",
+			}),
+		).toBe("2026-08");
+	});
+});
+
+describe("buildConsumedTransactionIds", () => {
+	it("marca casadas e vínculos já escolhidos, guardando quem consumiu", () => {
+		const rows: RowClassification[] = [
+			{
+				index: 0,
+				fingerprint: "fp-1",
+				row: row(),
+				status: "matched",
+				rule: "exact",
+				transactionId: "tx-1",
+				amountDivergence: null,
+			},
+			{ index: 1, fingerprint: "fp-2", row: row(), status: "bank-only" },
+		];
+
+		const consumed = buildConsumedTransactionIds(rows, { "fp-2": "tx-2" });
+
+		expect(consumed.get("tx-1")).toBe("fp-1");
+		expect(consumed.get("tx-2")).toBe("fp-2");
+	});
+});
+
+describe("listLinkCandidates", () => {
+	function appTx(overrides: Partial<AppTransaction> = {}): AppTransaction {
+		return {
+			id: "tx-1",
+			name: "Lançamento",
+			date: "2026-08-10",
+			amount: 100,
+			transactionType: "expense",
+			installmentCount: null,
+			currentInstallment: null,
+			fingerprint: null,
+			period: "2026-08",
+			isDivided: false,
+			...overrides,
+		};
+	}
+
+	it("lista só os lançamentos do período da linha", () => {
+		const result = listLinkCandidates({
+			transactions: [
+				appTx({ id: "no-periodo" }),
+				appTx({ id: "outro-periodo", period: "2026-07" }),
+			],
+			period: "2026-08",
+			consumedBy: new Map(),
+			fingerprint: "fp-1",
+		});
+
+		expect(result.map((c) => c.transaction.id)).toEqual(["no-periodo"]);
+	});
+
+	it("mantém visível o consumido por outra linha, marcado como indisponível", () => {
+		const result = listLinkCandidates({
+			transactions: [appTx({ id: "tx-1" }), appTx({ id: "tx-2" })],
+			period: "2026-08",
+			consumedBy: new Map([
+				["tx-1", "outra-fp"],
+				["tx-2", "fp-1"],
+			]),
+			fingerprint: "fp-1",
+		});
+
+		expect(result).toHaveLength(2);
+		expect(result.find((c) => c.transaction.id === "tx-1")?.consumed).toBe(true);
+		// o escolhido pela própria linha continua disponível para ela
+		expect(result.find((c) => c.transaction.id === "tx-2")?.consumed).toBe(false);
 	});
 });

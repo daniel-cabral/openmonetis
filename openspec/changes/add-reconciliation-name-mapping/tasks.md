@@ -29,8 +29,8 @@
 - [x] 4.2 Derivar o fechamento por `useMemo` sobre o que já está em memória, de modo que digitar o total da fatura depois de avançar recalcule o painel sem refazer o upload
 - [x] 4.3 Balde informativo para `lineKind` diferente de `purchase`, sem nenhuma ação — e remover essas linhas do balde "só no banco"
 - [x] 4.4 Filtrar o balde "só no app" por escopo: intervalo real `[from, to]` do arquivo quando o destino é conta, `period = invoicePeriod` quando é cartão
-- [ ] 4.5 Campo de nome por linha no balde "só no banco", pré-preenchido com o nome aprendido quando houver e com o descriptor quando não. A decisão da linha SHALL carregar **dois campos separados**: o `descriptor` bruto do arquivo (imutável, chave do de-para) e o `name` editável (nome do lançamento). Ver 5.0
-- [ ] 4.6 Ação `Vincular a lançamento existente` no balde "só no banco", nos dois tipos de destino: lista os lançamentos do destino no período da linha, com os já consumidos visíveis e desabilitados
+- [x] 4.5 Campo de nome por linha no balde "só no banco", pré-preenchido com o nome aprendido quando houver e com o descriptor quando não. A decisão da linha SHALL carregar **dois campos separados**: o `descriptor` bruto do arquivo (imutável, chave do de-para) e o `name` editável (nome do lançamento). Ver 5.0
+- [x] 4.6 Ação `Vincular a lançamento existente` no balde "só no banco", nos dois tipos de destino: lista os lançamentos do destino no período da linha, com os já consumidos visíveis e desabilitados
 - [ ] 4.7 Decisão por linha nas casadas com divergência de valor: exibir `app → arquivo` e dois controles (manter / atualizar), sem escolha padrão; quando `isDivided`, "atualizar" fica indisponível com o motivo à vista
 - [ ] 4.8 Bloquear o botão "Aplicar" enquanto houver linha divergente sem escolha ou linha marcada para criação com nome vazio, com a razão visível na tela
 

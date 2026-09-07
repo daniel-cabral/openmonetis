@@ -1,3 +1,4 @@
+import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
 import type { ImportedTransaction } from "@/shared/lib/import/types";
 import {
 	checkInvoiceClosure,
@@ -9,8 +10,10 @@ import type {
 	AppTransaction,
 	DestinationKind,
 	ReconciliationMatch,
+	RowClassification,
 } from "@/shared/lib/reconciliation/matcher";
 import { normalizeDecimalInput } from "@/shared/utils/currency";
+import { derivePeriodFromDate } from "@/shared/utils/period";
 
 /** Contagem por balde, para o resumo da revisão. */
 export type ReconciliationSummary = {
@@ -49,6 +52,14 @@ export type ReconciliationRowDecision =
 			categoryId: string | null;
 			payerId: string | null;
 	  }
+	| {
+			action: "link";
+			transactionId: string;
+			/** Texto bruto do arquivo, chave do de-para — nunca o nome digitado. */
+			descriptor: string;
+			/** Nome do lançamento vinculado, o que o de-para aprende. */
+			name: string;
+	  }
 	| { action: "ignore"; reason: string }
 	| { action: "skip" };
 
@@ -68,6 +79,12 @@ export type ReconciliationApplyPayload = {
 		categoryId: string | null;
 		payerId: string;
 	}[];
+	manualLinks: {
+		fingerprint: string;
+		transactionId: string;
+		descriptor: string;
+		name: string;
+	}[];
 	ignores: { fingerprint: string; reason: string }[];
 };
 
@@ -83,6 +100,7 @@ export function buildReconciliationApplyPayload(
 	const payload: ReconciliationApplyPayload = {
 		confirmations: [],
 		creations: [],
+		manualLinks: [],
 		ignores: [],
 	};
 
@@ -103,6 +121,13 @@ export function buildReconciliationApplyPayload(
 				name: decision.name,
 				categoryId: decision.categoryId,
 				payerId: decision.payerId ?? defaultPayerId,
+			});
+		} else if (decision.action === "link") {
+			payload.manualLinks.push({
+				fingerprint,
+				transactionId: decision.transactionId,
+				descriptor: decision.descriptor,
+				name: decision.name,
 			});
 		} else if (decision.action === "ignore") {
 			payload.ignores.push({ fingerprint, reason: decision.reason });
@@ -162,4 +187,76 @@ export function deriveReconciliationClosure(params: {
 			Number(normalizeDecimalInput(invoiceTotalInput)),
 		),
 	};
+}
+
+/**
+ * Nome pré-preenchido da linha do balde "só no banco": o aprendido quando a
+ * chave do descriptor já foi ensinada, o descriptor bruto quando não.
+ */
+export function initialRowName(
+	descriptor: string,
+	nameMappings: Record<string, string>,
+): string {
+	return nameMappings[normalizeDescriptionKey(descriptor)] ?? descriptor;
+}
+
+/**
+ * Período usado para listar os candidatos ao vínculo manual: na fatura o
+ * lançamento pertence ao período da fatura, no extrato ao mês da própria linha.
+ */
+export function linkPeriodForRow(params: {
+	date: string;
+	destinationKind: DestinationKind | null;
+	invoicePeriod: string;
+}): string {
+	return params.destinationKind === "card"
+		? params.invoicePeriod
+		: derivePeriodFromDate(params.date);
+}
+
+/**
+ * Lançamentos já consumidos por alguma linha, mapeados para o fingerprint que
+ * os consumiu — guardar a origem deixa o próprio escolhido disponível para a
+ * linha que o escolheu.
+ */
+export function buildConsumedTransactionIds(
+	rows: RowClassification[],
+	linkedByFingerprint: Record<string, string | null>,
+): Map<string, string> {
+	const consumed = new Map<string, string>();
+
+	for (const row of rows) {
+		if (row.status === "matched") consumed.set(row.transactionId, row.fingerprint);
+	}
+	for (const [fingerprint, transactionId] of Object.entries(linkedByFingerprint)) {
+		if (transactionId) consumed.set(transactionId, fingerprint);
+	}
+
+	return consumed;
+}
+
+export type LinkCandidate = { transaction: AppTransaction; consumed: boolean };
+
+/**
+ * Candidatos ao vínculo manual: os lançamentos do destino no período da linha,
+ * com os já consumidos por outra linha visíveis e marcados — escondê-los faria
+ * o usuário concluir que o lançamento não existe e criar um duplicado.
+ */
+export function listLinkCandidates(params: {
+	transactions: AppTransaction[];
+	period: string;
+	consumedBy: Map<string, string>;
+	fingerprint: string;
+}): LinkCandidate[] {
+	return params.transactions
+		.filter((tx) => tx.period === params.period)
+		.map((transaction) => {
+			const consumedByFingerprint = params.consumedBy.get(transaction.id);
+			return {
+				transaction,
+				consumed:
+					consumedByFingerprint !== undefined &&
+					consumedByFingerprint !== params.fingerprint,
+			};
+		});
 }

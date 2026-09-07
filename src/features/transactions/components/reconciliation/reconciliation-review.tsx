@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	CategorySelectContent,
 	PayerSelectContent,
 } from "@/features/transactions/components/select-items";
 import type { SelectOption } from "@/features/transactions/components/types";
 import {
+	buildConsumedTransactionIds,
+	initialRowName,
 	isNonPurchaseLine,
+	linkPeriodForRow,
+	listLinkCandidates,
 	type ReconciliationRowDecision,
 } from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
@@ -20,11 +24,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/shared/components/ui/select";
-import type { AppTransaction, RowClassification } from "@/shared/lib/reconciliation/matcher";
+import type {
+	AppTransaction,
+	DestinationKind,
+	RowClassification,
+} from "@/shared/lib/reconciliation/matcher";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDate } from "@/shared/utils/date";
 
-type BankOnlyAction = "create" | "ignore" | "skip";
+type BankOnlyAction = "create" | "link" | "ignore" | "skip";
 type AmbiguousAction = "confirm" | "create" | "ignore" | "skip";
 
 interface ReconciliationReviewProps {
@@ -32,6 +40,9 @@ interface ReconciliationReviewProps {
 	appOnlyTransactions: AppTransaction[];
 	appTransactionsById: Map<string, AppTransaction>;
 	learnedCategoryByFingerprint: Map<string, string>;
+	nameMappings: Record<string, string>;
+	destinationKind: DestinationKind | null;
+	invoicePeriod: string;
 	categoryOptions: SelectOption[];
 	payerOptions: SelectOption[];
 	defaultPayerId: string;
@@ -47,6 +58,9 @@ export function ReconciliationReview({
 	appOnlyTransactions,
 	appTransactionsById,
 	learnedCategoryByFingerprint,
+	nameMappings,
+	destinationKind,
+	invoicePeriod,
 	categoryOptions,
 	payerOptions,
 	defaultPayerId,
@@ -66,7 +80,17 @@ export function ReconciliationReview({
 		Record<string, boolean>
 	>({});
 	const [bankOnlyState, setBankOnlyState] = useState<
-		Record<string, { action: BankOnlyAction; categoryId: string | null; payerId: string | null; reason: string }>
+		Record<
+			string,
+			{
+				action: BankOnlyAction;
+				name: string;
+				transactionId: string | null;
+				categoryId: string | null;
+				payerId: string | null;
+				reason: string;
+			}
+		>
 	>({});
 	const [ambiguousState, setAmbiguousState] = useState<
 		Record<
@@ -81,9 +105,15 @@ export function ReconciliationReview({
 		>
 	>({});
 
-	const getBankOnly = (fingerprint: string, categoryRaw: string | null | undefined) =>
+	const getBankOnly = (
+		fingerprint: string,
+		descriptor: string,
+		categoryRaw: string | null | undefined,
+	) =>
 		bankOnlyState[fingerprint] ?? {
 			action: "create" as BankOnlyAction,
+			name: initialRowName(descriptor, nameMappings),
+			transactionId: null,
 			categoryId:
 				learnedCategoryByFingerprint.get(fingerprint) ??
 				matchCategoryByRawLabel(categoryRaw, categoryOptions),
@@ -99,6 +129,24 @@ export function ReconciliationReview({
 			payerId: null,
 			reason: "",
 		};
+
+	// Pool de vínculo manual: todos os candidatos trazidos do destino, filtrados
+	// por período na hora de listar.
+	const linkPool = useMemo(
+		() => Array.from(appTransactionsById.values()),
+		[appTransactionsById],
+	);
+
+	const consumedBy = useMemo(() => {
+		const linkedByFingerprint: Record<string, string | null> = {};
+		for (const [fingerprint, state] of Object.entries(bankOnlyState)) {
+			if (state.action === "link") linkedByFingerprint[fingerprint] = state.transactionId;
+		}
+		for (const [fingerprint, state] of Object.entries(ambiguousState)) {
+			if (state.action === "confirm") linkedByFingerprint[fingerprint] = state.transactionId;
+		}
+		return buildConsumedTransactionIds(rows, linkedByFingerprint);
+	}, [rows, bankOnlyState, ambiguousState]);
 
 	const decisions = (() => {
 		const entries: { fingerprint: string; decision: ReconciliationRowDecision }[] = [];
@@ -119,7 +167,11 @@ export function ReconciliationReview({
 		}
 
 		for (const row of bankOnlyRows) {
-			const state = getBankOnly(row.fingerprint, row.row.categoryRaw);
+			const state = getBankOnly(
+				row.fingerprint,
+				row.row.description,
+				row.row.categoryRaw,
+			);
 			entries.push({
 				fingerprint: row.fingerprint,
 				decision:
@@ -130,13 +182,22 @@ export function ReconciliationReview({
 								amount: row.row.amount,
 								transactionType: row.row.transactionType,
 								descriptor: row.row.description,
-								name: row.row.description,
+								name: state.name,
 								categoryId: state.categoryId,
 								payerId: state.payerId,
 							}
-						: state.action === "ignore"
-							? { action: "ignore", reason: state.reason || "Não lançável" }
-							: { action: "skip" },
+						: state.action === "link" && state.transactionId
+							? {
+									action: "link",
+									transactionId: state.transactionId,
+									descriptor: row.row.description,
+									name:
+										appTransactionsById.get(state.transactionId)?.name ??
+										state.name,
+								}
+							: state.action === "ignore"
+								? { action: "ignore", reason: state.reason || "Não lançável" }
+								: { action: "skip" },
 			});
 		}
 
@@ -211,7 +272,21 @@ export function ReconciliationReview({
 
 			<BucketSection title={`Só no banco (${bankOnlyRows.length})`}>
 				{bankOnlyRows.map((row) => {
-					const state = getBankOnly(row.fingerprint, row.row.categoryRaw);
+					const state = getBankOnly(
+						row.fingerprint,
+						row.row.description,
+						row.row.categoryRaw,
+					);
+					const linkCandidates = listLinkCandidates({
+						transactions: linkPool,
+						period: linkPeriodForRow({
+							date: row.row.date,
+							destinationKind,
+							invoicePeriod,
+						}),
+						consumedBy,
+						fingerprint: row.fingerprint,
+					});
 					return (
 						<RowCard key={row.fingerprint}>
 							<div className="flex flex-col gap-2">
@@ -237,6 +312,9 @@ export function ReconciliationReview({
 										</SelectTrigger>
 										<SelectContent>
 											<SelectItem value="create">Criar lançamento</SelectItem>
+											<SelectItem value="link">
+												Vincular a lançamento existente
+											</SelectItem>
 											<SelectItem value="ignore">Ignorar</SelectItem>
 											<SelectItem value="skip">Pular</SelectItem>
 										</SelectContent>
@@ -244,6 +322,17 @@ export function ReconciliationReview({
 
 									{state.action === "create" && (
 										<>
+											<Input
+												className="w-56"
+												placeholder="Nome do lançamento…"
+												value={state.name}
+												onChange={(e) =>
+													setBankOnlyState((prev) => ({
+														...prev,
+														[row.fingerprint]: { ...state, name: e.target.value },
+													}))
+												}
+											/>
 											<Select
 												value={state.categoryId ?? ""}
 												onValueChange={(value) =>
@@ -291,6 +380,44 @@ export function ReconciliationReview({
 												</SelectContent>
 											</Select>
 										</>
+									)}
+
+									{state.action === "link" && (
+										<Select
+											value={state.transactionId ?? ""}
+											onValueChange={(value) =>
+												setBankOnlyState((prev) => ({
+													...prev,
+													[row.fingerprint]: { ...state, transactionId: value },
+												}))
+											}
+										>
+											<SelectTrigger className="w-72">
+												<SelectValue placeholder="Escolher lançamento…" />
+											</SelectTrigger>
+											<SelectContent>
+												{linkCandidates.map(({ transaction, consumed }) => (
+													<SelectItem
+														key={transaction.id}
+														value={transaction.id}
+														disabled={consumed}
+													>
+														{`${transaction.name} · ${formatDate(transaction.date)} · ${formatCurrency(
+															signedAmount(
+																transaction.amount,
+																transaction.transactionType,
+															),
+														)}${consumed ? " · já usado" : ""}`}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
+
+									{state.action === "link" && linkCandidates.length === 0 && (
+										<span className="text-muted-foreground text-xs">
+											Nenhum lançamento neste período.
+										</span>
 									)}
 
 									{state.action === "ignore" && (
