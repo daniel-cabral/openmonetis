@@ -162,6 +162,27 @@ export function buildReconciliationApplyPayload(
 	return payload;
 }
 
+/**
+ * Monta o payload do desfazer a partir do retorno do aplicar. O desfazer só
+ * restaura os valores sobrescritos se receber os `amountUpdates` devolvidos —
+ * montar o payload aqui mantém essa costura sob teste.
+ */
+export function buildReconciliationUndoPayload(result: {
+	importBatchId: string;
+	reconciled: { transactionId: string; fingerprint: string }[];
+	amountUpdates: { transactionId: string; previousAmount: string }[];
+}): {
+	importBatchId: string;
+	reconciled: { transactionId: string; fingerprint: string }[];
+	amountUpdates: { transactionId: string; previousAmount: string }[];
+} {
+	return {
+		importBatchId: result.importBatchId,
+		reconciled: result.reconciled,
+		amountUpdates: result.amountUpdates,
+	};
+}
+
 /** Linha da fatura que não é compra (pagamento ou estorno): vai para o balde informativo, sem ação. */
 export function isNonPurchaseLine(row: ImportedTransaction): boolean {
 	return row.lineKind !== undefined && row.lineKind !== "purchase";

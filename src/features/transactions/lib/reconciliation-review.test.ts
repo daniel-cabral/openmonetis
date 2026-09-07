@@ -8,6 +8,7 @@ import type {
 import {
 	buildConsumedTransactionIds,
 	buildReconciliationApplyPayload,
+	buildReconciliationUndoPayload,
 	deriveReconciliationClosure,
 	evaluateApplyBlock,
 	filterAppOnlyByScope,
@@ -477,5 +478,24 @@ describe("evaluateApplyBlock", () => {
 		expect(result.blocked).toBe(true);
 		expect(result.blocked && result.reason).toMatch(/divergência/);
 		expect(result.blocked && result.reason).toMatch(/nome/);
+	});
+});
+
+describe("buildReconciliationUndoPayload", () => {
+	it("leva os valores anteriores do aplicar para o desfazer", () => {
+		const applyResult = {
+			success: true as const,
+			importBatchId: "batch-1",
+			created: 1,
+			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
+			ignored: 0,
+			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+		};
+
+		expect(buildReconciliationUndoPayload(applyResult)).toEqual({
+			importBatchId: "batch-1",
+			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
+			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+		});
 	});
 });

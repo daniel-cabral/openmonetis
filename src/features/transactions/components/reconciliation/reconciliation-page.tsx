@@ -21,6 +21,7 @@ import {
 } from "@/features/transactions/lib/reconciliation-origin";
 import {
 	buildReconciliationApplyPayload,
+	buildReconciliationUndoPayload,
 	deriveReconciliationClosure,
 	filterAppOnlyByScope,
 	isNonPurchaseLine,
@@ -303,7 +304,7 @@ export function ReconciliationPage({
 				return;
 			}
 
-			const { importBatchId, reconciled } = result;
+			const undoPayload = buildReconciliationUndoPayload(result);
 			toast.success(
 				`${result.created} criados, ${result.reconciled.length} conciliados, ${result.ignored} ignorados.`,
 				{
@@ -311,10 +312,7 @@ export function ReconciliationPage({
 					action: {
 						label: "Desfazer",
 						onClick: async () => {
-							const undo = await undoReconciliationAction({
-								importBatchId,
-								reconciled,
-							});
+							const undo = await undoReconciliationAction(undoPayload);
 							if (undo.success) toast.success("Conciliação desfeita.");
 							else toast.error("Não foi possível desfazer.");
 						},
