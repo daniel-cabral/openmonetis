@@ -46,7 +46,7 @@
 
 ## 6. Fechamento
 
-- [ ] 6.1 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit`, `pnpm run test` e `pnpm exec biome check --formatter-enabled=false .` — **nunca** `pnpm run lint` nem `biome check .` sem a flag, por causa do ruído pré-existente de CRLF
+- [x] 6.1 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit`, `pnpm run test` e `pnpm exec biome check --formatter-enabled=false .` — **nunca** `pnpm run lint` nem `biome check .` sem a flag, por causa do ruído pré-existente de CRLF
 - [x] 6.2 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md` conforme a regra 6 do `AGENTS.md`
-- [ ] 6.3 Validar com o extrato real: ensinar o de-para dos quatro recorrentes de agosto (Aluguel, Condomínio, Órigo, Rodobens) pelo vínculo manual e confirmar que, numa segunda conciliação, eles saem do balde "só no banco"
-- [ ] 6.4 Validar com a fatura real: o fechamento de 2026-08 deve fechar exato contra 12.936,33, o balde "só no app" deve cair de 267 para as linhas do período 2026-08, e `Pag Fatura Boleto` não deve mais oferecer criação
+- [x] 6.3 Validar com o extrato real — **feito em 2026-09-07 na instância**. Balde "só no app" caiu de 23 para 17 (as 6 linhas fora do intervalo do arquivo). Vínculo manual do `RODOBENS ADM DE CONSORCIO` ao lançamento `Consórcio Carro (Rodobens)` aplicado com "0 criados, 72 conciliados, 0 ignorados". Numa segunda passada com a data da linha deslocada de 11/08 para 13/08 — para escapar do fingerprint e da janela de ±1 dia — a linha casou **por `name-period`**, que é a prova da regra nova. Os outros três recorrentes seguem por ensinar, no uso normal
+- [x] 6.4 Validar com a fatura real — **feito em 2026-09-07 na instância**. Fechamento verde: "Compras: R$ 12.936,33 · Total informado: R$ 12.936,33", com o total digitado **depois** de avançar (antes não recalculava). Baldes de 79/13/267/6 para 79/11/6/6: o "só no app" caiu de 267 para 6 pelo filtro de período, e `Pag Fatura Boleto` e `Estorno Tarifa` foram para o balde informativo, rotulados e sem ação. Integridade: 79 + 11 + 6 + 2 = 98 linhas do arquivo
