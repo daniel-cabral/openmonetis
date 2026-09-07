@@ -4,6 +4,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	importCategoryMappings,
+	importNameMappings,
 	reconciliationIgnores,
 	transactions,
 } from "@/db/schema";
@@ -41,6 +42,20 @@ const creationSchema = z.object({
 	payerId: uuidSchema("Pessoa").nullable().optional(),
 });
 
+const manualLinkSchema = z.object({
+	fingerprint: z.string().min(1),
+	transactionId: uuidSchema("Lançamento"),
+	descriptor: z.string(),
+	name: z.string().min(1, "Nome obrigatório."),
+});
+
+// `isDivided` não vem do cliente: sai do próprio banco junto do valor anterior.
+const amountUpdateSchema = z.object({
+	transactionId: uuidSchema("Lançamento"),
+	amount: z.number().positive(),
+	transactionType: z.enum(["income", "expense"]),
+});
+
 const ignoreSchema = z.object({
 	fingerprint: z.string().min(1),
 	reason: z.string().min(1, "Motivo obrigatório."),
@@ -58,6 +73,8 @@ const applySchema = z.object({
 	confirmations: z.array(confirmationSchema),
 	creations: z.array(creationSchema),
 	ignores: z.array(ignoreSchema),
+	manualLinks: z.array(manualLinkSchema).optional(),
+	amountUpdates: z.array(amountUpdateSchema).optional(),
 });
 
 const undoSchema = z.object({
@@ -68,6 +85,14 @@ const undoSchema = z.object({
 			fingerprint: z.string().min(1),
 		}),
 	),
+	amountUpdates: z
+		.array(
+			z.object({
+				transactionId: uuidSchema("Lançamento"),
+				previousAmount: z.string().min(1),
+			}),
+		)
+		.optional(),
 });
 
 export type ApplyReconciliationInput = z.input<typeof applySchema>;
@@ -80,6 +105,7 @@ export type ApplyReconciliationResult =
 			created: number;
 			reconciled: { transactionId: string; fingerprint: string }[];
 			ignored: number;
+			amountUpdates: { transactionId: string; previousAmount: string }[];
 	  }
 	| { success: false; error: string };
 
@@ -104,11 +130,15 @@ export async function applyReconciliationAction(
 
 	const { destination, paymentMethod, invoicePeriod, payerId } = parsed.data;
 	const { confirmations, creations, ignores } = parsed.data;
+	const manualLinks = parsed.data.manualLinks ?? [];
+	const amountUpdates = parsed.data.amountUpdates ?? [];
 
 	if (
 		confirmations.length === 0 &&
 		creations.length === 0 &&
-		ignores.length === 0
+		ignores.length === 0 &&
+		manualLinks.length === 0 &&
+		amountUpdates.length === 0
 	) {
 		return { success: false, error: "Nenhuma decisão para aplicar." };
 	}
@@ -148,7 +178,10 @@ export async function applyReconciliationAction(
 	// A categoria do de-para sai do lançamento casado, no banco, e não do
 	// cliente: o mesmo select já serve de guard de ownership.
 	const confirmationIds = [
-		...new Set(confirmations.map((confirmation) => confirmation.transactionId)),
+		...new Set([
+			...confirmations.map((confirmation) => confirmation.transactionId),
+			...manualLinks.map((link) => link.transactionId),
+		]),
 	];
 	const matchedTransactions =
 		confirmationIds.length > 0
@@ -174,6 +207,37 @@ export async function applyReconciliationAction(
 		matchedTransactions.map((row) => [row.id, row.categoryId]),
 	);
 
+	// Valor anterior e `dividido` saem do banco, no mesmo select que serve de
+	// guard de ownership: o desfazer precisa do valor real, e confiar no
+	// cliente para o `dividido` deixaria a regra de D5 do lado errado.
+	const amountUpdateIds = [
+		...new Set(amountUpdates.map((update) => update.transactionId)),
+	];
+	const amountUpdateTargets =
+		amountUpdateIds.length > 0
+			? await db
+					.select({
+						id: transactions.id,
+						amount: transactions.amount,
+						isDivided: transactions.isDivided,
+					})
+					.from(transactions)
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							inArray(transactions.id, amountUpdateIds),
+						),
+					)
+			: [];
+
+	if (amountUpdateTargets.length !== amountUpdateIds.length) {
+		return { success: false, error: "Lançamento não encontrado." };
+	}
+
+	const amountUpdateTargetById = new Map(
+		amountUpdateTargets.map((row) => [row.id, row]),
+	);
+
 	const importBatchId = crypto.randomUUID();
 	const plan = buildReconciliationPlan({
 		userId,
@@ -197,6 +261,12 @@ export async function applyReconciliationAction(
 			payerId: payerIdsByCreation[index],
 		})),
 		ignores,
+		manualLinks,
+		amountUpdates: amountUpdates.map((update) => ({
+			...update,
+			isDivided:
+				amountUpdateTargetById.get(update.transactionId)?.isDivided ?? false,
+		})),
 	});
 
 	try {
@@ -267,12 +337,62 @@ export async function applyReconciliationAction(
 					});
 			}
 
+			if (plan.nameMappings.length > 0) {
+				await tx
+					.insert(importNameMappings)
+					.values(
+						plan.nameMappings.map((mapping) => ({
+							...mapping,
+							updatedAt: new Date(),
+						})),
+					)
+					.onConflictDoUpdate({
+						target: [
+							importNameMappings.userId,
+							importNameMappings.descriptionKey,
+						],
+						set: {
+							name: sql`excluded.name`,
+							updatedAt: sql`excluded.updated_at`,
+						},
+					});
+			}
+
+			const appliedAmountUpdates: {
+				transactionId: string;
+				previousAmount: string;
+			}[] = [];
+
+			for (const update of plan.amountUpdates) {
+				const target = amountUpdateTargetById.get(update.transactionId);
+				if (!target) continue;
+
+				const [updated] = await tx
+					.update(transactions)
+					.set({ amount: update.amount })
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							eq(transactions.id, update.transactionId),
+						),
+					)
+					.returning({ id: transactions.id });
+
+				if (updated) {
+					appliedAmountUpdates.push({
+						transactionId: update.transactionId,
+						previousAmount: target.amount,
+					});
+				}
+			}
+
 			return {
 				success: true as const,
 				importBatchId,
 				created: inserted.length,
 				reconciled,
 				ignored: plan.ignores.length,
+				amountUpdates: appliedAmountUpdates,
 			};
 		});
 
@@ -301,6 +421,7 @@ export async function undoReconciliationAction(
 	}
 
 	const { importBatchId, reconciled } = parsed.data;
+	const amountUpdates = parsed.data.amountUpdates ?? [];
 
 	try {
 		await db.transaction(async (tx: typeof db) => {
@@ -312,6 +433,20 @@ export async function undoReconciliationAction(
 						eq(transactions.importBatchId, importBatchId),
 					),
 				);
+
+			// Restaura o valor que a aplicação sobrescreveu, antes de tratar os
+			// fingerprints: são escritas independentes no mesmo lote.
+			for (const update of amountUpdates) {
+				await tx
+					.update(transactions)
+					.set({ amount: update.previousAmount })
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							eq(transactions.id, update.transactionId),
+						),
+					);
+			}
 
 			if (reconciled.length === 0) return;
 

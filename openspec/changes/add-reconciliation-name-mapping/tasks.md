@@ -40,8 +40,8 @@
 - [x] 5.1 `reconciliation-plan.ts` — `name` do insert passa a vir do campo `name` da decisão da linha; `creation.descriptor` fica reservado à chave do de-para
 - [x] 5.2 `reconciliation-plan.ts` — vínculos manuais produzem `fingerprintUpdates` como as confirmações
 - [x] 5.3 `reconciliation-plan.ts` — produzir `nameMappings` a partir dos vínculos manuais (qualquer destino) e das criações com nome digitado (**só quando o destino é conta**), colapsando chaves repetidas num registro só; e `amountUpdates` a partir das escolhas de atualizar
-- [ ] 5.4 `reconciliation-action.ts` — upsert em `import_name_mappings` e `UPDATE lancamentos SET valor` dentro da mesma `db.transaction()`, com guard de ownership por `userId`
-- [ ] 5.5 O retorno da action passa a carregar `{ transactionId, previousAmount }` dos valores atualizados; a action de desfazer restaura esses valores além de limpar os fingerprints do lote
+- [x] 5.4 `reconciliation-action.ts` — upsert em `import_name_mappings` e `UPDATE lancamentos SET valor` dentro da mesma `db.transaction()`, com guard de ownership por `userId`
+- [x] 5.5 O retorno da action passa a carregar `{ transactionId, previousAmount }` dos valores atualizados; a action de desfazer restaura esses valores além de limpar os fingerprints do lote
 - [x] 5.6 Testes do plano: **o de-para é chaveado pelo `descriptor` bruto e não pelo nome digitado** (teste explícito com nome editado diferente do descriptor); nome digitado vira `name` do insert e alimenta o de-para em conta mas não em cartão; vínculo manual alimenta o de-para em conta e concilia sem aprender em cartão; casamento automático não alimenta; escolha "manter" não gera `amountUpdate`; lançamento dividido não gera `amountUpdate`; chaves repetidas colapsam
 
 ## 6. Fechamento
