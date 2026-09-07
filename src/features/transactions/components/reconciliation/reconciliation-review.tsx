@@ -114,8 +114,11 @@ export function ReconciliationReview({
 		descriptor: string,
 		categoryRaw: string | null | undefined,
 	) =>
+		// O padrao e nao escrever nada: com "create" como estado inicial, um
+		// clique em Aplicar sem revisar linha a linha criaria um lancamento para
+		// cada linha do arquivo que nao casou.
 		bankOnlyState[fingerprint] ?? {
-			action: "create" as BankOnlyAction,
+			action: "skip" as BankOnlyAction,
 			name: initialRowName(descriptor, nameMappings),
 			transactionId: null,
 			categoryId:
@@ -424,7 +427,7 @@ export function ReconciliationReview({
 											}))
 										}
 									>
-										<SelectTrigger className="w-56">
+										<SelectTrigger className="w-64">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
@@ -482,7 +485,7 @@ export function ReconciliationReview({
 													}))
 												}
 											>
-												<SelectTrigger className="w-44">
+												<SelectTrigger className="w-52">
 													<SelectValue placeholder="Pessoa…" />
 												</SelectTrigger>
 												<SelectContent>
