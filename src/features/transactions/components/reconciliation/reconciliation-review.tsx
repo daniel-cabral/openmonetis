@@ -406,15 +406,15 @@ export function ReconciliationReview({
 					});
 					return (
 						<RowCard key={row.fingerprint}>
-							<div className="flex flex-col gap-2">
-								<div className="flex flex-col">
+							<div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:gap-6">
+								<div className="flex min-w-0 flex-col xl:w-64 xl:shrink-0">
 									<span className="font-medium">{row.row.description}</span>
 									<span className="text-muted-foreground text-xs">
 										{formatDate(row.row.date)} ·{" "}
 										{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
 									</span>
 								</div>
-								<div className="flex flex-wrap items-center gap-2">
+								<div className="flex flex-1 flex-wrap items-center gap-3">
 									<Select
 										value={state.action}
 										onValueChange={(value) =>
@@ -424,7 +424,7 @@ export function ReconciliationReview({
 											}))
 										}
 									>
-										<SelectTrigger className="w-40">
+										<SelectTrigger className="w-56">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
@@ -440,7 +440,7 @@ export function ReconciliationReview({
 									{state.action === "create" && (
 										<>
 											<Input
-												className="w-56"
+												className="min-w-56 flex-1"
 												placeholder="Nome do lançamento…"
 												value={state.name}
 												onChange={(e) =>
@@ -459,7 +459,7 @@ export function ReconciliationReview({
 													}))
 												}
 											>
-												<SelectTrigger className="w-48">
+												<SelectTrigger className="w-52">
 													<SelectValue placeholder="Categoria…" />
 												</SelectTrigger>
 												<SelectContent>
@@ -482,7 +482,7 @@ export function ReconciliationReview({
 													}))
 												}
 											>
-												<SelectTrigger className="w-40">
+												<SelectTrigger className="w-44">
 													<SelectValue placeholder="Pessoa…" />
 												</SelectTrigger>
 												<SelectContent>
@@ -509,7 +509,7 @@ export function ReconciliationReview({
 												}))
 											}
 										>
-											<SelectTrigger className="w-72">
+											<SelectTrigger className="min-w-72 flex-1">
 												<SelectValue placeholder="Escolher lançamento…" />
 											</SelectTrigger>
 											<SelectContent>
