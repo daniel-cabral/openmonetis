@@ -1,7 +1,7 @@
 ## 1. Persistência do de-para
 
 - [x] 1.1 Adicionar `importNameMappings` ao final de `src/db/schema.ts` (`user_id` FK cascade, `description_key` text, `name` text, `updated_at` timestamp default now; PK `user_id + description_key`) — **acrescentar no fim do arquivo**, sem tocar em declaração existente, para manter o conflito com o upstream restrito a um bloco novo
-- [ ] 1.2 Gerar a migration com `pnpm run db:generate` e conferir que é puramente aditiva
+- [x] 1.2 Gerar a migration com `pnpm run db:generate` e conferir que é puramente aditiva
 - [ ] 1.3 `src/features/transactions/actions/name-memory-action.ts` — `fetchNameMappings(descriptions)` espelhando `category-memory-action.ts`: normaliza com `normalizeDescriptionKey`, filtra por `userId`, devolve mapa chave → nome
 
 ## 2. Parser e fechamento da fatura
