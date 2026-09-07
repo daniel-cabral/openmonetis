@@ -3,9 +3,13 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import pkg from "../../../../package.json";
 
-const changelogPath = path.join(process.cwd(), "CHANGELOG.md");
-const changelog = fs.readFileSync(changelogPath, "utf-8");
-const readme = fs.readFileSync(path.join(process.cwd(), "README.md"), "utf-8");
+// O working copy deste repo grava CRLF; sem normalizar, os regexes abaixo
+// falham dependendo de qual branch escreveu o arquivo por ultimo.
+const readNormalized = (file: string) =>
+	fs.readFileSync(path.join(process.cwd(), file), "utf-8").replace(/\r\n/g, "\n");
+
+const changelog = readNormalized("CHANGELOG.md");
+const readme = readNormalized("README.md");
 
 describe("versao 2.10.0", () => {
 	it("package.json aponta a versao 2.10.0", () => {
