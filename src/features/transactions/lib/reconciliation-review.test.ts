@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { ImportedTransaction } from "@/shared/lib/import/types";
-import type { ReconciliationMatch, RowClassification } from "@/shared/lib/reconciliation/matcher";
+import type {
+	AppTransaction,
+	ReconciliationMatch,
+	RowClassification,
+} from "@/shared/lib/reconciliation/matcher";
 import {
 	buildReconciliationApplyPayload,
 	deriveReconciliationClosure,
+	filterAppOnlyByScope,
+	isNonPurchaseLine,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
 
@@ -133,6 +139,66 @@ describe("buildReconciliationApplyPayload", () => {
 		);
 
 		expect(payload.creations[0]?.payerId).toBe("payer-explicit");
+	});
+});
+
+describe("isNonPurchaseLine", () => {
+	it("é falso quando lineKind é purchase ou ausente (extrato)", () => {
+		expect(isNonPurchaseLine(row({ lineKind: "purchase" }))).toBe(false);
+		expect(isNonPurchaseLine(row({ lineKind: undefined }))).toBe(false);
+	});
+
+	it("é verdadeiro para credit e invoice-payment", () => {
+		expect(isNonPurchaseLine(row({ lineKind: "credit" }))).toBe(true);
+		expect(isNonPurchaseLine(row({ lineKind: "invoice-payment" }))).toBe(true);
+	});
+});
+
+describe("filterAppOnlyByScope", () => {
+	function appTx(overrides: Partial<AppTransaction> = {}): AppTransaction {
+		return {
+			id: "tx-1",
+			name: "Lançamento",
+			date: "2026-08-10",
+			amount: 100,
+			transactionType: "expense",
+			installmentCount: null,
+			currentInstallment: null,
+			fingerprint: null,
+			period: "2026-08",
+			isDivided: false,
+			...overrides,
+		};
+	}
+
+	it("filtra por intervalo [from, to] quando o destino é conta", () => {
+		const transactions = [
+			appTx({ id: "dentro", date: "2026-08-15" }),
+			appTx({ id: "antes", date: "2026-07-31" }),
+			appTx({ id: "depois", date: "2026-09-01" }),
+		];
+
+		const result = filterAppOnlyByScope(transactions, {
+			destinationKind: "account",
+			from: "2026-08-01",
+			to: "2026-08-31",
+		});
+
+		expect(result.map((tx) => tx.id)).toEqual(["dentro"]);
+	});
+
+	it("filtra por period = invoicePeriod quando o destino é cartão", () => {
+		const transactions = [
+			appTx({ id: "mesmo-periodo", period: "2026-08", date: "2025-12-01" }),
+			appTx({ id: "outro-periodo", period: "2026-07" }),
+		];
+
+		const result = filterAppOnlyByScope(transactions, {
+			destinationKind: "card",
+			invoicePeriod: "2026-08",
+		});
+
+		expect(result.map((tx) => tx.id)).toEqual(["mesmo-periodo"]);
 	});
 });
 

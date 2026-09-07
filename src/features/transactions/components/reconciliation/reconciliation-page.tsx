@@ -22,6 +22,8 @@ import {
 import {
 	buildReconciliationApplyPayload,
 	deriveReconciliationClosure,
+	filterAppOnlyByScope,
+	isNonPurchaseLine,
 } from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -225,22 +227,37 @@ export function ReconciliationPage({
 		});
 	}, [review, selectedProfile?.kind, invoiceTotalInput]);
 
+	const appOnlyTransactions = useMemo(() => {
+		if (!review || !destinationKind) return [];
+		const transactions = review.match.appOnlyIds
+			.map((id) => review.appTransactionsById.get(id))
+			.filter((tx): tx is AppTransaction => Boolean(tx));
+
+		if (destinationKind === "card") {
+			return filterAppOnlyByScope(transactions, {
+				destinationKind: "card",
+				invoicePeriod: invoicePeriodInput,
+			});
+		}
+		const range = extendedDateRange(review.statement);
+		return filterAppOnlyByScope(transactions, {
+			destinationKind: "account",
+			from: range.from,
+			to: range.to,
+		});
+	}, [review, destinationKind, invoicePeriodInput]);
+
 	const buckets = useMemo(() => {
 		if (!review) return null;
 		return {
 			matched: review.match.rows.filter((r) => r.status === "matched").length,
-			bankOnly: review.match.rows.filter((r) => r.status === "bank-only").length,
-			appOnly: review.match.appOnlyIds.length,
+			bankOnly: review.match.rows.filter(
+				(r) => r.status === "bank-only" && !isNonPurchaseLine(r.row),
+			).length,
+			appOnly: appOnlyTransactions.length,
 			ambiguous: review.match.rows.filter((r) => r.status === "ambiguous").length,
 		};
-	}, [review]);
-
-	const appOnlyTransactions = useMemo(() => {
-		if (!review) return [];
-		return review.match.appOnlyIds
-			.map((id) => review.appTransactionsById.get(id))
-			.filter((tx): tx is AppTransaction => Boolean(tx));
-	}, [review]);
+	}, [review, appOnlyTransactions]);
 
 	const handleApply = (
 		entries: Parameters<typeof buildReconciliationApplyPayload>[0],

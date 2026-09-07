@@ -5,7 +5,11 @@ import {
 	type InvoiceClosureResult,
 	type StatementClosureResult,
 } from "@/shared/lib/reconciliation/closure";
-import type { ReconciliationMatch } from "@/shared/lib/reconciliation/matcher";
+import type {
+	AppTransaction,
+	DestinationKind,
+	ReconciliationMatch,
+} from "@/shared/lib/reconciliation/matcher";
 import { normalizeDecimalInput } from "@/shared/utils/currency";
 
 /** Contagem por balde, para o resumo da revisão. */
@@ -106,6 +110,27 @@ export function buildReconciliationApplyPayload(
 	}
 
 	return payload;
+}
+
+/** Linha da fatura que não é compra (pagamento ou estorno): vai para o balde informativo, sem ação. */
+export function isNonPurchaseLine(row: ImportedTransaction): boolean {
+	return row.lineKind !== undefined && row.lineKind !== "purchase";
+}
+
+/**
+ * Escopo do balde "só no app": no cartão o lançamento pertence ao período da
+ * fatura, não ao mês da compra; na conta o intervalo real do arquivo basta.
+ */
+export function filterAppOnlyByScope(
+	transactions: AppTransaction[],
+	scope:
+		| { destinationKind: Extract<DestinationKind, "account">; from: string; to: string }
+		| { destinationKind: Extract<DestinationKind, "card">; invoicePeriod: string },
+): AppTransaction[] {
+	if (scope.destinationKind === "card") {
+		return transactions.filter((tx) => tx.period === scope.invoicePeriod);
+	}
+	return transactions.filter((tx) => tx.date >= scope.from && tx.date <= scope.to);
 }
 
 export type ReconciliationClosure =

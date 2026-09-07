@@ -6,7 +6,10 @@ import {
 	PayerSelectContent,
 } from "@/features/transactions/components/select-items";
 import type { SelectOption } from "@/features/transactions/components/types";
-import type { ReconciliationRowDecision } from "@/features/transactions/lib/reconciliation-review";
+import {
+	isNonPurchaseLine,
+	type ReconciliationRowDecision,
+} from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -51,7 +54,12 @@ export function ReconciliationReview({
 	onApply,
 }: ReconciliationReviewProps) {
 	const matchedRows = rows.filter((r) => r.status === "matched");
-	const bankOnlyRows = rows.filter((r) => r.status === "bank-only");
+	const bankOnlyRows = rows.filter(
+		(r) => r.status === "bank-only" && !isNonPurchaseLine(r.row),
+	);
+	const informationalRows = rows.filter(
+		(r) => r.status === "bank-only" && isNonPurchaseLine(r.row),
+	);
 	const ambiguousRows = rows.filter((r) => r.status === "ambiguous");
 
 	const [confirmedByFingerprint, setConfirmedByFingerprint] = useState<
@@ -304,6 +312,23 @@ export function ReconciliationReview({
 					);
 				})}
 				{bankOnlyRows.length === 0 && <EmptyBucket />}
+			</BucketSection>
+
+			<BucketSection title={`Informativo (${informationalRows.length})`}>
+				{informationalRows.map((row) => (
+					<RowCard key={row.fingerprint}>
+						<div className="flex flex-col">
+							<span className="font-medium">{row.row.description}</span>
+							<span className="text-muted-foreground text-xs">
+								{formatDate(row.row.date)} ·{" "}
+								{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
+								{" · "}
+								{row.row.lineKind === "invoice-payment" ? "Pagamento de fatura" : "Estorno"}
+							</span>
+						</div>
+					</RowCard>
+				))}
+				{informationalRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
 			<BucketSection title={`Só no app (${appOnlyTransactions.length})`}>
