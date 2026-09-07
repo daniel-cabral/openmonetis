@@ -104,18 +104,23 @@ export function checkStatementClosure(
 }
 
 /**
- * Verificação aritmética da fatura: só as compras entram na soma. Pagamentos e
- * estornos ficam de fora, e o total do período vem de fora do arquivo — o CSV
- * do C6 não o traz.
+ * Verificação aritmética da fatura: soma todas as linhas (compras e
+ * créditos/estornos) exceto o pagamento da fatura, e compara contra o total
+ * do período informado por fora — o CSV do C6 não o traz.
  */
 export function checkInvoiceClosure(
 	transactions: ImportedTransaction[],
 	expectedTotal: number,
 ): InvoiceClosureResult {
-	// O total da fatura é positivo, e toda compra é despesa: soma-se a magnitude.
+	// Compra soma, crédito/estorno subtrai, pagamento fica de fora.
 	const purchasesCents = transactions
-		.filter((transaction) => transaction.isPurchase !== false)
-		.reduce((total, transaction) => total + toCents(transaction.amount), 0);
+		.filter((transaction) => transaction.lineKind !== "invoice-payment")
+		.reduce((total, transaction) => {
+			const cents = toCents(transaction.amount);
+			return (
+				total + (transaction.transactionType === "expense" ? cents : -cents)
+			);
+		}, 0);
 
 	const expectedCents = toCents(expectedTotal);
 	const difference = expectedCents - purchasesCents;
