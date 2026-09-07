@@ -6,6 +6,7 @@ import {
 	RiBankLine,
 	RiBarChart2Line,
 	RiCalendarEventLine,
+	RiCheckDoubleLine,
 	RiFileChartLine,
 	RiGroupLine,
 	RiPriceTag3Line,
@@ -54,6 +55,13 @@ export const NAV_SECTIONS: NavSection[] = [
 				icon: <RiArrowLeftRightLine className="size-4" />,
 				iconClass: "text-primary",
 				preservePeriod: true,
+			},
+			{
+				href: "/transactions/reconciliation",
+				label: "Conciliação",
+				description: "Concilie extratos e faturas com seus lançamentos",
+				icon: <RiCheckDoubleLine className="size-4" />,
+				iconClass: "text-primary",
 			},
 			{
 				href: "/inbox",

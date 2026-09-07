@@ -11,6 +11,8 @@ export type ReconciliationCandidateRow = {
 	installmentCount: number | null;
 	currentInstallment: number | null;
 	ofxImportFingerprint: string | null;
+	period: string;
+	isDivided: boolean | null;
 };
 
 /**
@@ -31,5 +33,7 @@ export function toAppTransaction(
 		installmentCount: row.installmentCount ?? null,
 		currentInstallment: row.currentInstallment ?? null,
 		fingerprint: row.ofxImportFingerprint ?? null,
+		period: row.period,
+		isDivided: row.isDivided ?? false,
 	};
 }

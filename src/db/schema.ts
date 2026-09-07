@@ -1138,3 +1138,24 @@ export const reconciliationIgnores = pgTable(
 );
 
 export type ReconciliationIgnore = typeof reconciliationIgnores.$inferSelect;
+
+// De-para aprendido de descriptor de importação para nome de lançamento,
+// usado pela regra de matcher por nome+período na conciliação (destino conta).
+export const importNameMappings = pgTable(
+	"import_name_mappings",
+	{
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		descriptionKey: text("description_key").notNull(),
+		name: text("name").notNull(),
+		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.userId, table.descriptionKey] }),
+	}),
+);
+
+export type ImportNameMapping = typeof importNameMappings.$inferSelect;

@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.10.0] - 2026-09-07
+
+Esta versão ensina a conciliação a reconhecer, pelo nome, despesas fixas que já existem como lançamento recorrente. Antes disso, o extrato mostrava só o descriptor cru do banco (`CASA NOVA LOCADORA LTDA - EPP - Boleto`) e caía no balde "só no banco" sempre que a data ou o valor batido pelo banco divergia um pouco do lançamento já digitado — a única saída era criar um lançamento novo, duplicando o recorrente. Agora o usuário vincula a linha ao lançamento existente uma vez, o de-para descriptor→nome fica aprendido e os meses seguintes casam sozinhos por nome e período, com decisão explícita quando o valor também divergir. De quebra, a conciliação de fatura ganha quatro correções apuradas na validação com dados reais: o fechamento soma o conjunto certo de linhas, o total recalcula ao ser editado, o balde "só no app" passa a respeitar o período da fatura, e o pagamento da fatura anterior não é mais oferecido para virar lançamento por engano.
+
+### Adicionado
+- De-para aprendido de descriptor do banco para nome de lançamento, reconhecido automaticamente nas conciliações seguintes.
+- Ação "Vincular a lançamento existente" no balde "só no banco", para ensinar o de-para a partir de um casamento manual.
+- Regra de casamento por nome + período no matcher, aplicada apenas a destino do tipo conta.
+- Estado "casada com divergência de valor", com decisão por linha entre manter o valor lançado e atualizar para o do extrato.
+- Balde informativo, sem ação de criação, para linhas da fatura que não são compra (crédito, pagamento de fatura).
+
+### Corrigido
+- Fechamento da fatura passa a somar todas as linhas menos os pagamentos de fatura, eliminando divergência falsa em fatura que fecha exata. **BREAKING**: muda o resultado do fechamento em relação à versão anterior.
+- Total da fatura recalcula o fechamento ao ser editado, sem exigir novo upload do arquivo.
+- Balde "só no app" da fatura passa a respeitar o período da fatura quando o destino é cartão, em vez de trazer lançamentos de faturas anteriores.
+- Pagamento de fatura anterior deixa de ser oferecido com ação de criar lançamento no balde "só no banco".
+
 ## [2.9.0] - 2026-09-02
 
 Esta versão traz conciliação de extrato e fatura contra o CSV exportado do C6. Até aqui todo lançamento era digitado à mão sem nenhuma conferência contra a fonte, e a proteção contra duplicata existente cobria só OFX com FITID — nada de CSV ou lançamento manual. Agora o app importa o CSV de extrato e de fatura do C6, casa cada linha do banco com um lançamento do período (ou aponta o que falta de cada lado, sem nunca resolver ambiguidade sozinho) e prova o fechamento por aritmética: saldo dia a dia no extrato, soma das compras contra o total na fatura. Conciliar grava a identidade da linha no lançamento — inclusive nos digitados à mão, que passam a ganhar proteção contra duplicata de graça — e linhas que deliberadamente não viram lançamento (como pagamento de fatura por boleto, já registrado como transferência) podem ser marcadas para ignorar.

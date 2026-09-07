@@ -72,6 +72,18 @@
 
 ## 11. Validação com dados reais (manual, fora do workflow)
 
-- [ ] 11.0 Aplicar as migrations no ambiente (`pnpm run db:migrate`) e confirmar que a coluna `ofx_import_fingerprint`, seu índice único parcial e a tabela `reconciliation_ignores` existem
-- [ ] 11.1 Conciliar de ponta a ponta os dois arquivos reais do C6 no ambiente e registrar o resultado: quantas casaram por qual regra, quantas ambíguas, se o fechamento bateu
-- [ ] 11.2 Calibrar a janela de data da fatura com base nesse resultado e resolver as questões em aberto do `design.md`
+- [x] 11.0 Aplicar as migrations no ambiente (`pnpm run db:migrate`) e confirmar que a coluna `ofx_import_fingerprint`, seu índice único parcial e a tabela `reconciliation_ignores` existem
+- [x] 11.1 Conciliar de ponta a ponta os dois arquivos reais do C6 no ambiente e registrar o resultado: quantas casaram por qual regra, quantas ambíguas, se o fechamento bateu — **extrato**: 71/35/23/7, fechamento verde em 34/34 dias; **fatura**: 79/13/267/6, fechamento apurado fora da tela (ver A3). Detalhes nas duas seções "Achados da validação com dados reais" do `design.md`
+- [x] 11.2 Calibrar a janela de data da fatura com base nesse resultado e resolver as questões em aberto do `design.md` — a janela da fatura **não precisou de calibração**: as 79 casadas vieram de parcela, data+valor exatos e tolerância de centavos, e as 6 ambíguas são empates legítimos. A questão aberta sobre a tolerância da fatura fica respondida: `Data de Compra` casa exato com o que o usuário lançou
+
+Achados que viram trabalho. Todos levados para a change `add-reconciliation-name-mapping`, exceto
+A1, que segue sem change alocada — os demais tocam o mesmo conjunto de arquivos, e separá-los criaria
+conflito entre changes sem ganho de revisão.
+
+- A1 — sugerir par próximo no balde "só no app" em vez de ampliar `DATE_WINDOW_DAYS`. **Sem change
+  alocada.** Cobre o gasto eventual; o de-para da change nova cobre o recorrente conhecido.
+- A2 e A5 — filtrar o balde "só no app" pelo escopo certo: intervalo do arquivo no extrato,
+  `period = invoicePeriod` na fatura.
+- A3 — corrigir o fechamento da fatura: somar todas as linhas menos os pagamentos de fatura.
+- A4 — recalcular o fechamento quando o total da fatura for digitado depois de avançar.
+- A6 — balde próprio, informativo e sem criação, para linhas que não são compra.

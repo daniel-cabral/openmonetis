@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { fetchCategoryMappings } from "@/features/transactions/actions/category-memory-action";
+import { fetchNameMappings } from "@/features/transactions/actions/name-memory-action";
 import {
 	applyReconciliationAction,
 	undoReconciliationAction,
@@ -18,7 +19,13 @@ import {
 	destinationKindForProfile,
 	matchAccountOptionByNumber,
 } from "@/features/transactions/lib/reconciliation-origin";
-import { buildReconciliationApplyPayload } from "@/features/transactions/lib/reconciliation-review";
+import {
+	buildReconciliationApplyPayload,
+	buildReconciliationUndoPayload,
+	deriveReconciliationClosure,
+	filterAppOnlyByScope,
+	isNonPurchaseLine,
+} from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Card,
@@ -31,19 +38,13 @@ import { Label } from "@/shared/components/ui/label";
 import { type DetectResult, detectParserProfile } from "@/shared/lib/import/parsers/detect";
 import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 import type { ImportStatement } from "@/shared/lib/import/types";
-import {
-	checkInvoiceClosure,
-	checkStatementClosure,
-	type InvoiceClosureResult,
-	type StatementClosureResult,
-} from "@/shared/lib/reconciliation/closure";
 import { buildReconciliationFingerprintPayloads } from "@/shared/lib/reconciliation/fingerprint";
 import {
 	type AppTransaction,
 	matchReconciliationRows,
 	type ReconciliationMatch,
 } from "@/shared/lib/reconciliation/matcher";
-import { normalizeDecimalInput } from "@/shared/utils/currency";
+import { derivePeriodFromDate } from "@/shared/utils/period";
 
 interface ReconciliationPageProps {
 	accountOptions: SelectOption[];
@@ -59,10 +60,7 @@ type ReviewState = {
 	match: ReconciliationMatch;
 	appTransactionsById: Map<string, AppTransaction>;
 	learnedCategoryByFingerprint: Map<string, string>;
-	closure:
-		| { kind: "statement"; result: StatementClosureResult }
-		| { kind: "invoice"; result: InvoiceClosureResult }
-		| null;
+	nameMappings: Record<string, string>;
 };
 
 function extendedDateRange(statement: ImportStatement): { from: string; to: string } {
@@ -143,14 +141,31 @@ export function ReconciliationPage({
 			return;
 		}
 
-		const [candidates, categoryMappings] = await Promise.all([
+		// Períodos tocados pelo arquivo: sem eles a busca de candidatos cai só no
+		// intervalo de datas e o recorrente lançado no vencimento nominal nunca
+		// chega ao matcher nem à lista de vínculo manual. Numa fatura o período
+		// tocado é o da fatura, não o da compra original.
+		const periods =
+			destinationKind === "card"
+				? invoicePeriodInput
+					? [invoicePeriodInput]
+					: []
+				: [
+						...new Set(
+							statement.transactions.map((t) => derivePeriodFromDate(t.date)),
+						),
+					];
+
+		const [candidates, categoryMappings, nameMappings] = await Promise.all([
 			fetchReconciliationCandidatesAction({
 				destination,
 				from: range.from,
 				to: range.to,
 				fingerprints,
+				periods,
 			}),
 			fetchCategoryMappings(statement.transactions.map((t) => t.description)),
+			fetchNameMappings(statement.transactions.map((t) => t.description)),
 		]);
 
 		if (!candidates.success) {
@@ -174,6 +189,8 @@ export function ReconciliationPage({
 		const match = matchReconciliationRows({
 			rows,
 			transactions: candidates.transactions,
+			nameMappings,
+			destinationKind,
 		});
 
 		// Linhas já ignoradas em conciliações anteriores não voltam a pedir decisão.
@@ -185,29 +202,13 @@ export function ReconciliationPage({
 			candidates.transactions.map((tx) => [tx.id, tx]),
 		);
 
-		const closure =
-			selectedProfile?.kind === "invoice"
-				? invoiceTotalInput
-					? {
-							kind: "invoice" as const,
-							result: checkInvoiceClosure(
-								statement.transactions,
-								Number(normalizeDecimalInput(invoiceTotalInput)),
-							),
-						}
-					: null
-				: {
-						kind: "statement" as const,
-						result: checkStatementClosure(statement.transactions),
-					};
-
 		setReview({
 			statement,
 			fingerprints,
 			match,
 			appTransactionsById,
 			learnedCategoryByFingerprint,
-			closure,
+			nameMappings,
 		});
 	};
 
@@ -235,22 +236,48 @@ export function ReconciliationPage({
 
 	const payerId = defaultPayerId ?? payerOptions[0]?.value ?? "";
 
+	// Derivado do que já está em memória: digitar o total da fatura depois de
+	// avançar recalcula o fechamento sem refazer o upload.
+	const closure = useMemo(() => {
+		if (!review) return null;
+		return deriveReconciliationClosure({
+			profileKind: selectedProfile?.kind,
+			transactions: review.statement.transactions,
+			invoiceTotalInput,
+		});
+	}, [review, selectedProfile?.kind, invoiceTotalInput]);
+
+	const appOnlyTransactions = useMemo(() => {
+		if (!review || !destinationKind) return [];
+		const transactions = review.match.appOnlyIds
+			.map((id) => review.appTransactionsById.get(id))
+			.filter((tx): tx is AppTransaction => Boolean(tx));
+
+		if (destinationKind === "card") {
+			return filterAppOnlyByScope(transactions, {
+				destinationKind: "card",
+				invoicePeriod: invoicePeriodInput,
+			});
+		}
+		const range = extendedDateRange(review.statement);
+		return filterAppOnlyByScope(transactions, {
+			destinationKind: "account",
+			from: range.from,
+			to: range.to,
+		});
+	}, [review, destinationKind, invoicePeriodInput]);
+
 	const buckets = useMemo(() => {
 		if (!review) return null;
 		return {
 			matched: review.match.rows.filter((r) => r.status === "matched").length,
-			bankOnly: review.match.rows.filter((r) => r.status === "bank-only").length,
-			appOnly: review.match.appOnlyIds.length,
+			bankOnly: review.match.rows.filter(
+				(r) => r.status === "bank-only" && !isNonPurchaseLine(r.row),
+			).length,
+			appOnly: appOnlyTransactions.length,
 			ambiguous: review.match.rows.filter((r) => r.status === "ambiguous").length,
 		};
-	}, [review]);
-
-	const appOnlyTransactions = useMemo(() => {
-		if (!review) return [];
-		return review.match.appOnlyIds
-			.map((id) => review.appTransactionsById.get(id))
-			.filter((tx): tx is AppTransaction => Boolean(tx));
-	}, [review]);
+	}, [review, appOnlyTransactions]);
 
 	const handleApply = (
 		entries: Parameters<typeof buildReconciliationApplyPayload>[0],
@@ -268,6 +295,8 @@ export function ReconciliationPage({
 				confirmations: payload.confirmations,
 				creations: payload.creations,
 				ignores: payload.ignores,
+				manualLinks: payload.manualLinks,
+				amountUpdates: payload.amountUpdates,
 			});
 
 			if (!result.success) {
@@ -275,7 +304,7 @@ export function ReconciliationPage({
 				return;
 			}
 
-			const { importBatchId, reconciled } = result;
+			const undoPayload = buildReconciliationUndoPayload(result);
 			toast.success(
 				`${result.created} criados, ${result.reconciled.length} conciliados, ${result.ignored} ignorados.`,
 				{
@@ -283,10 +312,7 @@ export function ReconciliationPage({
 					action: {
 						label: "Desfazer",
 						onClick: async () => {
-							const undo = await undoReconciliationAction({
-								importBatchId,
-								reconciled,
-							});
+							const undo = await undoReconciliationAction(undoPayload);
 							if (undo.success) toast.success("Conciliação desfeita.");
 							else toast.error("Não foi possível desfazer.");
 						},
@@ -380,12 +406,15 @@ export function ReconciliationPage({
 
 			{review && buckets ? (
 				<>
-					<ReconciliationSummary buckets={buckets} closure={review.closure} />
+					<ReconciliationSummary buckets={buckets} closure={closure} />
 					<ReconciliationReview
 						rows={review.match.rows}
 						appOnlyTransactions={appOnlyTransactions}
 						appTransactionsById={review.appTransactionsById}
 						learnedCategoryByFingerprint={review.learnedCategoryByFingerprint}
+						nameMappings={review.nameMappings}
+						destinationKind={destinationKind}
+						invoicePeriod={invoicePeriodInput}
 						categoryOptions={categoryOptions}
 						payerOptions={payerOptions}
 						defaultPayerId={payerId}

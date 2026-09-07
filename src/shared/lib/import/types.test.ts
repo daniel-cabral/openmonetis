@@ -18,6 +18,7 @@ describe("ImportedTransaction - campos aditivos para conciliação", () => {
 			holderName: "TITULAR TESTE",
 			fx: { currency: "USD", amount: 10 },
 			isPurchase: true,
+			lineKind: "purchase",
 		};
 
 		expect(tx.postedDate).toBe("2026-08-02");
@@ -27,6 +28,33 @@ describe("ImportedTransaction - campos aditivos para conciliação", () => {
 		expect(tx.holderName).toBe("TITULAR TESTE");
 		expect(tx.fx).toEqual({ currency: "USD", amount: 10 });
 		expect(tx.isPurchase).toBe(true);
+		expect(tx.lineKind).toBe("purchase");
+	});
+
+	it("aceita lineKind 'credit' e 'invoice-payment', além de 'purchase'", () => {
+		const credit: ImportedTransaction = {
+			externalId: null,
+			externalIdOccurrence: 0,
+			date: "2026-08-01",
+			amount: 50,
+			description: "ESTORNO",
+			sourceDescription: "ESTORNO",
+			transactionType: "income",
+			lineKind: "credit",
+		};
+		const invoicePayment: ImportedTransaction = {
+			externalId: null,
+			externalIdOccurrence: 0,
+			date: "2026-08-01",
+			amount: 500,
+			description: "PAG FATURA",
+			sourceDescription: "PAG FATURA",
+			transactionType: "income",
+			lineKind: "invoice-payment",
+		};
+
+		expect(credit.lineKind).toBe("credit");
+		expect(invoicePayment.lineKind).toBe("invoice-payment");
 	});
 
 	it("continua aceitando um objeto só com os campos existentes (todos os novos são opcionais)", () => {

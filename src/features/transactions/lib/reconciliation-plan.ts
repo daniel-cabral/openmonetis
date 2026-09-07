@@ -18,9 +18,34 @@ export type ReconciliationCreation = {
 	date: string; // YYYY-MM-DD
 	amount: number; // sempre positivo; o sinal vem de transactionType
 	transactionType: "income" | "expense";
-	description: string;
+	/** Texto bruto do arquivo. Imutável: é sempre ele que chaveia o de-para. */
+	descriptor: string;
+	/** Nome do lançamento, editável pelo usuário na revisão. */
+	name: string;
 	categoryId: string | null;
 	payerId: string;
+};
+
+/**
+ * Linha do arquivo que o usuário apontou à mão para um lançamento existente.
+ * Concilia como uma confirmação e, diferente dela, ensina o de-para de nome:
+ * a decisão é humana e explícita.
+ */
+export type ReconciliationManualLink = {
+	fingerprint: string;
+	transactionId: string;
+	/** Texto bruto do arquivo, chave do de-para. */
+	descriptor: string;
+	/** Nome do lançamento vinculado. */
+	name: string;
+};
+
+/** Escolha explícita de alinhar o valor do lançamento ao do arquivo. */
+export type ReconciliationAmountUpdateDecision = {
+	transactionId: string;
+	amount: number; // sempre positivo; o sinal vem de transactionType
+	transactionType: "income" | "expense";
+	isDivided: boolean;
 };
 
 /** Linha do arquivo marcada como deliberadamente não lançável. */
@@ -38,6 +63,8 @@ export type ReconciliationPlanInput = {
 	confirmations: ReconciliationConfirmation[];
 	creations: ReconciliationCreation[];
 	ignores: ReconciliationIgnoreDecision[];
+	manualLinks?: ReconciliationManualLink[];
+	amountUpdates?: ReconciliationAmountUpdateDecision[];
 };
 
 export type ReconciliationPlan = {
@@ -65,6 +92,12 @@ export type ReconciliationPlan = {
 		descriptionKey: string;
 		categoryId: string;
 	}[];
+	nameMappings: {
+		userId: string;
+		descriptionKey: string;
+		name: string;
+	}[];
+	amountUpdates: { transactionId: string; amount: string }[];
 };
 
 /**
@@ -79,8 +112,10 @@ export function buildReconciliationPlan(
 	// Fatura de cartão pode ainda não ter sido paga, como no import de OFX.
 	const isSettled = input.paymentMethod !== "Cartão de crédito";
 
+	const manualLinks = input.manualLinks ?? [];
+
 	const inserts = input.creations.map((creation) => ({
-		name: creation.description,
+		name: creation.name,
 		transactionType:
 			creation.transactionType === "income" ? "Receita" : "Despesa",
 		condition: "À vista" as const,
@@ -102,10 +137,14 @@ export function buildReconciliationPlan(
 		importBatchId: input.importBatchId,
 	}));
 
-	const fingerprintUpdates = input.confirmations.map((confirmation) => ({
-		transactionId: confirmation.transactionId,
-		fingerprint: confirmation.fingerprint,
-	}));
+	// Vínculo manual concilia igual à confirmação: o que muda é só a origem
+	// da decisão, que o de-para de nome usa mais abaixo.
+	const fingerprintUpdates = [...input.confirmations, ...manualLinks].map(
+		(entry) => ({
+			transactionId: entry.transactionId,
+			fingerprint: entry.fingerprint,
+		}),
+	);
 
 	// De-para aprendido a partir dos matches: só entra quando o lançamento
 	// casado já tem categoria escolhida à mão. Descriptors que normalizam para a
@@ -131,11 +170,58 @@ export function buildReconciliationPlan(
 
 	const categoryMappings = [...categoryMappingByKey.values()];
 
+	// De-para de nome: só decisão humana explícita alimenta (D6). O vínculo
+	// manual vale nos dois destinos; o nome digitado numa criação vale só em
+	// conta, porque na fatura o nome tende a ser específico da compra.
+	const nameMappingByKey = new Map<
+		string,
+		{ userId: string; descriptionKey: string; name: string }
+	>();
+
+	const nameSources: { descriptor: string; name: string }[] = [
+		...(isCard ? [] : input.creations),
+		...manualLinks,
+	];
+
+	for (const source of nameSources) {
+		const name = source.name.trim();
+		if (!name) continue;
+
+		const descriptionKey = normalizeDescriptionKey(source.descriptor);
+		if (!descriptionKey) continue;
+
+		nameMappingByKey.set(descriptionKey, {
+			userId: input.userId,
+			descriptionKey,
+			name,
+		});
+	}
+
+	const nameMappings = [...nameMappingByKey.values()];
+
+	// Lançamento dividido fica de fora: o valor vive distribuído entre as
+	// partes por pagador, e alterar só o total deixaria a soma inconsistente.
+	const amountUpdates = (input.amountUpdates ?? [])
+		.filter((update) => !update.isDivided)
+		.map((update) => ({
+			transactionId: update.transactionId,
+			amount: formatDecimalForDbRequired(
+				update.transactionType === "expense" ? -update.amount : update.amount,
+			),
+		}));
+
 	const ignores = input.ignores.map((ignore) => ({
 		userId: input.userId,
 		fingerprint: ignore.fingerprint,
 		reason: ignore.reason,
 	}));
 
-	return { inserts, fingerprintUpdates, ignores, categoryMappings };
+	return {
+		inserts,
+		fingerprintUpdates,
+		ignores,
+		categoryMappings,
+		nameMappings,
+		amountUpdates,
+	};
 }

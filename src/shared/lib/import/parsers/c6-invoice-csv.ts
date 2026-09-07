@@ -42,6 +42,11 @@ export function parseC6InvoiceCsv(rawContent: string): ImportStatement {
 		const transactionType: ImportedTransaction["transactionType"] =
 			valor < 0 ? "income" : "expense";
 		const isPurchase = valor >= 0;
+		const lineKind: ImportedTransaction["lineKind"] = isPurchase
+			? "purchase"
+			: descricao.trim().toLowerCase().includes("pag fatura")
+				? "invoice-payment"
+				: "credit";
 		const usdValue = parseNumber(valorUsd);
 		const fx = usdValue > 0 ? { currency: "USD", amount: usdValue } : undefined;
 
@@ -59,6 +64,7 @@ export function parseC6InvoiceCsv(rawContent: string): ImportStatement {
 			holderName: nomeNoCartao,
 			fx,
 			isPurchase,
+			lineKind,
 		};
 	});
 

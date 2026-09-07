@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	CategorySelectContent,
 	PayerSelectContent,
 } from "@/features/transactions/components/select-items";
 import type { SelectOption } from "@/features/transactions/components/types";
-import type { ReconciliationRowDecision } from "@/features/transactions/lib/reconciliation-review";
+import {
+	buildConsumedTransactionIds,
+	evaluateApplyBlock,
+	initialRowName,
+	isNonPurchaseLine,
+	linkPeriodForRow,
+	listLinkCandidates,
+	type ReconciliationRowDecision,
+} from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -17,11 +25,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/shared/components/ui/select";
-import type { AppTransaction, RowClassification } from "@/shared/lib/reconciliation/matcher";
+import type {
+	AppTransaction,
+	DestinationKind,
+	RowClassification,
+} from "@/shared/lib/reconciliation/matcher";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDate } from "@/shared/utils/date";
 
-type BankOnlyAction = "create" | "ignore" | "skip";
+type BankOnlyAction = "create" | "link" | "ignore" | "skip";
 type AmbiguousAction = "confirm" | "create" | "ignore" | "skip";
 
 interface ReconciliationReviewProps {
@@ -29,6 +41,9 @@ interface ReconciliationReviewProps {
 	appOnlyTransactions: AppTransaction[];
 	appTransactionsById: Map<string, AppTransaction>;
 	learnedCategoryByFingerprint: Map<string, string>;
+	nameMappings: Record<string, string>;
+	destinationKind: DestinationKind | null;
+	invoicePeriod: string;
 	categoryOptions: SelectOption[];
 	payerOptions: SelectOption[];
 	defaultPayerId: string;
@@ -44,6 +59,9 @@ export function ReconciliationReview({
 	appOnlyTransactions,
 	appTransactionsById,
 	learnedCategoryByFingerprint,
+	nameMappings,
+	destinationKind,
+	invoicePeriod,
 	categoryOptions,
 	payerOptions,
 	defaultPayerId,
@@ -51,14 +69,32 @@ export function ReconciliationReview({
 	onApply,
 }: ReconciliationReviewProps) {
 	const matchedRows = rows.filter((r) => r.status === "matched");
-	const bankOnlyRows = rows.filter((r) => r.status === "bank-only");
+	const bankOnlyRows = rows.filter(
+		(r) => r.status === "bank-only" && !isNonPurchaseLine(r.row),
+	);
+	const informationalRows = rows.filter(
+		(r) => r.status === "bank-only" && isNonPurchaseLine(r.row),
+	);
 	const ambiguousRows = rows.filter((r) => r.status === "ambiguous");
 
 	const [confirmedByFingerprint, setConfirmedByFingerprint] = useState<
 		Record<string, boolean>
 	>({});
+	const [divergenceChoiceByFingerprint, setDivergenceChoiceByFingerprint] = useState<
+		Record<string, "keep" | "update">
+	>({});
 	const [bankOnlyState, setBankOnlyState] = useState<
-		Record<string, { action: BankOnlyAction; categoryId: string | null; payerId: string | null; reason: string }>
+		Record<
+			string,
+			{
+				action: BankOnlyAction;
+				name: string;
+				transactionId: string | null;
+				categoryId: string | null;
+				payerId: string | null;
+				reason: string;
+			}
+		>
 	>({});
 	const [ambiguousState, setAmbiguousState] = useState<
 		Record<
@@ -73,9 +109,15 @@ export function ReconciliationReview({
 		>
 	>({});
 
-	const getBankOnly = (fingerprint: string, categoryRaw: string | null | undefined) =>
+	const getBankOnly = (
+		fingerprint: string,
+		descriptor: string,
+		categoryRaw: string | null | undefined,
+	) =>
 		bankOnlyState[fingerprint] ?? {
 			action: "create" as BankOnlyAction,
+			name: initialRowName(descriptor, nameMappings),
+			transactionId: null,
 			categoryId:
 				learnedCategoryByFingerprint.get(fingerprint) ??
 				matchCategoryByRawLabel(categoryRaw, categoryOptions),
@@ -92,11 +134,53 @@ export function ReconciliationReview({
 			reason: "",
 		};
 
+	// Pool de vínculo manual: todos os candidatos trazidos do destino, filtrados
+	// por período na hora de listar.
+	const linkPool = useMemo(
+		() => Array.from(appTransactionsById.values()),
+		[appTransactionsById],
+	);
+
+	const consumedBy = useMemo(() => {
+		const linkedByFingerprint: Record<string, string | null> = {};
+		for (const [fingerprint, state] of Object.entries(bankOnlyState)) {
+			if (state.action === "link") linkedByFingerprint[fingerprint] = state.transactionId;
+		}
+		for (const [fingerprint, state] of Object.entries(ambiguousState)) {
+			if (state.action === "confirm") linkedByFingerprint[fingerprint] = state.transactionId;
+		}
+		return buildConsumedTransactionIds(rows, linkedByFingerprint);
+	}, [rows, bankOnlyState, ambiguousState]);
+
 	const decisions = (() => {
 		const entries: { fingerprint: string; decision: ReconciliationRowDecision }[] = [];
 
 		for (const row of matchedRows) {
 			if (row.status !== "matched") continue;
+
+			if (row.amountDivergence) {
+				const app = appTransactionsById.get(row.transactionId);
+				const isDivided = app?.isDivided ?? false;
+				const choice = divergenceChoiceByFingerprint[row.fingerprint];
+				entries.push({
+					fingerprint: row.fingerprint,
+					decision: {
+						action: "confirm",
+						transactionId: row.transactionId,
+						descriptor: row.row.description,
+						amountUpdate:
+							choice === "update" && !isDivided
+								? {
+										amount: row.row.amount,
+										transactionType: row.row.transactionType,
+										isDivided,
+									}
+								: undefined,
+					},
+				});
+				continue;
+			}
+
 			const confirmed = confirmedByFingerprint[row.fingerprint] ?? true;
 			entries.push({
 				fingerprint: row.fingerprint,
@@ -111,7 +195,11 @@ export function ReconciliationReview({
 		}
 
 		for (const row of bankOnlyRows) {
-			const state = getBankOnly(row.fingerprint, row.row.categoryRaw);
+			const state = getBankOnly(
+				row.fingerprint,
+				row.row.description,
+				row.row.categoryRaw,
+			);
 			entries.push({
 				fingerprint: row.fingerprint,
 				decision:
@@ -121,13 +209,23 @@ export function ReconciliationReview({
 								date: row.row.date,
 								amount: row.row.amount,
 								transactionType: row.row.transactionType,
-								description: row.row.description,
+								descriptor: row.row.description,
+								name: state.name,
 								categoryId: state.categoryId,
 								payerId: state.payerId,
 							}
-						: state.action === "ignore"
-							? { action: "ignore", reason: state.reason || "Não lançável" }
-							: { action: "skip" },
+						: state.action === "link" && state.transactionId
+							? {
+									action: "link",
+									transactionId: state.transactionId,
+									descriptor: row.row.description,
+									name:
+										appTransactionsById.get(state.transactionId)?.name ??
+										state.name,
+								}
+							: state.action === "ignore"
+								? { action: "ignore", reason: state.reason || "Não lançável" }
+								: { action: "skip" },
 			});
 		}
 
@@ -148,7 +246,8 @@ export function ReconciliationReview({
 									date: row.row.date,
 									amount: row.row.amount,
 									transactionType: row.row.transactionType,
-									description: row.row.description,
+									descriptor: row.row.description,
+									name: row.row.description,
 									categoryId: state.categoryId,
 									payerId: state.payerId,
 								}
@@ -161,8 +260,26 @@ export function ReconciliationReview({
 		return entries;
 	})();
 
+	const unresolvedDivergentCount = matchedRows.filter(
+		(row) =>
+			row.status === "matched" &&
+			row.amountDivergence &&
+			divergenceChoiceByFingerprint[row.fingerprint] === undefined,
+	).length;
+
+	const emptyNameCreationCount = bankOnlyRows.filter((row) => {
+		const state = getBankOnly(row.fingerprint, row.row.description, row.row.categoryRaw);
+		return state.action === "create" && state.name.trim() === "";
+	}).length;
+
+	const applyBlock = evaluateApplyBlock({
+		unresolvedDivergentCount,
+		emptyNameCreationCount,
+	});
+
 	const canApply =
 		!isApplying &&
+		!applyBlock.blocked &&
 		decisions.some((entry) => entry.decision.action !== "skip");
 
 	return (
@@ -171,6 +288,77 @@ export function ReconciliationReview({
 				{matchedRows.map((row) => {
 					if (row.status !== "matched") return null;
 					const app = appTransactionsById.get(row.transactionId);
+
+					if (row.amountDivergence) {
+						const isDivided = app?.isDivided ?? false;
+						const choice = divergenceChoiceByFingerprint[row.fingerprint];
+						return (
+							<RowCard key={row.fingerprint}>
+								<div className="flex flex-col gap-2">
+									<div className="flex flex-col">
+										<span className="font-medium">{row.row.description}</span>
+										<span className="text-muted-foreground text-xs">
+											{formatDate(row.row.date)} · app{" "}
+											{formatCurrency(
+												signedAmount(
+													row.amountDivergence.appAmount,
+													row.row.transactionType,
+												),
+											)}{" "}
+											→ arquivo{" "}
+											{formatCurrency(
+												signedAmount(
+													row.amountDivergence.rowAmount,
+													row.row.transactionType,
+												),
+											)}
+										</span>
+									</div>
+									<div className="flex flex-wrap items-center gap-2">
+										<Button
+											type="button"
+											size="sm"
+											variant={choice === "keep" ? "default" : "outline"}
+											onClick={() =>
+												setDivergenceChoiceByFingerprint((prev) => ({
+													...prev,
+													[row.fingerprint]: "keep",
+												}))
+											}
+										>
+											Manter valor do app
+										</Button>
+										<Button
+											type="button"
+											size="sm"
+											variant={choice === "update" ? "default" : "outline"}
+											disabled={isDivided}
+											onClick={() =>
+												setDivergenceChoiceByFingerprint((prev) => ({
+													...prev,
+													[row.fingerprint]: "update",
+												}))
+											}
+										>
+											Atualizar para o valor do arquivo
+										</Button>
+										{isDivided && (
+											<span className="text-muted-foreground text-xs">
+												Lançamento dividido: o valor vive rateado entre as
+												partes, não dá para atualizar aqui.
+											</span>
+										)}
+										{!isDivided && !choice && (
+											<span className="text-destructive text-xs">
+												Escolha pendente.
+											</span>
+										)}
+									</div>
+								</div>
+							</RowCard>
+						);
+					}
+
 					const confirmed = confirmedByFingerprint[row.fingerprint] ?? true;
 					return (
 						<RowCard key={row.fingerprint}>
@@ -201,18 +389,32 @@ export function ReconciliationReview({
 
 			<BucketSection title={`Só no banco (${bankOnlyRows.length})`}>
 				{bankOnlyRows.map((row) => {
-					const state = getBankOnly(row.fingerprint, row.row.categoryRaw);
+					const state = getBankOnly(
+						row.fingerprint,
+						row.row.description,
+						row.row.categoryRaw,
+					);
+					const linkCandidates = listLinkCandidates({
+						transactions: linkPool,
+						period: linkPeriodForRow({
+							date: row.row.date,
+							destinationKind,
+							invoicePeriod,
+						}),
+						consumedBy,
+						fingerprint: row.fingerprint,
+					});
 					return (
 						<RowCard key={row.fingerprint}>
-							<div className="flex flex-col gap-2">
-								<div className="flex flex-col">
+							<div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:gap-6">
+								<div className="flex min-w-0 flex-col xl:w-64 xl:shrink-0">
 									<span className="font-medium">{row.row.description}</span>
 									<span className="text-muted-foreground text-xs">
 										{formatDate(row.row.date)} ·{" "}
 										{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
 									</span>
 								</div>
-								<div className="flex flex-wrap items-center gap-2">
+								<div className="flex flex-1 flex-wrap items-center gap-3">
 									<Select
 										value={state.action}
 										onValueChange={(value) =>
@@ -222,11 +424,14 @@ export function ReconciliationReview({
 											}))
 										}
 									>
-										<SelectTrigger className="w-40">
+										<SelectTrigger className="w-56">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
 											<SelectItem value="create">Criar lançamento</SelectItem>
+											<SelectItem value="link">
+												Vincular a lançamento existente
+											</SelectItem>
 											<SelectItem value="ignore">Ignorar</SelectItem>
 											<SelectItem value="skip">Pular</SelectItem>
 										</SelectContent>
@@ -234,6 +439,17 @@ export function ReconciliationReview({
 
 									{state.action === "create" && (
 										<>
+											<Input
+												className="min-w-56 flex-1"
+												placeholder="Nome do lançamento…"
+												value={state.name}
+												onChange={(e) =>
+													setBankOnlyState((prev) => ({
+														...prev,
+														[row.fingerprint]: { ...state, name: e.target.value },
+													}))
+												}
+											/>
 											<Select
 												value={state.categoryId ?? ""}
 												onValueChange={(value) =>
@@ -243,7 +459,7 @@ export function ReconciliationReview({
 													}))
 												}
 											>
-												<SelectTrigger className="w-48">
+												<SelectTrigger className="w-52">
 													<SelectValue placeholder="Categoria…" />
 												</SelectTrigger>
 												<SelectContent>
@@ -266,7 +482,7 @@ export function ReconciliationReview({
 													}))
 												}
 											>
-												<SelectTrigger className="w-40">
+												<SelectTrigger className="w-44">
 													<SelectValue placeholder="Pessoa…" />
 												</SelectTrigger>
 												<SelectContent>
@@ -281,6 +497,44 @@ export function ReconciliationReview({
 												</SelectContent>
 											</Select>
 										</>
+									)}
+
+									{state.action === "link" && (
+										<Select
+											value={state.transactionId ?? ""}
+											onValueChange={(value) =>
+												setBankOnlyState((prev) => ({
+													...prev,
+													[row.fingerprint]: { ...state, transactionId: value },
+												}))
+											}
+										>
+											<SelectTrigger className="min-w-72 flex-1">
+												<SelectValue placeholder="Escolher lançamento…" />
+											</SelectTrigger>
+											<SelectContent>
+												{linkCandidates.map(({ transaction, consumed }) => (
+													<SelectItem
+														key={transaction.id}
+														value={transaction.id}
+														disabled={consumed}
+													>
+														{`${transaction.name} · ${formatDate(transaction.date)} · ${formatCurrency(
+															signedAmount(
+																transaction.amount,
+																transaction.transactionType,
+															),
+														)}${consumed ? " · já usado" : ""}`}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
+
+									{state.action === "link" && linkCandidates.length === 0 && (
+										<span className="text-muted-foreground text-xs">
+											Nenhum lançamento neste período.
+										</span>
 									)}
 
 									{state.action === "ignore" && (
@@ -302,6 +556,23 @@ export function ReconciliationReview({
 					);
 				})}
 				{bankOnlyRows.length === 0 && <EmptyBucket />}
+			</BucketSection>
+
+			<BucketSection title={`Informativo (${informationalRows.length})`}>
+				{informationalRows.map((row) => (
+					<RowCard key={row.fingerprint}>
+						<div className="flex flex-col">
+							<span className="font-medium">{row.row.description}</span>
+							<span className="text-muted-foreground text-xs">
+								{formatDate(row.row.date)} ·{" "}
+								{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
+								{" · "}
+								{row.row.lineKind === "invoice-payment" ? "Pagamento de fatura" : "Estorno"}
+							</span>
+						</div>
+					</RowCard>
+				))}
+				{informationalRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
 			<BucketSection title={`Só no app (${appOnlyTransactions.length})`}>
@@ -407,7 +678,10 @@ export function ReconciliationReview({
 				{ambiguousRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
-			<div className="flex justify-end">
+			<div className="flex flex-col items-end gap-1">
+				{applyBlock.blocked && (
+					<span className="text-destructive text-xs">{applyBlock.reason}</span>
+				)}
 				<Button disabled={!canApply} onClick={() => onApply(decisions)}>
 					{isApplying ? "Aplicando…" : "Aplicar"}
 				</Button>

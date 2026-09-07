@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseC6InvoiceCsv } from "@/shared/lib/import/parsers/c6-invoice-csv";
 import { parseC6StatementCsv } from "@/shared/lib/import/parsers/c6-statement-csv";
 import type { ImportedTransaction } from "@/shared/lib/import/types";
 import { checkInvoiceClosure, checkStatementClosure } from "./closure";
@@ -13,10 +12,6 @@ function readFixture(name: string) {
 
 function statementTransactions() {
 	return parseC6StatementCsv(readFixture("c6-extrato.csv")).transactions;
-}
-
-function invoiceTransactions() {
-	return parseC6InvoiceCsv(readFixture("c6-fatura.csv")).transactions;
 }
 
 describe("checkStatementClosure", () => {
@@ -84,6 +79,8 @@ describe("checkStatementClosure", () => {
 				installmentCount: null,
 				currentInstallment: null,
 				fingerprint: `fp-${index}`,
+				period: row.date.slice(0, 7),
+				isDivided: false,
 			})),
 		});
 
@@ -133,32 +130,53 @@ describe("checkStatementClosure", () => {
 	});
 });
 
+function invoiceLine(
+	overrides: Partial<ImportedTransaction> & Pick<ImportedTransaction, "amount" | "transactionType" | "lineKind">,
+): ImportedTransaction {
+	return {
+		externalId: null,
+		externalIdOccurrence: 0,
+		date: "2026-08-01",
+		description: "linha",
+		sourceDescription: "linha",
+		isPurchase: overrides.lineKind === "purchase",
+		...overrides,
+	};
+}
+
+// Fatura real de 2026-08: compras 13034,33 + crédito −98,00 + pagamento
+// −12164,10 fecha exato contra o total informado de 12936,33 (o pagamento
+// fica fora da soma, e o crédito entra com sinal negativo).
+function fatura202608(): ImportedTransaction[] {
+	return [
+		invoiceLine({ amount: 13034.33, transactionType: "expense", lineKind: "purchase" }),
+		invoiceLine({ amount: 98.0, transactionType: "income", lineKind: "credit" }),
+		invoiceLine({ amount: 12164.1, transactionType: "income", lineKind: "invoice-payment" }),
+	];
+}
+
 describe("checkInvoiceClosure", () => {
-	it("soma apenas as compras e fecha contra o total informado", () => {
-		const result = checkInvoiceClosure(invoiceTransactions(), 23440.5);
+	it("soma compras e créditos, exclui o pagamento, e fecha contra o total informado", () => {
+		const result = checkInvoiceClosure(fatura202608(), 12936.33);
 
 		expect(result).toEqual({
 			closes: true,
-			purchasesSum: 23440.5,
-			expectedTotal: 23440.5,
+			purchasesSum: 12936.33,
+			expectedTotal: 12936.33,
 			difference: 0,
 		});
 	});
 
-	it("exclui pagamentos e estornos da soma", () => {
-		const transactions = invoiceTransactions();
-		const naoCompras = transactions.filter(
-			(transaction) => transaction.isPurchase === false,
-		);
+	it("reporta a diferença quando o total informado foi adulterado", () => {
+		const result = checkInvoiceClosure(fatura202608(), 13000);
 
-		expect(naoCompras).toHaveLength(2);
-		// Se as não-compras entrassem na soma, o total seria 13865.50.
-		expect(checkInvoiceClosure(transactions, 13865.5).closes).toBe(false);
+		expect(result).toMatchObject({ closes: false, difference: 63.67 });
 	});
 
-	it("reporta a diferença quando a soma das compras não bate com o total", () => {
-		const result = checkInvoiceClosure(invoiceTransactions(), 23400);
-
-		expect(result).toMatchObject({ closes: false, difference: -40.5 });
+	it("exclui o pagamento da soma mesmo quando ele fecharia contra o total", () => {
+		const transactions = fatura202608();
+		// Se o pagamento entrasse na soma (13034.33 - 98.00 - 12164.10 = 772.23),
+		// o fechamento contra 772.23 daria certo — mas não deve.
+		expect(checkInvoiceClosure(transactions, 772.23).closes).toBe(false);
 	});
 });

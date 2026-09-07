@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
 import type { ImportedTransaction } from "@/shared/lib/import/types";
-import type { ReconciliationMatch, RowClassification } from "@/shared/lib/reconciliation/matcher";
+import type {
+	AppTransaction,
+	ReconciliationMatch,
+	RowClassification,
+} from "@/shared/lib/reconciliation/matcher";
 import {
+	buildConsumedTransactionIds,
 	buildReconciliationApplyPayload,
+	buildReconciliationUndoPayload,
+	deriveReconciliationClosure,
+	evaluateApplyBlock,
+	filterAppOnlyByScope,
+	initialRowName,
+	isNonPurchaseLine,
+	linkPeriodForRow,
+	listLinkCandidates,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
 
@@ -29,6 +42,7 @@ describe("summarizeReconciliationMatch", () => {
 				status: "matched",
 				rule: "exact",
 				transactionId: "tx-1",
+				amountDivergence: null,
 			},
 			{ index: 1, fingerprint: "fp-2", row: row(), status: "bank-only" },
 			{
@@ -71,7 +85,8 @@ describe("buildReconciliationApplyPayload", () => {
 						date: "2026-07-10",
 						amount: 25.9,
 						transactionType: "expense",
-						description: "LOJA NOVA",
+						descriptor: "LOJA TESTE",
+						name: "LOJA NOVA",
 						categoryId: "cat-1",
 						payerId: null,
 					},
@@ -99,13 +114,91 @@ describe("buildReconciliationApplyPayload", () => {
 					date: "2026-07-10",
 					amount: 25.9,
 					transactionType: "expense",
-					description: "LOJA NOVA",
+					descriptor: "LOJA TESTE",
+					name: "LOJA NOVA",
 					categoryId: "cat-1",
 					payerId: defaultPayerId,
 				},
 			],
+			manualLinks: [],
+			amountUpdates: [],
 			ignores: [{ fingerprint: "fp-ignore", reason: "Pagamento de fatura" }],
 		});
+	});
+
+	it("mapeia amountUpdate da escolha de atualizar em confirm", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-divergente",
+					decision: {
+						action: "confirm",
+						transactionId: "tx-1",
+						descriptor: "LOJA TESTE",
+						amountUpdate: {
+							amount: 30,
+							transactionType: "expense",
+							isDivided: false,
+						},
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.amountUpdates).toEqual([
+			{
+				transactionId: "tx-1",
+				amount: 30,
+				transactionType: "expense",
+				isDivided: false,
+			},
+		]);
+	});
+
+	it("nao gera amountUpdate quando a escolha e manter", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-mantido",
+					decision: {
+						action: "confirm",
+						transactionId: "tx-1",
+						descriptor: "LOJA TESTE",
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.amountUpdates).toEqual([]);
+	});
+
+	it("mapeia link em manualLinks, com descriptor bruto e nome do lançamento", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-link",
+					decision: {
+						action: "link",
+						transactionId: "tx-9",
+						descriptor: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
+						name: "Aluguel",
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.manualLinks).toEqual([
+			{
+				fingerprint: "fp-link",
+				transactionId: "tx-9",
+				descriptor: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
+				name: "Aluguel",
+			},
+		]);
+		expect(payload.confirmations).toEqual([]);
 	});
 
 	it("mantém payerId explícito da criação quando informado", () => {
@@ -118,7 +211,8 @@ describe("buildReconciliationApplyPayload", () => {
 						date: "2026-07-10",
 						amount: 10,
 						transactionType: "income",
-						description: "X",
+						descriptor: "X BRUTO",
+						name: "X",
 						categoryId: null,
 						payerId: "payer-explicit",
 					},
@@ -128,5 +222,280 @@ describe("buildReconciliationApplyPayload", () => {
 		);
 
 		expect(payload.creations[0]?.payerId).toBe("payer-explicit");
+	});
+});
+
+describe("isNonPurchaseLine", () => {
+	it("é falso quando lineKind é purchase ou ausente (extrato)", () => {
+		expect(isNonPurchaseLine(row({ lineKind: "purchase" }))).toBe(false);
+		expect(isNonPurchaseLine(row({ lineKind: undefined }))).toBe(false);
+	});
+
+	it("é verdadeiro para credit e invoice-payment", () => {
+		expect(isNonPurchaseLine(row({ lineKind: "credit" }))).toBe(true);
+		expect(isNonPurchaseLine(row({ lineKind: "invoice-payment" }))).toBe(true);
+	});
+});
+
+describe("filterAppOnlyByScope", () => {
+	function appTx(overrides: Partial<AppTransaction> = {}): AppTransaction {
+		return {
+			id: "tx-1",
+			name: "Lançamento",
+			date: "2026-08-10",
+			amount: 100,
+			transactionType: "expense",
+			installmentCount: null,
+			currentInstallment: null,
+			fingerprint: null,
+			period: "2026-08",
+			isDivided: false,
+			...overrides,
+		};
+	}
+
+	it("filtra por intervalo [from, to] quando o destino é conta", () => {
+		const transactions = [
+			appTx({ id: "dentro", date: "2026-08-15" }),
+			appTx({ id: "antes", date: "2026-07-31" }),
+			appTx({ id: "depois", date: "2026-09-01" }),
+		];
+
+		const result = filterAppOnlyByScope(transactions, {
+			destinationKind: "account",
+			from: "2026-08-01",
+			to: "2026-08-31",
+		});
+
+		expect(result.map((tx) => tx.id)).toEqual(["dentro"]);
+	});
+
+	it("filtra por period = invoicePeriod quando o destino é cartão", () => {
+		const transactions = [
+			appTx({ id: "mesmo-periodo", period: "2026-08", date: "2025-12-01" }),
+			appTx({ id: "outro-periodo", period: "2026-07" }),
+		];
+
+		const result = filterAppOnlyByScope(transactions, {
+			destinationKind: "card",
+			invoicePeriod: "2026-08",
+		});
+
+		expect(result.map((tx) => tx.id)).toEqual(["mesmo-periodo"]);
+	});
+});
+
+describe("deriveReconciliationClosure", () => {
+	it("deriva fechamento de extrato quando o perfil não é fatura", () => {
+		const closure = deriveReconciliationClosure({
+			profileKind: "statement",
+			transactions: [row()],
+			invoiceTotalInput: "",
+		});
+
+		expect(closure?.kind).toBe("statement");
+	});
+
+	it("retorna null para fatura sem total informado", () => {
+		const closure = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions: [row()],
+			invoiceTotalInput: "",
+		});
+
+		expect(closure).toBeNull();
+	});
+
+	it("deriva fechamento de fatura a partir do total informado", () => {
+		const closure = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions: [row({ amount: 25.9, transactionType: "expense" })],
+			invoiceTotalInput: "25,90",
+		});
+
+		expect(closure?.kind).toBe("invoice");
+		expect(closure?.kind === "invoice" && closure.result.closes).toBe(true);
+	});
+
+	it("recalcula quando o total informado muda, sem novos dados", () => {
+		const transactions = [row({ amount: 25.9, transactionType: "expense" })];
+
+		const divergente = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions,
+			invoiceTotalInput: "10,00",
+		});
+		const fechado = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions,
+			invoiceTotalInput: "25,90",
+		});
+
+		expect(divergente?.kind === "invoice" && divergente.result.closes).toBe(
+			false,
+		);
+		expect(fechado?.kind === "invoice" && fechado.result.closes).toBe(true);
+	});
+});
+
+describe("initialRowName", () => {
+	it("usa o nome aprendido quando a chave do descriptor está no de-para", () => {
+		expect(
+			initialRowName("CASA NOVA LOCADORA LTDA - EPP - Boleto", {
+				"casa nova locadora ltda - epp - boleto": "Aluguel",
+			}),
+		).toBe("Aluguel");
+	});
+
+	it("cai no descriptor bruto quando não há nome aprendido", () => {
+		expect(initialRowName("LOJA TESTE", {})).toBe("LOJA TESTE");
+	});
+});
+
+describe("linkPeriodForRow", () => {
+	it("usa o período da fatura quando o destino é cartão", () => {
+		expect(
+			linkPeriodForRow({
+				date: "2026-07-28",
+				destinationKind: "card",
+				invoicePeriod: "2026-08",
+			}),
+		).toBe("2026-08");
+	});
+
+	it("deriva o período da data da linha quando o destino é conta", () => {
+		expect(
+			linkPeriodForRow({
+				date: "2026-08-11",
+				destinationKind: "account",
+				invoicePeriod: "",
+			}),
+		).toBe("2026-08");
+	});
+});
+
+describe("buildConsumedTransactionIds", () => {
+	it("marca casadas e vínculos já escolhidos, guardando quem consumiu", () => {
+		const rows: RowClassification[] = [
+			{
+				index: 0,
+				fingerprint: "fp-1",
+				row: row(),
+				status: "matched",
+				rule: "exact",
+				transactionId: "tx-1",
+				amountDivergence: null,
+			},
+			{ index: 1, fingerprint: "fp-2", row: row(), status: "bank-only" },
+		];
+
+		const consumed = buildConsumedTransactionIds(rows, { "fp-2": "tx-2" });
+
+		expect(consumed.get("tx-1")).toBe("fp-1");
+		expect(consumed.get("tx-2")).toBe("fp-2");
+	});
+});
+
+describe("listLinkCandidates", () => {
+	function appTx(overrides: Partial<AppTransaction> = {}): AppTransaction {
+		return {
+			id: "tx-1",
+			name: "Lançamento",
+			date: "2026-08-10",
+			amount: 100,
+			transactionType: "expense",
+			installmentCount: null,
+			currentInstallment: null,
+			fingerprint: null,
+			period: "2026-08",
+			isDivided: false,
+			...overrides,
+		};
+	}
+
+	it("lista só os lançamentos do período da linha", () => {
+		const result = listLinkCandidates({
+			transactions: [
+				appTx({ id: "no-periodo" }),
+				appTx({ id: "outro-periodo", period: "2026-07" }),
+			],
+			period: "2026-08",
+			consumedBy: new Map(),
+			fingerprint: "fp-1",
+		});
+
+		expect(result.map((c) => c.transaction.id)).toEqual(["no-periodo"]);
+	});
+
+	it("mantém visível o consumido por outra linha, marcado como indisponível", () => {
+		const result = listLinkCandidates({
+			transactions: [appTx({ id: "tx-1" }), appTx({ id: "tx-2" })],
+			period: "2026-08",
+			consumedBy: new Map([
+				["tx-1", "outra-fp"],
+				["tx-2", "fp-1"],
+			]),
+			fingerprint: "fp-1",
+		});
+
+		expect(result).toHaveLength(2);
+		expect(result.find((c) => c.transaction.id === "tx-1")?.consumed).toBe(true);
+		// o escolhido pela própria linha continua disponível para ela
+		expect(result.find((c) => c.transaction.id === "tx-2")?.consumed).toBe(false);
+	});
+});
+
+describe("evaluateApplyBlock", () => {
+	it("não bloqueia quando não há divergência pendente nem criação sem nome", () => {
+		expect(
+			evaluateApplyBlock({ unresolvedDivergentCount: 0, emptyNameCreationCount: 0 }),
+		).toEqual({ blocked: false });
+	});
+
+	it("bloqueia com o motivo à vista quando há divergência sem escolha", () => {
+		const result = evaluateApplyBlock({
+			unresolvedDivergentCount: 2,
+			emptyNameCreationCount: 0,
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.blocked && result.reason).toMatch(/divergência/);
+	});
+
+	it("bloqueia com o motivo à vista quando há criação sem nome", () => {
+		const result = evaluateApplyBlock({
+			unresolvedDivergentCount: 0,
+			emptyNameCreationCount: 1,
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.blocked && result.reason).toMatch(/nome/);
+	});
+
+	it("combina os dois motivos quando ambos ocorrem", () => {
+		const result = evaluateApplyBlock({
+			unresolvedDivergentCount: 1,
+			emptyNameCreationCount: 1,
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.blocked && result.reason).toMatch(/divergência/);
+		expect(result.blocked && result.reason).toMatch(/nome/);
+	});
+});
+
+describe("buildReconciliationUndoPayload", () => {
+	it("leva os valores anteriores do aplicar para o desfazer", () => {
+		const applyResult = {
+			success: true as const,
+			importBatchId: "batch-1",
+			created: 1,
+			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
+			ignored: 0,
+			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+		};
+
+		expect(buildReconciliationUndoPayload(applyResult)).toEqual({
+			importBatchId: "batch-1",
+			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
+			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+		});
 	});
 });

@@ -14,6 +14,7 @@ export type ImportedTransaction = {
 	holderName?: string; // titular do cartão (fatura)
 	fx?: { currency: string; amount: number }; // valor em moeda estrangeira, quando houver
 	isPurchase?: boolean; // false para linhas de pagamento/estorno na fatura
+	lineKind?: "purchase" | "credit" | "invoice-payment"; // classificação da linha na fatura
 };
 
 export type ImportStatement = {
