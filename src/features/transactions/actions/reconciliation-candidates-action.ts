@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gte, lte } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, or } from "drizzle-orm";
 import { z } from "zod";
 import { reconciliationIgnores, transactions } from "@/db/schema";
 import {
@@ -24,6 +24,7 @@ const inputSchema = z.object({
 	from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida."),
 	to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida."),
 	fingerprints: z.array(z.string().min(1)),
+	periods: z.array(z.string().regex(/^\d{4}-\d{2}$/)).default([]),
 });
 
 export type FetchReconciliationCandidatesInput = z.input<typeof inputSchema>;
@@ -60,7 +61,7 @@ export async function fetchReconciliationCandidatesAction(
 		};
 	}
 
-	const { destination, from, to, fingerprints } = parsed.data;
+	const { destination, from, to, fingerprints, periods } = parsed.data;
 
 	const destinationOk =
 		destination.type === "card"
@@ -81,6 +82,23 @@ export async function fetchReconciliationCandidatesAction(
 	const rangeFrom = new Date(parsedFrom.getTime() - RANGE_BUFFER_DAYS * DAY_IN_MS);
 	const rangeTo = new Date(parsedTo.getTime() + RANGE_BUFFER_DAYS * DAY_IN_MS);
 
+	// A data comprada pode cair fora do intervalo do arquivo (ex.: compra de
+	// 28/07 pertence ao período 2026-08 da fatura), então o lançamento também
+	// entra quando o período bate, mesmo com a data fora da folga.
+	const dateOrPeriod =
+		periods.length > 0
+			? or(
+					and(
+						gte(transactions.purchaseDate, rangeFrom),
+						lte(transactions.purchaseDate, rangeTo),
+					),
+					inArray(transactions.period, periods),
+				)
+			: and(
+					gte(transactions.purchaseDate, rangeFrom),
+					lte(transactions.purchaseDate, rangeTo),
+				);
+
 	const [candidateRows, ignoredRows] = await Promise.all([
 		db
 			.select({
@@ -92,6 +110,8 @@ export async function fetchReconciliationCandidatesAction(
 				installmentCount: transactions.installmentCount,
 				currentInstallment: transactions.currentInstallment,
 				ofxImportFingerprint: transactions.ofxImportFingerprint,
+				period: transactions.period,
+				isDivided: transactions.isDivided,
 			})
 			.from(transactions)
 			.where(
@@ -100,8 +120,7 @@ export async function fetchReconciliationCandidatesAction(
 					destination.type === "card"
 						? eq(transactions.cardId, destination.id)
 						: eq(transactions.accountId, destination.id),
-					gte(transactions.purchaseDate, rangeFrom),
-					lte(transactions.purchaseDate, rangeTo),
+					dateOrPeriod,
 				),
 			),
 		fingerprints.length > 0

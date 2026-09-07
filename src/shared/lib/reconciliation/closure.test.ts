@@ -79,6 +79,8 @@ describe("checkStatementClosure", () => {
 				installmentCount: null,
 				currentInstallment: null,
 				fingerprint: `fp-${index}`,
+				period: row.date.slice(0, 7),
+				isDivided: false,
 			})),
 		});
 

@@ -45,6 +45,8 @@ function transaction(overrides: Partial<AppTransaction> = {}): AppTransaction {
 		installmentCount: null,
 		currentInstallment: null,
 		fingerprint: null,
+		period: "2026-07",
+		isDivided: false,
 		...overrides,
 	};
 }

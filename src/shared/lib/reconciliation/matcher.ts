@@ -21,6 +21,8 @@ export type AppTransaction = {
 	installmentCount: number | null;
 	currentInstallment: number | null;
 	fingerprint: string | null; // ofx_import_fingerprint já gravado
+	period: string; // YYYY-MM, usado pela regra name-period
+	isDivided: boolean; // lançamento dividido, restringe a regra name-period
 };
 
 export type ReconciliationRow = {

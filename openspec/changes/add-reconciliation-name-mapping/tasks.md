@@ -14,8 +14,8 @@
 
 ## 3. Matcher
 
-- [ ] 3.1 Acrescentar `period: string` e `isDivided: boolean` a `AppTransaction`; mapear em `toAppTransaction` e selecionar as colunas `periodo` e `dividido` em `reconciliation-candidates-action.ts`
-- [ ] 3.2 Ampliar a busca de candidatos: trazer lançamentos que satisfaçam o intervalo de datas com folga **ou** um dos períodos tocados pelo arquivo — sem isso um lançamento do período 2026-08 com data de compra em 28/07 nunca chega ao matcher
+- [x] 3.1 Acrescentar `period: string` e `isDivided: boolean` a `AppTransaction`; mapear em `toAppTransaction` e selecionar as colunas `periodo` e `dividido` em `reconciliation-candidates-action.ts`
+- [x] 3.2 Ampliar a busca de candidatos: trazer lançamentos que satisfaçam o intervalo de datas com folga **ou** um dos períodos tocados pelo arquivo — sem isso um lançamento do período 2026-08 com data de compra em 28/07 nunca chega ao matcher
 - [ ] 3.3 Acrescentar `"name-period"` a `MatchRule` e os parâmetros novos de `matchReconciliationRows`: `nameMappings` (chave → nome) e o tipo de destino. **Sem `invoicePeriod`** — a regra vale só para conta, onde o período vem sempre de `derivePeriodFromDate(row.date)`; o `invoicePeriod` é usado no filtro do balde (4.4), não no matcher
 - [ ] 3.4 Implementar a regra, **apenas para destino conta**: candidatos são lançamentos com `name` igual ao aprendido, `period` igual ao período da linha (`derivePeriodFromDate(row.date)`) e mesmo `transactionType`. Data e valor não entram
 - [ ] 3.5 Registrar a regra em `MATCH_RULES` na quinta posição, depois de `cents` — antes da `exact` faria memória antiga sobrepor casamento forte do mês corrente

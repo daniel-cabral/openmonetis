@@ -17,6 +17,8 @@ function dbRow(
 		installmentCount: null,
 		currentInstallment: null,
 		ofxImportFingerprint: null,
+		period: "2026-07",
+		isDivided: false,
 		...overrides,
 	};
 }
@@ -56,6 +58,14 @@ describe("toAppTransaction", () => {
 			currentInstallment: 2,
 			fingerprint: "fp-a",
 		});
+	});
+
+	it("leva period e isDivided para o matcher usar na regra de nome+período", () => {
+		const app = toAppTransaction(
+			dbRow({ period: "2026-08", isDivided: true }),
+		);
+
+		expect(app).toMatchObject({ period: "2026-08", isDivided: true });
 	});
 
 	it("casa uma despesa do banco com a linha de despesa do arquivo", () => {
