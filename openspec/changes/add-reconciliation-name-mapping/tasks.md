@@ -7,10 +7,10 @@
 ## 2. Parser e fechamento da fatura
 
 - [x] 2.1 Acrescentar `lineKind?: "purchase" | "credit" | "invoice-payment"` a `ImportedTransaction` em `src/shared/lib/import/types.ts` — campo aditivo opcional, **sem tocar em `isPurchase`**, que continua como está para não quebrar o import de OFX do upstream
-- [ ] 2.2 `c6-invoice-csv.ts` — preencher `lineKind`: valor positivo é `purchase`; valor negativo cuja descrição casa `Pag Fatura` é `invoice-payment`; os demais negativos são `credit`
+- [x] 2.2 `c6-invoice-csv.ts` — preencher `lineKind`: valor positivo é `purchase`; valor negativo cuja descrição casa `Pag Fatura` é `invoice-payment`; os demais negativos são `credit`
 - [ ] 2.3 `closure.ts` — `checkInvoiceClosure` passa a somar todas as linhas exceto `lineKind === "invoice-payment"`, em vez de filtrar por `isPurchase`
 - [ ] 2.4 Testes do fechamento com os números reais da fatura de 2026-08: compras 13.034,33 + crédito −98,00 + pagamento −12.164,10, total informado 12.936,33 → fecha com diferença zero; e um caso com total adulterado provando que a divergência é reportada
-- [ ] 2.5 Teste provando que a classificação distingue `Estorno Tarifa` de `Pag Fatura Boleto`, e que `isPurchase` continua com o comportamento antigo
+- [x] 2.5 Teste provando que a classificação distingue `Estorno Tarifa` de `Pag Fatura Boleto`, e que `isPurchase` continua com o comportamento antigo
 
 ## 3. Matcher
 

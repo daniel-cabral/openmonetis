@@ -88,6 +88,21 @@ describe("parseC6InvoiceCsv", () => {
 		expect(semFx?.fx).toBeUndefined();
 	});
 
+	it("classifica lineKind distinguindo Estorno Tarifa de Pag Fatura Boleto", () => {
+		const result = parseC6InvoiceCsv(readFixture());
+		const pagamento = result.transactions.find(
+			(t) => t.description === "Pag Fatura Boleto",
+		);
+		const estorno = result.transactions.find(
+			(t) => t.description === "Estorno Tarifa",
+		);
+		const compra = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
+
+		expect(compra?.lineKind).toBe("purchase");
+		expect(pagamento?.lineKind).toBe("invoice-payment");
+		expect(estorno?.lineKind).toBe("credit");
+	});
+
 	it("marca isCreditCard como true", () => {
 		const result = parseC6InvoiceCsv(readFixture());
 		expect(result.isCreditCard).toBe(true);
