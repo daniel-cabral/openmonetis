@@ -1,0 +1,50 @@
+## 1. Persistência do de-para
+
+- [x] 1.1 Adicionar `importNameMappings` ao final de `src/db/schema.ts` (`user_id` FK cascade, `description_key` text, `name` text, `updated_at` timestamp default now; PK `user_id + description_key`) — **acrescentar no fim do arquivo**, sem tocar em declaração existente, para manter o conflito com o upstream restrito a um bloco novo
+- [ ] 1.2 Gerar a migration com `pnpm run db:generate` e conferir que é puramente aditiva
+- [ ] 1.3 `src/features/transactions/actions/name-memory-action.ts` — `fetchNameMappings(descriptions)` espelhando `category-memory-action.ts`: normaliza com `normalizeDescriptionKey`, filtra por `userId`, devolve mapa chave → nome
+
+## 2. Parser e fechamento da fatura
+
+- [ ] 2.1 Acrescentar `lineKind?: "purchase" | "credit" | "invoice-payment"` a `ImportedTransaction` em `src/shared/lib/import/types.ts` — campo aditivo opcional, **sem tocar em `isPurchase`**, que continua como está para não quebrar o import de OFX do upstream
+- [ ] 2.2 `c6-invoice-csv.ts` — preencher `lineKind`: valor positivo é `purchase`; valor negativo cuja descrição casa `Pag Fatura` é `invoice-payment`; os demais negativos são `credit`
+- [ ] 2.3 `closure.ts` — `checkInvoiceClosure` passa a somar todas as linhas exceto `lineKind === "invoice-payment"`, em vez de filtrar por `isPurchase`
+- [ ] 2.4 Testes do fechamento com os números reais da fatura de 2026-08: compras 13.034,33 + crédito −98,00 + pagamento −12.164,10, total informado 12.936,33 → fecha com diferença zero; e um caso com total adulterado provando que a divergência é reportada
+- [ ] 2.5 Teste provando que a classificação distingue `Estorno Tarifa` de `Pag Fatura Boleto`, e que `isPurchase` continua com o comportamento antigo
+
+## 3. Matcher
+
+- [ ] 3.1 Acrescentar `period: string` e `isDivided: boolean` a `AppTransaction`; mapear em `toAppTransaction` e selecionar as colunas `periodo` e `dividido` em `reconciliation-candidates-action.ts`
+- [ ] 3.2 Ampliar a busca de candidatos: trazer lançamentos que satisfaçam o intervalo de datas com folga **ou** um dos períodos tocados pelo arquivo — sem isso um lançamento do período 2026-08 com data de compra em 28/07 nunca chega ao matcher
+- [ ] 3.3 Acrescentar `"name-period"` a `MatchRule` e os parâmetros novos de `matchReconciliationRows`: `nameMappings` (chave → nome), `invoicePeriod: string | null` e o tipo de destino
+- [ ] 3.4 Implementar a regra, **apenas para destino conta**: candidatos são lançamentos com `name` igual ao aprendido, `period` igual ao período da linha (`derivePeriodFromDate(row.date)`) e mesmo `transactionType`. Data e valor não entram
+- [ ] 3.5 Registrar a regra em `MATCH_RULES` na quinta posição, depois de `cents` — antes da `exact` faria memória antiga sobrepor casamento forte do mês corrente
+- [ ] 3.6 Estender `RowClassification`: o status `matched` passa a poder carregar `amountDivergence: { appAmount: number; rowAmount: number } | null`, preenchido só pela regra nova quando os valores diferem
+- [ ] 3.7 Testes do matcher: recorrente com data e valor divergentes casa; regra exata tem precedência; dois lançamentos de mesmo nome no período viram ambíguo; sinal diferente não casa; período diferente não casa; chave sem de-para não produz candidato; destino cartão não dispara a regra; valores idênticos não marcam divergência
+
+## 4. Revisão (UI)
+
+- [ ] 4.1 `reconciliation-page.tsx` — buscar os de-para de nome junto dos de categoria no mesmo `Promise.all` e passar para `matchReconciliationRows`
+- [ ] 4.2 Derivar o fechamento por `useMemo` sobre o que já está em memória, de modo que digitar o total da fatura depois de avançar recalcule o painel sem refazer o upload
+- [ ] 4.3 Balde informativo para `lineKind` diferente de `purchase`, sem nenhuma ação — e remover essas linhas do balde "só no banco"
+- [ ] 4.4 Filtrar o balde "só no app" por escopo: intervalo real `[from, to]` do arquivo quando o destino é conta, `period = invoicePeriod` quando é cartão
+- [ ] 4.5 Campo de nome por linha no balde "só no banco", pré-preenchido com o nome aprendido quando houver e com o descriptor quando não
+- [ ] 4.6 Ação `Vincular a lançamento existente` no balde "só no banco", nos dois tipos de destino: lista os lançamentos do destino no período da linha, com os já consumidos visíveis e desabilitados
+- [ ] 4.7 Decisão por linha nas casadas com divergência de valor: exibir `app → arquivo` e dois controles (manter / atualizar), sem escolha padrão; quando `isDivided`, "atualizar" fica indisponível com o motivo à vista
+- [ ] 4.8 Bloquear o botão "Aplicar" enquanto houver linha divergente sem escolha ou linha marcada para criação com nome vazio, com a razão visível na tela
+
+## 5. Aplicação
+
+- [ ] 5.1 `reconciliation-plan.ts` — `name` do insert passa a vir do campo da linha, não de `creation.description`
+- [ ] 5.2 `reconciliation-plan.ts` — vínculos manuais produzem `fingerprintUpdates` como as confirmações
+- [ ] 5.3 `reconciliation-plan.ts` — produzir `nameMappings` a partir dos vínculos manuais (qualquer destino) e das criações com nome digitado (**só quando o destino é conta**), colapsando chaves repetidas num registro só; e `amountUpdates` a partir das escolhas de atualizar
+- [ ] 5.4 `reconciliation-action.ts` — upsert em `import_name_mappings` e `UPDATE lancamentos SET valor` dentro da mesma `db.transaction()`, com guard de ownership por `userId`
+- [ ] 5.5 O retorno da action passa a carregar `{ transactionId, previousAmount }` dos valores atualizados; a action de desfazer restaura esses valores além de limpar os fingerprints do lote
+- [ ] 5.6 Testes do plano: nome digitado vira `name` do insert e alimenta o de-para em conta mas não em cartão; vínculo manual alimenta o de-para em conta e concilia sem aprender em cartão; casamento automático não alimenta; escolha "manter" não gera `amountUpdate`; lançamento dividido não gera `amountUpdate`; chaves repetidas colapsam
+
+## 6. Fechamento
+
+- [ ] 6.1 Rodar `pnpm exec next typegen`, `pnpm exec tsc --noEmit`, `pnpm run test` e `pnpm exec biome check --formatter-enabled=false .` — **nunca** `pnpm run lint` nem `biome check .` sem a flag, por causa do ruído pré-existente de CRLF
+- [ ] 6.2 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md` conforme a regra 6 do `AGENTS.md`
+- [ ] 6.3 Validar com o extrato real: ensinar o de-para dos quatro recorrentes de agosto (Aluguel, Condomínio, Órigo, Rodobens) pelo vínculo manual e confirmar que, numa segunda conciliação, eles saem do balde "só no banco"
+- [ ] 6.4 Validar com a fatura real: o fechamento de 2026-08 deve fechar exato contra 12.936,33, o balde "só no app" deve cair de 267 para as linhas do período 2026-08, e `Pag Fatura Boleto` não deve mais oferecer criação
