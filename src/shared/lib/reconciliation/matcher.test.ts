@@ -9,6 +9,7 @@ import {
 	findExactCandidates,
 	findFingerprintCandidates,
 	findInstallmentCandidates,
+	findNamePeriodCandidates,
 	matchReconciliationRows,
 	type ReconciliationRow,
 } from "./matcher";
@@ -467,5 +468,339 @@ describe("matchReconciliationRows", () => {
 			status: "matched",
 			transactionId: "tx-space",
 		});
+	});
+});
+
+describe("findNamePeriodCandidates", () => {
+	const nameMappings = { "casa nova locadora ltda - epp - boleto": "Aluguel" };
+
+	function namePeriodEntry(overrides: Partial<ImportedTransaction> = {}) {
+		return entry(
+			{
+				description: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
+				date: "2026-08-11",
+				amount: 2356.51,
+				...overrides,
+			},
+			"fp-aluguel",
+		);
+	}
+
+	it("casa o recorrente do período mesmo com data e valor divergentes", () => {
+		const candidates = findNamePeriodCandidates(
+			namePeriodEntry(),
+			[
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-15",
+					amount: 2300,
+					period: "2026-08",
+				}),
+			],
+			{ nameMappings, destinationKind: "account" },
+		);
+
+		expect(idsOf(candidates)).toEqual(["tx-aluguel"]);
+	});
+
+	it("não produz candidato quando a chave não tem de-para", () => {
+		const candidates = findNamePeriodCandidates(
+			namePeriodEntry({ description: "OUTRO CREDOR - Boleto" }),
+			[
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-15",
+					period: "2026-08",
+				}),
+			],
+			{ nameMappings, destinationKind: "account" },
+		);
+
+		expect(candidates).toEqual([]);
+	});
+
+	it("não produz candidato quando o destino é cartão", () => {
+		const candidates = findNamePeriodCandidates(
+			namePeriodEntry(),
+			[
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-15",
+					period: "2026-08",
+				}),
+			],
+			{ nameMappings, destinationKind: "card" },
+		);
+
+		expect(candidates).toEqual([]);
+	});
+
+	it("não casa lançamento de período diferente do da linha", () => {
+		const candidates = findNamePeriodCandidates(
+			namePeriodEntry({ date: "2026-08-31" }),
+			[
+				transaction({
+					id: "tx-setembro",
+					name: "Aluguel",
+					date: "2026-09-05",
+					period: "2026-09",
+				}),
+			],
+			{ nameMappings, destinationKind: "account" },
+		);
+
+		expect(candidates).toEqual([]);
+	});
+
+	it("não casa quando o sinal da transação difere", () => {
+		const candidates = findNamePeriodCandidates(
+			namePeriodEntry({ transactionType: "income" }),
+			[
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					period: "2026-08",
+					transactionType: "expense",
+				}),
+			],
+			{ nameMappings, destinationKind: "account" },
+		);
+
+		expect(candidates).toEqual([]);
+	});
+
+	it("devolve os dois lançamentos de mesmo nome no período", () => {
+		const candidates = findNamePeriodCandidates(
+			namePeriodEntry(),
+			[
+				transaction({ id: "tx-a", name: "Aluguel", period: "2026-08" }),
+				transaction({ id: "tx-b", name: "Aluguel", period: "2026-08" }),
+			],
+			{ nameMappings, destinationKind: "account" },
+		);
+
+		expect(idsOf(candidates)).toEqual(["tx-a", "tx-b"]);
+	});
+});
+
+describe("matchReconciliationRows com de-para de nome", () => {
+	const nameMappings = { "casa nova locadora ltda - epp - boleto": "Aluguel" };
+	const aluguelRow = () =>
+		entry(
+			{
+				description: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
+				date: "2026-08-11",
+				amount: 2356.51,
+			},
+			"fp-aluguel",
+		);
+
+	it("casa o recorrente com data e valor divergentes e reporta a divergência", () => {
+		const result = matchReconciliationRows({
+			rows: [aluguelRow()],
+			transactions: [
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-15",
+					amount: 2300,
+					period: "2026-08",
+				}),
+			],
+			nameMappings,
+			destinationKind: "account",
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "name-period",
+			transactionId: "tx-aluguel",
+			amountDivergence: { appAmount: 2300, rowAmount: 2356.51 },
+		});
+	});
+
+	it("não marca divergência quando os valores são iguais", () => {
+		const result = matchReconciliationRows({
+			rows: [aluguelRow()],
+			transactions: [
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-20",
+					amount: 2356.51,
+					period: "2026-08",
+				}),
+			],
+			nameMappings,
+			destinationKind: "account",
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "name-period",
+			amountDivergence: null,
+		});
+	});
+
+	it("dá precedência à regra exata sobre a de nome e período", () => {
+		const result = matchReconciliationRows({
+			rows: [aluguelRow()],
+			transactions: [
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-20",
+					amount: 2300,
+					period: "2026-08",
+				}),
+				transaction({
+					id: "tx-exato",
+					name: "Outro",
+					date: "2026-08-11",
+					amount: 2356.51,
+					period: "2026-08",
+				}),
+			],
+			nameMappings,
+			destinationKind: "account",
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "exact",
+			transactionId: "tx-exato",
+		});
+	});
+
+	it("marca como ambígua a linha com dois lançamentos de mesmo nome no período", () => {
+		const result = matchReconciliationRows({
+			rows: [aluguelRow()],
+			transactions: [
+				transaction({
+					id: "tx-a",
+					name: "Aluguel",
+					date: "2026-08-20",
+					amount: 2300,
+					period: "2026-08",
+				}),
+				transaction({
+					id: "tx-b",
+					name: "Aluguel",
+					date: "2026-08-22",
+					amount: 2100,
+					period: "2026-08",
+				}),
+			],
+			nameMappings,
+			destinationKind: "account",
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "ambiguous",
+			candidateIds: ["tx-a", "tx-b"],
+		});
+	});
+
+	it("não usa a regra quando o destino é cartão", () => {
+		const result = matchReconciliationRows({
+			rows: [aluguelRow()],
+			transactions: [
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-20",
+					amount: 2300,
+					period: "2026-08",
+				}),
+			],
+			nameMappings,
+			destinationKind: "card",
+		});
+
+		expect(result.rows[0]).toMatchObject({ status: "bank-only" });
+	});
+
+	it("não usa a regra quando nenhum de-para é passado", () => {
+		const result = matchReconciliationRows({
+			rows: [aluguelRow()],
+			transactions: [
+				transaction({
+					id: "tx-aluguel",
+					name: "Aluguel",
+					date: "2026-08-20",
+					amount: 2300,
+					period: "2026-08",
+				}),
+			],
+		});
+
+		expect(result.rows[0]).toMatchObject({ status: "bank-only" });
+	});
+
+	it("não marca divergência nas linhas casadas pelas regras antigas", () => {
+		const result = matchReconciliationRows({
+			rows: [entry({}, "fp-a")],
+			transactions: [transaction({ id: "tx-1" })],
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "exact",
+			amountDivergence: null,
+		});
+	});
+
+	it("candidato trazido só pelo critério de período não cria ambiguidade em linha de regra forte", () => {
+		const linha = entry(
+			{
+				date: "2026-08-11",
+				amount: 1800,
+				installment: { number: 2, total: 12 },
+			},
+			"fp-parcela",
+		);
+		const serie = transaction({
+			id: "tx-serie",
+			date: "2026-02-10",
+			amount: 1800,
+			period: "2026-02",
+			installmentCount: 12,
+			currentInstallment: 2,
+		});
+		// Trazido pela ampliação da busca (período tocado pelo arquivo), com data
+		// de compra fora do intervalo de datas do arquivo.
+		const doPeriodo = transaction({
+			id: "tx-periodo",
+			name: "Compra antiga",
+			date: "2026-07-28",
+			amount: 1800,
+			period: "2026-08",
+		});
+
+		const semPoolAmpliado = matchReconciliationRows({
+			rows: [linha],
+			transactions: [serie],
+		});
+		const comPoolAmpliado = matchReconciliationRows({
+			rows: [linha],
+			transactions: [serie, doPeriodo],
+			nameMappings,
+			destinationKind: "account",
+		});
+
+		expect(semPoolAmpliado.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "installment",
+			transactionId: "tx-serie",
+		});
+		expect(comPoolAmpliado.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "installment",
+			transactionId: "tx-serie",
+		});
+		expect(comPoolAmpliado.appOnlyIds).toEqual(["tx-periodo"]);
 	});
 });

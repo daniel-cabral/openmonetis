@@ -1,4 +1,6 @@
+import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
 import type { ImportedTransaction } from "@/shared/lib/import/types";
+import { derivePeriodFromDate } from "@/shared/utils/period";
 
 // Folga de data aplicada tanto à Data Lançamento quanto à Data Contábil,
 // coerente com a defasagem medida entre as duas colunas do extrato.
@@ -9,7 +11,22 @@ const CENTS_TOLERANCE = 5;
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-export type MatchRule = "fingerprint" | "installment" | "exact" | "cents";
+export type MatchRule =
+	| "fingerprint"
+	| "installment"
+	| "exact"
+	| "cents"
+	| "name-period";
+
+/** Destino da conciliação; a regra name-period só vale para conta. */
+export type DestinationKind = "account" | "card";
+
+/** Contexto que só a regra name-period consome. */
+export type MatchContext = {
+	// chave normalizada do descriptor → nome aprendido do lançamento
+	nameMappings: Record<string, string>;
+	destinationKind: DestinationKind | null;
+};
 
 /** Lançamento do app, reduzido ao que o matcher precisa comparar. */
 export type AppTransaction = {
@@ -38,7 +55,13 @@ type ClassifiedRow = {
 
 export type RowClassification = ClassifiedRow &
 	(
-		| { status: "matched"; rule: MatchRule; transactionId: string }
+		| {
+				status: "matched";
+				rule: MatchRule;
+				transactionId: string;
+				// Só a regra name-period preenche, e só quando os valores diferem.
+				amountDivergence: { appAmount: number; rowAmount: number } | null;
+		  }
 		| { status: "ambiguous"; candidateIds: string[] }
 		| { status: "bank-only" }
 	);
@@ -148,11 +171,43 @@ export function findCentsCandidates(
 	);
 }
 
-const MATCH_RULES: { rule: MatchRule; find: typeof findExactCandidates }[] = [
+/**
+ * Regra 5: o de-para aprendido decidiu o par uma vez, por decisão humana; o que
+ * resta identificar é o mês. Data e valor não entram — é exatamente por
+ * divergirem que as regras anteriores não alcançaram a linha. Só vale para
+ * destino do tipo conta: na fatura a repetição de lojista no mesmo período é a
+ * norma e a regra viraria ambiguidade quase sempre.
+ */
+export function findNamePeriodCandidates(
+	entry: ReconciliationRow,
+	transactions: AppTransaction[],
+	context?: MatchContext,
+): AppTransaction[] {
+	if (context?.destinationKind !== "account") return [];
+
+	const learnedName =
+		context.nameMappings[normalizeDescriptionKey(entry.row.description)];
+	if (!learnedName) return [];
+
+	const period = derivePeriodFromDate(entry.row.date);
+
+	return transactions.filter(
+		(candidate) =>
+			candidate.name === learnedName &&
+			candidate.period === period &&
+			candidate.transactionType === entry.row.transactionType,
+	);
+}
+
+const MATCH_RULES: {
+	rule: MatchRule;
+	find: typeof findNamePeriodCandidates;
+}[] = [
 	{ rule: "fingerprint", find: findFingerprintCandidates },
 	{ rule: "installment", find: findInstallmentCandidates },
 	{ rule: "exact", find: findExactCandidates },
 	{ rule: "cents", find: findCentsCandidates },
+	{ rule: "name-period", find: findNamePeriodCandidates },
 ];
 
 type Decision = { rule: MatchRule; transactionId: string };
@@ -167,7 +222,13 @@ type Decision = { rule: MatchRule; transactionId: string };
 export function matchReconciliationRows(input: {
 	rows: ReconciliationRow[];
 	transactions: AppTransaction[];
+	nameMappings?: Record<string, string>;
+	destinationKind?: DestinationKind | null;
 }): ReconciliationMatch {
+	const context: MatchContext = {
+		nameMappings: input.nameMappings ?? {},
+		destinationKind: input.destinationKind ?? null,
+	};
 	const decisions = new Map<number, Decision>();
 	const consumed = new Set<string>();
 	// Ambiguidades da passada corrente: a linha parou na primeira regra que
@@ -194,7 +255,7 @@ export function matchReconciliationRows(input: {
 				// pela mais forte.
 				if (decisions.has(index) || ambiguities.has(index)) return;
 
-				const candidates = find(entry, available());
+				const candidates = find(entry, available(), context);
 				if (candidates.length === 0) return;
 
 				if (candidates.length > 1) {
@@ -217,6 +278,25 @@ export function matchReconciliationRows(input: {
 		for (const id of candidateIds) ambiguousCandidateIds.add(id);
 	}
 
+	const transactionsById = new Map(
+		input.transactions.map((candidate) => [candidate.id, candidate]),
+	);
+
+	// Casar por nome e período ignora o valor, então a discordância entre o
+	// orçamento e o extrato precisa ficar visível em vez de sumir no casamento.
+	const amountDivergenceOf = (
+		decision: Decision,
+		row: ImportedTransaction,
+	): { appAmount: number; rowAmount: number } | null => {
+		if (decision.rule !== "name-period") return null;
+
+		const candidate = transactionsById.get(decision.transactionId);
+		if (!candidate) return null;
+		if (toCents(candidate.amount) === toCents(row.amount)) return null;
+
+		return { appAmount: candidate.amount, rowAmount: row.amount };
+	};
+
 	const rows: RowClassification[] = input.rows.map((entry, index) => {
 		const base = { index, fingerprint: entry.fingerprint, row: entry.row };
 		const decision = decisions.get(index);
@@ -227,6 +307,7 @@ export function matchReconciliationRows(input: {
 				status: "matched",
 				rule: decision.rule,
 				transactionId: decision.transactionId,
+				amountDivergence: amountDivergenceOf(decision, entry.row),
 			};
 		}
 

@@ -29,6 +29,7 @@ describe("summarizeReconciliationMatch", () => {
 				status: "matched",
 				rule: "exact",
 				transactionId: "tx-1",
+				amountDivergence: null,
 			},
 			{ index: 1, fingerprint: "fp-2", row: row(), status: "bank-only" },
 			{

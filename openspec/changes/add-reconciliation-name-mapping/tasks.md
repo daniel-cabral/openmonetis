@@ -16,12 +16,12 @@
 
 - [x] 3.1 Acrescentar `period: string` e `isDivided: boolean` a `AppTransaction`; mapear em `toAppTransaction` e selecionar as colunas `periodo` e `dividido` em `reconciliation-candidates-action.ts`
 - [x] 3.2 Ampliar a busca de candidatos: trazer lançamentos que satisfaçam o intervalo de datas com folga **ou** um dos períodos tocados pelo arquivo — sem isso um lançamento do período 2026-08 com data de compra em 28/07 nunca chega ao matcher
-- [ ] 3.3 Acrescentar `"name-period"` a `MatchRule` e os parâmetros novos de `matchReconciliationRows`: `nameMappings` (chave → nome) e o tipo de destino. **Sem `invoicePeriod`** — a regra vale só para conta, onde o período vem sempre de `derivePeriodFromDate(row.date)`; o `invoicePeriod` é usado no filtro do balde (4.4), não no matcher
-- [ ] 3.4 Implementar a regra, **apenas para destino conta**: candidatos são lançamentos com `name` igual ao aprendido, `period` igual ao período da linha (`derivePeriodFromDate(row.date)`) e mesmo `transactionType`. Data e valor não entram
-- [ ] 3.5 Registrar a regra em `MATCH_RULES` na quinta posição, depois de `cents` — antes da `exact` faria memória antiga sobrepor casamento forte do mês corrente
-- [ ] 3.6 Estender `RowClassification`: o status `matched` passa a poder carregar `amountDivergence: { appAmount: number; rowAmount: number } | null`, preenchido só pela regra nova quando os valores diferem
-- [ ] 3.7 Testes do matcher: recorrente com data e valor divergentes casa; regra exata tem precedência; dois lançamentos de mesmo nome no período viram ambíguo; sinal diferente não casa; período diferente não casa; chave sem de-para não produz candidato; destino cartão não dispara a regra; valores idênticos não marcam divergência
-- [ ] 3.8 Teste de não-regressão da ampliação de 3.2: o pool maior de candidatos também alimenta as regras `fingerprint` e `installment`, que não filtram por data. Provar que um candidato trazido apenas pelo critério de período não cria ambiguidade nova numa linha que casava por regra forte antes da mudança
+- [x] 3.3 Acrescentar `"name-period"` a `MatchRule` e os parâmetros novos de `matchReconciliationRows`: `nameMappings` (chave → nome) e o tipo de destino. **Sem `invoicePeriod`** — a regra vale só para conta, onde o período vem sempre de `derivePeriodFromDate(row.date)`; o `invoicePeriod` é usado no filtro do balde (4.4), não no matcher
+- [x] 3.4 Implementar a regra, **apenas para destino conta**: candidatos são lançamentos com `name` igual ao aprendido, `period` igual ao período da linha (`derivePeriodFromDate(row.date)`) e mesmo `transactionType`. Data e valor não entram
+- [x] 3.5 Registrar a regra em `MATCH_RULES` na quinta posição, depois de `cents` — antes da `exact` faria memória antiga sobrepor casamento forte do mês corrente
+- [x] 3.6 Estender `RowClassification`: o status `matched` passa a poder carregar `amountDivergence: { appAmount: number; rowAmount: number } | null`, preenchido só pela regra nova quando os valores diferem
+- [x] 3.7 Testes do matcher: recorrente com data e valor divergentes casa; regra exata tem precedência; dois lançamentos de mesmo nome no período viram ambíguo; sinal diferente não casa; período diferente não casa; chave sem de-para não produz candidato; destino cartão não dispara a regra; valores idênticos não marcam divergência
+- [x] 3.8 Teste de não-regressão da ampliação de 3.2: o pool maior de candidatos também alimenta as regras `fingerprint` e `installment`, que não filtram por data. Provar que um candidato trazido apenas pelo critério de período não cria ambiguidade nova numa linha que casava por regra forte antes da mudança
 
 ## 4. Revisão (UI)
 
