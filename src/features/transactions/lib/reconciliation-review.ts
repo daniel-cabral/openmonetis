@@ -30,7 +30,10 @@ export type ReconciliationRowDecision =
 			date: string;
 			amount: number;
 			transactionType: "income" | "expense";
-			description: string;
+			/** Texto bruto do arquivo, chave do de-para — nunca o nome digitado. */
+			descriptor: string;
+			/** Nome do lançamento, editável na revisão. */
+			name: string;
 			categoryId: string | null;
 			payerId: string | null;
 	  }
@@ -48,7 +51,8 @@ export type ReconciliationApplyPayload = {
 		date: string;
 		amount: number;
 		transactionType: "income" | "expense";
-		description: string;
+		descriptor: string;
+		name: string;
 		categoryId: string | null;
 		payerId: string;
 	}[];
@@ -83,7 +87,8 @@ export function buildReconciliationApplyPayload(
 				date: decision.date,
 				amount: decision.amount,
 				transactionType: decision.transactionType,
-				description: decision.description,
+				descriptor: decision.descriptor,
+				name: decision.name,
 				categoryId: decision.categoryId,
 				payerId: decision.payerId ?? defaultPayerId,
 			});

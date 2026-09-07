@@ -121,7 +121,8 @@ export function ReconciliationReview({
 								date: row.row.date,
 								amount: row.row.amount,
 								transactionType: row.row.transactionType,
-								description: row.row.description,
+								descriptor: row.row.description,
+								name: row.row.description,
 								categoryId: state.categoryId,
 								payerId: state.payerId,
 							}
@@ -148,7 +149,8 @@ export function ReconciliationReview({
 									date: row.row.date,
 									amount: row.row.amount,
 									transactionType: row.row.transactionType,
-									description: row.row.description,
+									descriptor: row.row.description,
+									name: row.row.description,
 									categoryId: state.categoryId,
 									payerId: state.payerId,
 								}
