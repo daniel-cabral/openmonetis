@@ -43,6 +43,7 @@ import {
 	matchReconciliationRows,
 	type ReconciliationMatch,
 } from "@/shared/lib/reconciliation/matcher";
+import { derivePeriodFromDate } from "@/shared/utils/period";
 
 interface ReconciliationPageProps {
 	accountOptions: SelectOption[];
@@ -139,12 +140,28 @@ export function ReconciliationPage({
 			return;
 		}
 
+		// Períodos tocados pelo arquivo: sem eles a busca de candidatos cai só no
+		// intervalo de datas e o recorrente lançado no vencimento nominal nunca
+		// chega ao matcher nem à lista de vínculo manual. Numa fatura o período
+		// tocado é o da fatura, não o da compra original.
+		const periods =
+			destinationKind === "card"
+				? invoicePeriodInput
+					? [invoicePeriodInput]
+					: []
+				: [
+						...new Set(
+							statement.transactions.map((t) => derivePeriodFromDate(t.date)),
+						),
+					];
+
 		const [candidates, categoryMappings, nameMappings] = await Promise.all([
 			fetchReconciliationCandidatesAction({
 				destination,
 				from: range.from,
 				to: range.to,
 				fingerprints,
+				periods,
 			}),
 			fetchCategoryMappings(statement.transactions.map((t) => t.description)),
 			fetchNameMappings(statement.transactions.map((t) => t.description)),
