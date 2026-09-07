@@ -133,6 +133,107 @@ Upload, matching e verificação são puros. Nenhuma linha do banco vira lançam
 2. Deploy normal — a feature nasce atrás de uma rota nova; nada muda para quem não a acessa.
 3. Rollback: remover a rota. Os fingerprints gravados em lançamentos manuais são inertes se a feature sumir (a coluna já existia e já era nullable).
 
+## Achados da validação com dados reais (extrato C6, 04/07 a 02/09/2026)
+
+Resultado da conciliação real: **71 casadas / 35 só no banco / 23 só no app / 7 ambíguas**,
+fechamento aritmético verde em 34 de 34 dias. `71 + 35 + 7 = 113` = total de linhas do arquivo,
+sem linha perdida ou duplicada. 63% casaram só por data+valor, confirmando D3.
+
+Classificação do balde "só no app" (23), que era a pergunta em aberto:
+
+| Causa | Qtd |
+|---|---|
+| Data divergente — valor idêntico a uma linha do balde "só no banco", 2 a 4 dias fora da janela | 7 |
+| Fora do intervalo real do arquivo — vazamento do `RANGE_BUFFER_DAYS = 3` | 6 |
+| Sem contrapartida no extrato (valor diferente ou pago por outra conta) | 6 |
+| Lançamentos de R$ 0,00 — dado sujo preexistente do app | 3 |
+| Duplicata criada à mão — a dor original da feature | 1 |
+
+Padrão por trás dos 7: as despesas fixas de agosto (Aluguel, Condomínio, Órigo, Rodobens) foram
+lançadas no app no dia 15, o vencimento nominal, e o banco debitou no dia 11. Em julho as mesmas
+quatro casaram, então é divergência de lançamento do usuário, não do parser.
+
+### A1 — Não ampliar `DATE_WINDOW_DAYS`; sugerir par próximo no balde
+
+Ir de ±1 para ±4 dias casaria os 7, mas o extrato tem valores repetidos dentro dessa distância
+(Ludmila R$ 215,00 em quatro datas, Aline R$ 2.000,00, SANTANDER R$ 2.433,97). Ampliar a janela
+troca 7 acertos por ambiguidade nova nas linhas hoje casadas — o oposto da intenção de D3, que é
+nunca aceitar falso-positivo.
+
+O caminho é outro: manter ±1 no matching automático e, **depois** da classificação, procurar para
+cada item "só no app" uma linha do balde "só no banco" com valor exatamente igual dentro de uma
+janela larga (±7 dias) e oferecer esse par como **decisão manual** na tela. Não altera nenhuma
+regra do matcher, não infla ambiguidade, e resolve o maior grupo do balde.
+
+Isso muda a decisão de 9.5 (balde "só no app" informativo): com um par sugerido existe algo a
+gravar, então o balde ganha ação.
+
+### A2 — O balde "só no app" deve ser filtrado pelo intervalo do arquivo
+
+`fetchReconciliationCandidatesAction` busca candidatos com folga de `RANGE_BUFFER_DAYS = 3` além
+do intervalo do arquivo, o que é correto para não cortar candidato na borda. Mas esses candidatos
+extras vazam para o balde "só no app" quando não casam, e o usuário não tem o que fazer com eles:
+são lançamentos de um período que o arquivo não cobre. Foram 6 de 23 linhas — 26% do balde é ruído.
+
+Correção: a folga continua valendo para o matching; o balde exibido filtra para o intervalo real
+`[from, to]` do arquivo.
+
+## Achados da validação com dados reais (fatura C6, período 2026-08)
+
+Conciliação real da fatura de 15/08 com total informado de R$ 12.936,33: **79 casadas / 13 só no
+banco / 267 só no app / 6 ambíguas**. `79 + 13 + 6 = 98` = total de linhas do arquivo, sem perda.
+Cerca de 20 casamentos vieram pela regra de parcela e um por tolerância de centavos
+(`AVENTURA JURASSICA`), exercitando os caminhos que o extrato não toca.
+
+### A3 — O fechamento da fatura soma o conjunto errado de linhas
+
+`checkInvoiceClosure` soma as linhas com `isPurchase !== false`, e `isPurchase` é `valor >= 0`
+(`c6-invoice-csv.ts:44`). Isso dá R$ 13.034,33 contra os R$ 12.936,33 reais e reportaria uma
+divergência de R$ 98,00 numa fatura que fecha exata.
+
+As duas linhas negativas do arquivo não são a mesma coisa: `Estorno Tarifa` (−98,00) é crédito
+**desta** fatura e deve entrar na conta; `Pag Fatura Boleto` (−12.164,10) quita a fatura anterior e
+não deve. Confirmado pelos dois caminhos:
+
+```
+13.034,33 − 98,00 (estorno)                 = 12.936,33
+   772,23 (soma de tudo) + 12.164,10 (pag)  = 12.936,33
+```
+
+A regra correta é **soma de todas as linhas, menos os pagamentos de fatura**. A decisão D4 foi
+derivada da amostra antes de existir um total real para conferir; o critério de "compra" por sinal
+do valor não sobrevive ao primeiro dado verdadeiro.
+
+### A4 — O total da fatura não recalcula o fechamento
+
+`handleAdvance` monta a revisão uma vez e nada observa `invoiceTotalInput` depois disso. O campo
+continua editável na tela montada, mas digitar o total ali não produz fechamento nenhum — só
+funciona quem preenche antes de avançar. Na prática torna a verificação da fatura inalcançável,
+já que o total costuma ser consultado depois de ver o arquivo.
+
+### A5 — O balde "só no app" da fatura é 96% ruído, ampliando A2
+
+267 linhas. A fatura de agosto carrega parcelas de compras antigas (`FORMULA BIKE` 26/11,
+`BRASTEMP` 14/01, `DM*HOSTINGERCOMB` 11/03), então o intervalo de datas do arquivo cobre cerca de
+dez meses, e a busca de candidatos — que filtra por `purchaseDate` — trouxe todo o histórico do
+cartão. Quase tudo são lançamentos de maio, junho e julho, pertencentes a faturas anteriores.
+
+No cartão o lançamento pertence ao **período da fatura**, não ao mês da compra — a própria tela diz
+isso. O balde exibido deveria seguir a mesma definição e filtrar por `period = invoicePeriod`.
+
+### A6 — Linhas que não são compra oferecem "Criar lançamento"
+
+`Pag Fatura Boleto` (+R$ 12.164,10 na exibição) e `Estorno Tarifa` (+R$ 98,00) caem no balde "só no
+banco" com a ação de criação disponível. O pagamento é a mesma transação que o
+`BANCO C6 S.A. - Boleto` do extrato, que já casou lá: aceitar a sugestão criaria uma receita de
+doze mil reais no cartão. Essas linhas precisam de um balde próprio, informativo, sem criação.
+
+### Onde essas correções vivem
+
+A3, A4, A5 e A6 foram levadas para a change `add-reconciliation-name-mapping`, junto de A1 e A2 —
+todas tocam o mesmo conjunto de arquivos, e separá-las em changes distintas criaria conflito entre
+elas sem ganho de revisão.
+
 ## Open Questions
 
 - Qual a tolerância de janela ideal para a fatura? A `Data de Compra` da fatura é a data real da compra, então deve casar exato com o que o usuário lançou — mas ele pode ter lançado no dia em que *viu* a notificação, não no da compra. A ser calibrado na primeira conciliação real com a fatura de agosto.
