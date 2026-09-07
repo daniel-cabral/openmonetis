@@ -3,6 +3,7 @@ import type { ImportedTransaction } from "@/shared/lib/import/types";
 import type { ReconciliationMatch, RowClassification } from "@/shared/lib/reconciliation/matcher";
 import {
 	buildReconciliationApplyPayload,
+	deriveReconciliationClosure,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
 
@@ -132,5 +133,58 @@ describe("buildReconciliationApplyPayload", () => {
 		);
 
 		expect(payload.creations[0]?.payerId).toBe("payer-explicit");
+	});
+});
+
+describe("deriveReconciliationClosure", () => {
+	it("deriva fechamento de extrato quando o perfil não é fatura", () => {
+		const closure = deriveReconciliationClosure({
+			profileKind: "statement",
+			transactions: [row()],
+			invoiceTotalInput: "",
+		});
+
+		expect(closure?.kind).toBe("statement");
+	});
+
+	it("retorna null para fatura sem total informado", () => {
+		const closure = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions: [row()],
+			invoiceTotalInput: "",
+		});
+
+		expect(closure).toBeNull();
+	});
+
+	it("deriva fechamento de fatura a partir do total informado", () => {
+		const closure = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions: [row({ amount: 25.9, transactionType: "expense" })],
+			invoiceTotalInput: "25,90",
+		});
+
+		expect(closure?.kind).toBe("invoice");
+		expect(closure?.kind === "invoice" && closure.result.closes).toBe(true);
+	});
+
+	it("recalcula quando o total informado muda, sem novos dados", () => {
+		const transactions = [row({ amount: 25.9, transactionType: "expense" })];
+
+		const divergente = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions,
+			invoiceTotalInput: "10,00",
+		});
+		const fechado = deriveReconciliationClosure({
+			profileKind: "invoice",
+			transactions,
+			invoiceTotalInput: "25,90",
+		});
+
+		expect(divergente?.kind === "invoice" && divergente.result.closes).toBe(
+			false,
+		);
+		expect(fechado?.kind === "invoice" && fechado.result.closes).toBe(true);
 	});
 });

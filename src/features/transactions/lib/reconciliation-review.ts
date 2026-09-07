@@ -1,4 +1,12 @@
+import type { ImportedTransaction } from "@/shared/lib/import/types";
+import {
+	checkInvoiceClosure,
+	checkStatementClosure,
+	type InvoiceClosureResult,
+	type StatementClosureResult,
+} from "@/shared/lib/reconciliation/closure";
 import type { ReconciliationMatch } from "@/shared/lib/reconciliation/matcher";
+import { normalizeDecimalInput } from "@/shared/utils/currency";
 
 /** Contagem por balde, para o resumo da revisão. */
 export type ReconciliationSummary = {
@@ -98,4 +106,35 @@ export function buildReconciliationApplyPayload(
 	}
 
 	return payload;
+}
+
+export type ReconciliationClosure =
+	| { kind: "statement"; result: StatementClosureResult }
+	| { kind: "invoice"; result: InvoiceClosureResult };
+
+/**
+ * Deriva o fechamento aritmético a partir do que já está em memória — nada é
+ * rebuscado no servidor. Para fatura, sem total informado não há o que
+ * fechar; para o total mudar depois de avançar basta recalcular esta função.
+ */
+export function deriveReconciliationClosure(params: {
+	profileKind: string | undefined;
+	transactions: ImportedTransaction[];
+	invoiceTotalInput: string;
+}): ReconciliationClosure | null {
+	const { profileKind, transactions, invoiceTotalInput } = params;
+
+	if (profileKind !== "invoice") {
+		return { kind: "statement", result: checkStatementClosure(transactions) };
+	}
+
+	if (!invoiceTotalInput) return null;
+
+	return {
+		kind: "invoice",
+		result: checkInvoiceClosure(
+			transactions,
+			Number(normalizeDecimalInput(invoiceTotalInput)),
+		),
+	};
 }

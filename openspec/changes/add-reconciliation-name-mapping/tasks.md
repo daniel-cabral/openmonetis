@@ -25,8 +25,8 @@
 
 ## 4. Revisão (UI)
 
-- [ ] 4.1 `reconciliation-page.tsx` — buscar os de-para de nome junto dos de categoria no mesmo `Promise.all` e passar para `matchReconciliationRows`
-- [ ] 4.2 Derivar o fechamento por `useMemo` sobre o que já está em memória, de modo que digitar o total da fatura depois de avançar recalcule o painel sem refazer o upload
+- [x] 4.1 `reconciliation-page.tsx` — buscar os de-para de nome junto dos de categoria no mesmo `Promise.all` e passar para `matchReconciliationRows`
+- [x] 4.2 Derivar o fechamento por `useMemo` sobre o que já está em memória, de modo que digitar o total da fatura depois de avançar recalcule o painel sem refazer o upload
 - [ ] 4.3 Balde informativo para `lineKind` diferente de `purchase`, sem nenhuma ação — e remover essas linhas do balde "só no banco"
 - [ ] 4.4 Filtrar o balde "só no app" por escopo: intervalo real `[from, to]` do arquivo quando o destino é conta, `period = invoicePeriod` quando é cartão
 - [ ] 4.5 Campo de nome por linha no balde "só no banco", pré-preenchido com o nome aprendido quando houver e com o descriptor quando não. A decisão da linha SHALL carregar **dois campos separados**: o `descriptor` bruto do arquivo (imutável, chave do de-para) e o `name` editável (nome do lançamento). Ver 5.0

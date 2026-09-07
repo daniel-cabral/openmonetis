@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { fetchCategoryMappings } from "@/features/transactions/actions/category-memory-action";
+import { fetchNameMappings } from "@/features/transactions/actions/name-memory-action";
 import {
 	applyReconciliationAction,
 	undoReconciliationAction,
@@ -18,7 +19,10 @@ import {
 	destinationKindForProfile,
 	matchAccountOptionByNumber,
 } from "@/features/transactions/lib/reconciliation-origin";
-import { buildReconciliationApplyPayload } from "@/features/transactions/lib/reconciliation-review";
+import {
+	buildReconciliationApplyPayload,
+	deriveReconciliationClosure,
+} from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Card,
@@ -31,19 +35,12 @@ import { Label } from "@/shared/components/ui/label";
 import { type DetectResult, detectParserProfile } from "@/shared/lib/import/parsers/detect";
 import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 import type { ImportStatement } from "@/shared/lib/import/types";
-import {
-	checkInvoiceClosure,
-	checkStatementClosure,
-	type InvoiceClosureResult,
-	type StatementClosureResult,
-} from "@/shared/lib/reconciliation/closure";
 import { buildReconciliationFingerprintPayloads } from "@/shared/lib/reconciliation/fingerprint";
 import {
 	type AppTransaction,
 	matchReconciliationRows,
 	type ReconciliationMatch,
 } from "@/shared/lib/reconciliation/matcher";
-import { normalizeDecimalInput } from "@/shared/utils/currency";
 
 interface ReconciliationPageProps {
 	accountOptions: SelectOption[];
@@ -59,10 +56,6 @@ type ReviewState = {
 	match: ReconciliationMatch;
 	appTransactionsById: Map<string, AppTransaction>;
 	learnedCategoryByFingerprint: Map<string, string>;
-	closure:
-		| { kind: "statement"; result: StatementClosureResult }
-		| { kind: "invoice"; result: InvoiceClosureResult }
-		| null;
 };
 
 function extendedDateRange(statement: ImportStatement): { from: string; to: string } {
@@ -143,7 +136,7 @@ export function ReconciliationPage({
 			return;
 		}
 
-		const [candidates, categoryMappings] = await Promise.all([
+		const [candidates, categoryMappings, nameMappings] = await Promise.all([
 			fetchReconciliationCandidatesAction({
 				destination,
 				from: range.from,
@@ -151,6 +144,7 @@ export function ReconciliationPage({
 				fingerprints,
 			}),
 			fetchCategoryMappings(statement.transactions.map((t) => t.description)),
+			fetchNameMappings(statement.transactions.map((t) => t.description)),
 		]);
 
 		if (!candidates.success) {
@@ -174,6 +168,8 @@ export function ReconciliationPage({
 		const match = matchReconciliationRows({
 			rows,
 			transactions: candidates.transactions,
+			nameMappings,
+			destinationKind,
 		});
 
 		// Linhas já ignoradas em conciliações anteriores não voltam a pedir decisão.
@@ -185,29 +181,12 @@ export function ReconciliationPage({
 			candidates.transactions.map((tx) => [tx.id, tx]),
 		);
 
-		const closure =
-			selectedProfile?.kind === "invoice"
-				? invoiceTotalInput
-					? {
-							kind: "invoice" as const,
-							result: checkInvoiceClosure(
-								statement.transactions,
-								Number(normalizeDecimalInput(invoiceTotalInput)),
-							),
-						}
-					: null
-				: {
-						kind: "statement" as const,
-						result: checkStatementClosure(statement.transactions),
-					};
-
 		setReview({
 			statement,
 			fingerprints,
 			match,
 			appTransactionsById,
 			learnedCategoryByFingerprint,
-			closure,
 		});
 	};
 
@@ -234,6 +213,17 @@ export function ReconciliationPage({
 	};
 
 	const payerId = defaultPayerId ?? payerOptions[0]?.value ?? "";
+
+	// Derivado do que já está em memória: digitar o total da fatura depois de
+	// avançar recalcula o fechamento sem refazer o upload.
+	const closure = useMemo(() => {
+		if (!review) return null;
+		return deriveReconciliationClosure({
+			profileKind: selectedProfile?.kind,
+			transactions: review.statement.transactions,
+			invoiceTotalInput,
+		});
+	}, [review, selectedProfile?.kind, invoiceTotalInput]);
 
 	const buckets = useMemo(() => {
 		if (!review) return null;
@@ -380,7 +370,7 @@ export function ReconciliationPage({
 
 			{review && buckets ? (
 				<>
-					<ReconciliationSummary buckets={buckets} closure={review.closure} />
+					<ReconciliationSummary buckets={buckets} closure={closure} />
 					<ReconciliationReview
 						rows={review.match.rows}
 						appOnlyTransactions={appOnlyTransactions}
