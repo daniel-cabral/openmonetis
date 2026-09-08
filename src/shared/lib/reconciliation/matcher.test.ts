@@ -140,14 +140,25 @@ describe("findInstallmentCandidates", () => {
 });
 
 describe("findExactCandidates", () => {
-	it("casa valor com sinal idêntico dentro de ±1 dia da data de lançamento", () => {
+	it("casa valor com sinal idêntico dentro de ±2 dias da data de lançamento", () => {
 		const candidates = findExactCandidates(entry({ date: "2026-07-10" }), [
-			transaction({ id: "tx-anterior", date: "2026-07-09" }),
-			transaction({ id: "tx-posterior", date: "2026-07-11" }),
-			transaction({ id: "tx-longe", date: "2026-07-12" }),
+			transaction({ id: "tx-anterior", date: "2026-07-08" }),
+			transaction({ id: "tx-posterior", date: "2026-07-12" }),
+			transaction({ id: "tx-longe", date: "2026-07-13" }),
 		]);
 
 		expect(idsOf(candidates)).toEqual(["tx-anterior", "tx-posterior"]);
+	});
+
+	it("não casa a dois dias e um: o teto da janela é ±2", () => {
+		// Medido em dados reais: ±2 mantém os casamentos de ±1 e zera as linhas
+		// órfãs de borda; de ±3 em diante casa menos e gera mais ambiguidade.
+		const candidates = findExactCandidates(entry({ date: "2026-07-10" }), [
+			transaction({ id: "tx-borda", date: "2026-07-12" }),
+			transaction({ id: "tx-fora", date: "2026-07-13" }),
+		]);
+
+		expect(idsOf(candidates)).toEqual(["tx-borda"]);
 	});
 
 	it("também casa contra a data contábil, com a mesma folga", () => {
@@ -410,7 +421,7 @@ describe("matchReconciliationRows", () => {
 			],
 			transactions: [
 				transaction({ id: "tx-1", date: "2026-07-10" }),
-				transaction({ id: "tx-2", date: "2026-07-12" }),
+				transaction({ id: "tx-2", date: "2026-07-13" }),
 			],
 		});
 
