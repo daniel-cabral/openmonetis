@@ -40,7 +40,6 @@ import { resolveCardBrandAsset } from "@/shared/lib/cards/brand-assets";
 import {
 	INVOICE_PAYMENT_STATUS,
 	INVOICE_STATUS_BADGE_VARIANT,
-	INVOICE_STATUS_DESCRIPTION,
 	INVOICE_STATUS_LABEL,
 	type InvoicePaymentStatus,
 } from "@/shared/lib/invoices";
@@ -155,9 +154,21 @@ export function InvoiceSummaryCard({
 	const brandAsset = resolveCardBrandAsset(cardBrand);
 	const isPaid = invoiceStatus === INVOICE_PAYMENT_STATUS.PAID;
 	const paymentDateLabel = isPaid ? formatPaymentDate(paymentDate) : null;
+	// Anuncia o que a quitacao vai gravar. Sem isso o complemento nasce como
+	// lancamento readonly sem o usuario ver o numero — foi assim que uma fatura
+	// ja quitada ganhou uma despesa de R$ 6.899,44 que ninguem pediu.
+	const complementDescription = () => {
+		if (outstandingAmount <= 0) {
+			return "Os pagamentos e créditos do período já cobrem esta fatura. Marcar como paga não vai lançar nada.";
+		}
+		const money = (value: number) =>
+			value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+		return `Fatura de ${money(totalAmount)}, ${money(paidAmount)} já abatidos. Marcar como paga vai lançar uma despesa de ${money(outstandingAmount)}.`;
+	};
+
 	const actionDescription = isPaid
 		? `Pagamento registrado em ${paymentDateLabel}.`
-		: INVOICE_STATUS_DESCRIPTION[invoiceStatus];
+		: complementDescription();
 
 	const targetStatus = isPaid
 		? INVOICE_PAYMENT_STATUS.PENDING

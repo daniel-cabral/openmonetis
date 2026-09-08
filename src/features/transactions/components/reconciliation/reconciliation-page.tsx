@@ -24,7 +24,7 @@ import {
 	buildReconciliationUndoPayload,
 	deriveReconciliationClosure,
 	filterAppOnlyByScope,
-	isNonPurchaseLine,
+	isInvoicePaymentLine,
 } from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -272,7 +272,7 @@ export function ReconciliationPage({
 		return {
 			matched: review.match.rows.filter((r) => r.status === "matched").length,
 			bankOnly: review.match.rows.filter(
-				(r) => r.status === "bank-only" && !isNonPurchaseLine(r.row),
+				(r) => r.status === "bank-only" && !isInvoicePaymentLine(r.row),
 			).length,
 			appOnly: appOnlyTransactions.length,
 			ambiguous: review.match.rows.filter((r) => r.status === "ambiguous").length,

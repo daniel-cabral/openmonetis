@@ -197,9 +197,21 @@ export function buildReconciliationUndoPayload(result: {
 	};
 }
 
-/** Linha da fatura que não é compra (pagamento ou estorno): vai para o balde informativo, sem ação. */
-export function isNonPurchaseLine(row: ImportedTransaction): boolean {
-	return row.lineKind !== undefined && row.lineKind !== "purchase";
+/**
+ * Pagamento da fatura **anterior** (`Pag Fatura Boleto`). Não pertence a esta
+ * fatura e já é despesa da conta corrente: lançá-lo duplicaria a saída.
+ */
+export function isInvoicePaymentLine(row: ImportedTransaction): boolean {
+	return row.lineKind === "invoice-payment";
+}
+
+/**
+ * Crédito **desta** fatura — adiantamento (`Inclusao de Pagamento`) ou estorno.
+ * Abate o valor da fatura, então pode virar lançamento de receita no cartão.
+ * Sem ele, o app soma só as compras e acha um saldo devedor maior que o real.
+ */
+export function isCreditLine(row: ImportedTransaction): boolean {
+	return row.lineKind === "credit";
 }
 
 /**
