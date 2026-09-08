@@ -107,6 +107,7 @@ docker-compose.override.yml
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/auditar-conciliacao/
+.claude/skills/*/__pycache__/
 .gemini/
 .cursor/
 QWEN.md
