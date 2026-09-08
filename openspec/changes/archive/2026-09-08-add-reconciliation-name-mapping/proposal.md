@@ -55,9 +55,11 @@ Corrigi-los em changes separadas criaria conflito entre elas sem ganho de revis�
 
 ### Modified Capabilities
 
-<!-- Nenhuma. A capability `statement-reconciliation` vive na change
-     `add-statement-reconciliation`, ainda não arquivada em `openspec/specs/`. Esta change corrige e
-     estende aquele comportamento; quando as duas forem arquivadas, os requisitos aqui prevalecem. -->
+- `statement-reconciliation`: dois requisitos mudam de comportamento. **Parsing de fatura CSV do C6**
+  passa a classificar linhas negativas em dois estados (crédito desta fatura, pagamento da anterior)
+  em vez de tratá-las como um bloco único de "não-compra". **Verificação aritmética de fechamento**
+  passa a somar todas as linhas exceto os pagamentos de fatura, em vez de somar apenas as compras —
+  a regra anterior acusava divergência de R$ 98,00 numa fatura que fecha exata.
 
 ## Impact
 
