@@ -16,6 +16,7 @@ import {
 	isNonPurchaseLine,
 	linkPeriodForRow,
 	listLinkCandidates,
+	resolveAmountUpdate,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
 
@@ -156,7 +157,7 @@ describe("buildReconciliationApplyPayload", () => {
 		]);
 	});
 
-	it("nao gera amountUpdate quando a escolha e manter", () => {
+	it("nao gera amountUpdate quando os valores ja batem", () => {
 		const payload = buildReconciliationApplyPayload(
 			[
 				{
@@ -199,6 +200,40 @@ describe("buildReconciliationApplyPayload", () => {
 			},
 		]);
 		expect(payload.confirmations).toEqual([]);
+	});
+
+	it("alinha o valor tambem no vinculo manual", () => {
+		// Regressao: o vinculo manual nao carregava valor, entao o lancamento
+		// ficava com a estimativa do recorrente em vez do valor cobrado.
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-link",
+					decision: {
+						action: "link",
+						transactionId: "tx-unimed",
+						descriptor: "Pix recebido de MARIA JOSE SILVA SANTOS",
+						name: "Unimed Mãe",
+						amountUpdate: {
+							amount: 1189.23,
+							transactionType: "income",
+							isDivided: false,
+						},
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.manualLinks).toHaveLength(1);
+		expect(payload.amountUpdates).toEqual([
+			{
+				transactionId: "tx-unimed",
+				amount: 1189.23,
+				transactionType: "income",
+				isDivided: false,
+			},
+		]);
 	});
 
 	it("mantém payerId explícito da criação quando informado", () => {
@@ -446,38 +481,22 @@ describe("listLinkCandidates", () => {
 });
 
 describe("evaluateApplyBlock", () => {
-	it("não bloqueia quando não há divergência pendente nem criação sem nome", () => {
-		expect(
-			evaluateApplyBlock({ unresolvedDivergentCount: 0, emptyNameCreationCount: 0 }),
-		).toEqual({ blocked: false });
-	});
-
-	it("bloqueia com o motivo à vista quando há divergência sem escolha", () => {
-		const result = evaluateApplyBlock({
-			unresolvedDivergentCount: 2,
-			emptyNameCreationCount: 0,
+	it("não bloqueia quando não há criação sem nome", () => {
+		expect(evaluateApplyBlock({ emptyNameCreationCount: 0 })).toEqual({
+			blocked: false,
 		});
-		expect(result.blocked).toBe(true);
-		expect(result.blocked && result.reason).toMatch(/divergência/);
 	});
 
 	it("bloqueia com o motivo à vista quando há criação sem nome", () => {
-		const result = evaluateApplyBlock({
-			unresolvedDivergentCount: 0,
-			emptyNameCreationCount: 1,
-		});
+		const result = evaluateApplyBlock({ emptyNameCreationCount: 1 });
 		expect(result.blocked).toBe(true);
 		expect(result.blocked && result.reason).toMatch(/nome/);
 	});
 
-	it("combina os dois motivos quando ambos ocorrem", () => {
-		const result = evaluateApplyBlock({
-			unresolvedDivergentCount: 1,
-			emptyNameCreationCount: 1,
+	it("divergência de valor não bloqueia: o alinhamento é automático", () => {
+		expect(evaluateApplyBlock({ emptyNameCreationCount: 0 })).toEqual({
+			blocked: false,
 		});
-		expect(result.blocked).toBe(true);
-		expect(result.blocked && result.reason).toMatch(/divergência/);
-		expect(result.blocked && result.reason).toMatch(/nome/);
 	});
 });
 
@@ -496,6 +515,72 @@ describe("buildReconciliationUndoPayload", () => {
 			importBatchId: "batch-1",
 			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
 			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+		});
+	});
+});
+
+describe("resolveAmountUpdate", () => {
+	const candidato = (over: Partial<AppTransaction> = {}): AppTransaction => ({
+		id: "tx-1",
+		name: "Unimed Mãe",
+		date: "2026-07-05",
+		period: "2026-07",
+		amount: 741.19,
+		transactionType: "income",
+		installmentCount: null,
+		currentInstallment: null,
+		fingerprint: null,
+		isDivided: false,
+		...over,
+	});
+
+	it("alinha o lancamento ao valor do arquivo quando os valores diferem", () => {
+		expect(
+			resolveAmountUpdate({
+				candidate: candidato(),
+				rowAmount: 1189.23,
+				rowTransactionType: "income",
+			}),
+		).toEqual({
+			transactionId: "tx-1",
+			amount: 1189.23,
+			transactionType: "income",
+			isDivided: false,
+		});
+	});
+
+	it("nao produz atualizacao quando os valores ja batem", () => {
+		expect(
+			resolveAmountUpdate({
+				candidate: candidato({ amount: 1189.23 }),
+				rowAmount: 1189.23,
+				rowTransactionType: "income",
+			}),
+		).toBeNull();
+	});
+
+	it("nao produz atualizacao para lancamento dividido", () => {
+		expect(
+			resolveAmountUpdate({
+				candidate: candidato({ isDivided: true }),
+				rowAmount: 1189.23,
+				rowTransactionType: "income",
+			}),
+		).toBeNull();
+	});
+
+	it("alinha diferenca de centavos vinda da tolerancia de parcela", () => {
+		expect(
+			resolveAmountUpdate({
+				candidate: candidato({ amount: 86.61, transactionType: "expense" }),
+				rowAmount: 86.59,
+				rowTransactionType: "expense",
+			}),
+		).toEqual({
+			transactionId: "tx-1",
+			amount: 86.59,
+			transactionType: "expense",
+			isDivided: false,
 		});
 	});
 });

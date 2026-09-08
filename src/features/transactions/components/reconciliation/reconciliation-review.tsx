@@ -14,6 +14,7 @@ import {
 	linkPeriodForRow,
 	listLinkCandidates,
 	type ReconciliationRowDecision,
+	resolveAmountUpdate,
 } from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
@@ -25,6 +26,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/shared/components/ui/select";
+import type { ImportedTransaction } from "@/shared/lib/import/types";
 import type {
 	AppTransaction,
 	DestinationKind,
@@ -79,9 +81,6 @@ export function ReconciliationReview({
 
 	const [confirmedByFingerprint, setConfirmedByFingerprint] = useState<
 		Record<string, boolean>
-	>({});
-	const [divergenceChoiceByFingerprint, setDivergenceChoiceByFingerprint] = useState<
-		Record<string, "keep" | "update">
 	>({});
 	const [bankOnlyState, setBankOnlyState] = useState<
 		Record<
@@ -155,6 +154,27 @@ export function ReconciliationReview({
 		return buildConsumedTransactionIds(rows, linkedByFingerprint);
 	}, [rows, bankOnlyState, ambiguousState]);
 
+	// O vínculo é escolha do usuário; o valor não é. Se o lançamento apontado
+	// tem valor diferente do arquivo, o arquivo prevalece.
+	const linkAmountUpdate = (
+		candidate: AppTransaction | undefined,
+		row: ImportedTransaction,
+	) => {
+		if (!candidate) return undefined;
+		const update = resolveAmountUpdate({
+			candidate,
+			rowAmount: row.amount,
+			rowTransactionType: row.transactionType,
+		});
+		return update
+			? {
+					amount: update.amount,
+					transactionType: update.transactionType,
+					isDivided: update.isDivided,
+				}
+			: undefined;
+	};
+
 	const decisions = (() => {
 		const entries: { fingerprint: string; decision: ReconciliationRowDecision }[] = [];
 
@@ -163,22 +183,26 @@ export function ReconciliationReview({
 
 			if (row.amountDivergence) {
 				const app = appTransactionsById.get(row.transactionId);
-				const isDivided = app?.isDivided ?? false;
-				const choice = divergenceChoiceByFingerprint[row.fingerprint];
+				const update = app
+					? resolveAmountUpdate({
+							candidate: app,
+							rowAmount: row.row.amount,
+							rowTransactionType: row.row.transactionType,
+						})
+					: null;
 				entries.push({
 					fingerprint: row.fingerprint,
 					decision: {
 						action: "confirm",
 						transactionId: row.transactionId,
 						descriptor: row.row.description,
-						amountUpdate:
-							choice === "update" && !isDivided
-								? {
-										amount: row.row.amount,
-										transactionType: row.row.transactionType,
-										isDivided,
-									}
-								: undefined,
+						amountUpdate: update
+							? {
+									amount: update.amount,
+									transactionType: update.transactionType,
+									isDivided: update.isDivided,
+								}
+							: undefined,
 					},
 				});
 				continue;
@@ -225,6 +249,11 @@ export function ReconciliationReview({
 									name:
 										appTransactionsById.get(state.transactionId)?.name ??
 										state.name,
+									// O vínculo é manual, mas o valor não é: o arquivo manda.
+									amountUpdate: linkAmountUpdate(
+										appTransactionsById.get(state.transactionId),
+										row.row,
+									),
 								}
 							: state.action === "ignore"
 								? { action: "ignore", reason: state.reason || "Não lançável" }
@@ -263,22 +292,12 @@ export function ReconciliationReview({
 		return entries;
 	})();
 
-	const unresolvedDivergentCount = matchedRows.filter(
-		(row) =>
-			row.status === "matched" &&
-			row.amountDivergence &&
-			divergenceChoiceByFingerprint[row.fingerprint] === undefined,
-	).length;
-
 	const emptyNameCreationCount = bankOnlyRows.filter((row) => {
 		const state = getBankOnly(row.fingerprint, row.row.description, row.row.categoryRaw);
 		return state.action === "create" && state.name.trim() === "";
 	}).length;
 
-	const applyBlock = evaluateApplyBlock({
-		unresolvedDivergentCount,
-		emptyNameCreationCount,
-	});
+	const applyBlock = evaluateApplyBlock({ emptyNameCreationCount });
 
 	const canApply =
 		!isApplying &&
@@ -294,7 +313,6 @@ export function ReconciliationReview({
 
 					if (row.amountDivergence) {
 						const isDivided = app?.isDivided ?? false;
-						const choice = divergenceChoiceByFingerprint[row.fingerprint];
 						return (
 							<RowCard key={row.fingerprint}>
 								<div className="flex flex-col gap-2">
@@ -318,42 +336,16 @@ export function ReconciliationReview({
 										</span>
 									</div>
 									<div className="flex flex-wrap items-center gap-2">
-										<Button
-											type="button"
-											size="sm"
-											variant={choice === "keep" ? "default" : "outline"}
-											onClick={() =>
-												setDivergenceChoiceByFingerprint((prev) => ({
-													...prev,
-													[row.fingerprint]: "keep",
-												}))
-											}
-										>
-											Manter valor do app
-										</Button>
-										<Button
-											type="button"
-											size="sm"
-											variant={choice === "update" ? "default" : "outline"}
-											disabled={isDivided}
-											onClick={() =>
-												setDivergenceChoiceByFingerprint((prev) => ({
-													...prev,
-													[row.fingerprint]: "update",
-												}))
-											}
-										>
-											Atualizar para o valor do arquivo
-										</Button>
-										{isDivided && (
+										{isDivided ? (
 											<span className="text-muted-foreground text-xs">
 												Lançamento dividido: o valor vive rateado entre as
-												partes, não dá para atualizar aqui.
+												partes por pagador, então ele fica como está e só a
+												conciliação é gravada.
 											</span>
-										)}
-										{!isDivided && !choice && (
-											<span className="text-destructive text-xs">
-												Escolha pendente.
+										) : (
+											<span className="text-muted-foreground text-xs">
+												O valor do lançamento será alinhado ao do arquivo ao
+												aplicar. O desfazer restaura o anterior.
 											</span>
 										)}
 									</div>

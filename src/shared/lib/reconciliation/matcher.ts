@@ -282,14 +282,14 @@ export function matchReconciliationRows(input: {
 		input.transactions.map((candidate) => [candidate.id, candidate]),
 	);
 
-	// Casar por nome e período ignora o valor, então a discordância entre o
-	// orçamento e o extrato precisa ficar visível em vez de sumir no casamento.
+	// O arquivo do banco é a autoridade sobre o valor: o lançamento do app pode
+	// ser uma estimativa. Vale para qualquer regra, não só a de nome e período —
+	// a tolerância de centavos também casa valores diferentes, e o fingerprint
+	// casa um lançamento que pode ter sido editado depois.
 	const amountDivergenceOf = (
 		decision: Decision,
 		row: ImportedTransaction,
 	): { appAmount: number; rowAmount: number } | null => {
-		if (decision.rule !== "name-period") return null;
-
 		const candidate = transactionsById.get(decision.transactionId);
 		if (!candidate) return null;
 		if (toCents(candidate.amount) === toCents(row.amount)) return null;
