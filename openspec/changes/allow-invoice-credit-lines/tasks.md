@@ -17,5 +17,5 @@
 ## 4. Fechamento
 
 - [x] 4.1 `pnpm exec tsc --noEmit`, `pnpm exec vitest run --maxWorkers=4`, `pnpm exec biome check --formatter-enabled=false .`
-- [ ] 4.2 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md`
+- [x] 4.2 Atualizar `CHANGELOG.md`, `package.json` e o badge do `README.md`
 - [ ] 4.3 Validar com a fatura de julho/2026: lançar os dois adiantamentos e o estorno, e confirmar que a quitação deixa de propor complemento
