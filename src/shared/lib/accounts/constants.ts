@@ -62,3 +62,27 @@ export const isRefundNote = (note: string | null | undefined) =>
 
 export const isAccountInactive = (status: string | null | undefined) =>
 	status?.toLowerCase() === "inativa";
+
+// Nota de um CRÉDITO da fatura (adiantamento, estorno):
+// `AUTO_FATURA:CREDITO:<cardId>:<period>:<fingerprint>`.
+//
+// O segmento `CREDITO` logo após o prefixo resolve três exigências ao mesmo
+// tempo, e nenhuma das duas notas existentes conseguia:
+//
+//   - começa com `AUTO_FATURA:`, então herda a exclusão de renda/despesa que
+//     as consultas de relatório aplicam — crédito de fatura não é receita;
+//   - não é igual à nota do complemento, que o "desfazer pagamento" remove por
+//     igualdade exata, então o crédito sobrevive ao desfazer;
+//   - não cai sob `AUTO_FATURA:<cardId>:<period>:`, o prefixo que soma os
+//     pagamentos parciais. O crédito já reduz o total da fatura ao ser receita
+//     no cartão; somado ali, seria abatido duas vezes.
+const ACCOUNT_AUTO_INVOICE_CREDIT_PREFIX = `${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}CREDITO:`;
+
+export const buildInvoiceCreditNote = (
+	cardId: string,
+	period: string,
+	fingerprint: string,
+) => `${ACCOUNT_AUTO_INVOICE_CREDIT_PREFIX}${cardId}:${period}:${fingerprint}`;
+
+export const isInvoiceCreditNote = (note: string | null | undefined): boolean =>
+	Boolean(note?.startsWith(ACCOUNT_AUTO_INVOICE_CREDIT_PREFIX));

@@ -10,6 +10,7 @@ import {
 	buildConsumedTransactionIds,
 	evaluateApplyBlock,
 	initialRowName,
+	isCreditLine,
 	isInvoicePaymentLine,
 	linkPeriodForRow,
 	listLinkCandidates,
@@ -240,6 +241,9 @@ export function ReconciliationReview({
 								name: state.name,
 								categoryId: state.categoryId,
 								payerId: state.payerId,
+								// Credito da fatura ganha nota propria, para nao entrar
+								// como receita nos relatorios.
+								isInvoiceCredit: isCreditLine(row.row),
 							}
 						: state.action === "link" && state.transactionId
 							? {

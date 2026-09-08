@@ -5,6 +5,18 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.11.3] - 2026-09-08
+
+Complemento da versão anterior, que deixou o crédito da fatura virar lançamento mas esqueceu do outro lado: esse lançamento entrava nos relatórios como receita. Crédito de fatura não é renda — é movimento entre conta e cartão, da mesma natureza do pagamento —, e o sistema já sabia disso para os pagamentos, excluindo-os de renda e despesa por uma nota reservada. Faltava dar ao crédito uma nota própria, e ela precisava resolver três coisas ao mesmo tempo: herdar essa exclusão, sobreviver ao "desfazer pagamento" (que remove por igualdade exata a nota do complemento) e ficar fora da soma de pagamentos parciais, senão o crédito seria abatido duas vezes no cálculo da quitação, já que ele reduz o total da fatura por ser receita no cartão. Nenhuma das duas notas existentes servia.
+
+### Corrigido
+
+- Lançamento criado a partir de crédito da fatura contava como receita nos relatórios, orçamentos e insights
+
+### Adicionado
+
+- Nota reservada para crédito de fatura, excluída de renda e despesa, preservada pelo desfazer e fora da soma de pagamentos
+
 ## [2.11.2] - 2026-09-08
 
 Correção de um caso em que a conciliação criava uma despesa que nunca existiu. Uma fatura de cartão pode ter créditos — adiantamentos pagos durante o período e estornos —, e eles abatem o valor dela. A versão anterior mandava toda linha negativa da fatura para um balde informativo sem ação nenhuma, o que está certo para o pagamento da fatura anterior (que já é despesa da conta corrente e seria duplicado), mas errado para os créditos: sem eles lançados, o app soma apenas as compras e enxerga um saldo devedor maior que o real. Ao marcar a fatura como paga, a diferença virava um lançamento automático — e, por nascer com nota de fatura, um lançamento que o usuário não conseguia nem apagar pela tela. Num caso real isso somou R$ 6.899,44 numa fatura que já estava quitada. Agora o crédito pode virar lançamento como qualquer outra linha, o balde informativo diz claramente por que o pagamento da fatura anterior não tem ação, e a quitação anuncia o que vai lançar antes de gravar.

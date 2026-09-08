@@ -10,6 +10,7 @@ import {
 	transactions,
 } from "@/db/schema";
 import {
+	ACCOUNT_AUTO_INVOICE_NOTE_PREFIX,
 	buildInvoicePaymentNote,
 	buildInvoicePaymentNotePrefix,
 	buildPartialInvoicePaymentNote,
@@ -50,6 +51,10 @@ async function sumInvoicePartialPayments(
 	period: string,
 ): Promise<number> {
 	const prefix = buildInvoicePaymentNotePrefix(cardId, period);
+	// Crédito da fatura fica de fora: ele já reduz o total ao ser receita no
+	// cartão, e somá-lo aqui o abateria uma segunda vez. Sua nota mora sob
+	// `AUTO_FATURA:CREDITO:`, que não cai neste prefixo — o filtro abaixo é
+	// cinto e suspensório, para o caso de a forma da nota mudar.
 	const [row] = await tx
 		.select({
 			total: sql<number>`coalesce(sum(abs(${transactions.amount})), 0)`,
@@ -59,6 +64,7 @@ async function sumInvoicePartialPayments(
 			and(
 				eq(transactions.userId, userId),
 				ilike(transactions.note, `${prefix}%`),
+				sql`${transactions.note} NOT LIKE ${`${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}CREDITO:%`}`,
 			),
 		);
 	return Math.abs(Number(row?.total ?? 0));

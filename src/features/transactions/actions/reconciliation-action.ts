@@ -40,6 +40,9 @@ const creationSchema = z.object({
 	name: z.string().min(1, "Nome obrigatório."),
 	categoryId: uuidSchema("Categoria").nullable().optional(),
 	payerId: uuidSchema("Pessoa").nullable().optional(),
+	// Linha de crédito da fatura: o lançamento criado recebe nota própria para
+	// ficar fora de renda e despesa nos relatórios.
+	isInvoiceCredit: z.boolean().optional(),
 });
 
 const manualLinkSchema = z.object({
@@ -259,6 +262,7 @@ export async function applyReconciliationAction(
 			name: creation.name,
 			categoryId: creation.categoryId ?? null,
 			payerId: payerIdsByCreation[index],
+			isInvoiceCredit: creation.isInvoiceCredit,
 		})),
 		ignores,
 		manualLinks,

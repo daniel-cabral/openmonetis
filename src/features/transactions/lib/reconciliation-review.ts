@@ -61,6 +61,8 @@ export type ReconciliationRowDecision =
 			name: string;
 			categoryId: string | null;
 			payerId: string | null;
+			/** Linha de crédito da fatura; ver `buildInvoiceCreditNote`. */
+			isInvoiceCredit?: boolean;
 	  }
 	| {
 			action: "link";
@@ -94,6 +96,7 @@ export type ReconciliationApplyPayload = {
 		name: string;
 		categoryId: string | null;
 		payerId: string;
+		isInvoiceCredit?: boolean;
 	}[];
 	manualLinks: {
 		fingerprint: string;
@@ -152,6 +155,7 @@ export function buildReconciliationApplyPayload(
 				name: decision.name,
 				categoryId: decision.categoryId,
 				payerId: decision.payerId ?? defaultPayerId,
+				isInvoiceCredit: decision.isInvoiceCredit,
 			});
 		} else if (decision.action === "link") {
 			payload.manualLinks.push({

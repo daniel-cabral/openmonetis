@@ -1,4 +1,5 @@
 import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
+import { buildInvoiceCreditNote } from "@/shared/lib/accounts/constants";
 import type { ReconciliationDestination } from "@/shared/lib/reconciliation/fingerprint";
 import { formatDecimalForDbRequired } from "@/shared/utils/currency";
 import { parseLocalDateString } from "@/shared/utils/date";
@@ -24,6 +25,12 @@ export type ReconciliationCreation = {
 	name: string;
 	categoryId: string | null;
 	payerId: string;
+	/**
+	 * Linha de crédito da fatura (adiantamento, estorno). Recebe nota própria
+	 * para ficar fora de renda e despesa nos relatórios: crédito de fatura é
+	 * movimento entre conta e cartão, não receita.
+	 */
+	isInvoiceCredit?: boolean;
 };
 
 /**
@@ -84,6 +91,8 @@ export type ReconciliationPlan = {
 		categoryId: string | null;
 		ofxImportFingerprint: string;
 		importBatchId: string;
+		/** Só para crédito de fatura; ver `buildInvoiceCreditNote`. */
+		note?: string;
 	}[];
 	fingerprintUpdates: { transactionId: string; fingerprint: string }[];
 	ignores: { userId: string; fingerprint: string; reason: string }[];
@@ -133,6 +142,14 @@ export function buildReconciliationPlan(
 		accountId: isCard ? null : input.destination.id,
 		cardId: isCard ? input.destination.id : null,
 		categoryId: creation.categoryId,
+		note:
+			creation.isInvoiceCredit && isCard && input.invoicePeriod
+				? buildInvoiceCreditNote(
+						input.destination.id,
+						input.invoicePeriod,
+						creation.fingerprint,
+					)
+				: undefined,
 		ofxImportFingerprint: creation.fingerprint,
 		importBatchId: input.importBatchId,
 	}));

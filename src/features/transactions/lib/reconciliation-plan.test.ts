@@ -4,6 +4,7 @@ import {
 	buildReconciliationPlan,
 	type ReconciliationPlanInput,
 } from "@/features/transactions/lib/reconciliation-plan";
+import { buildInvoiceCreditNote } from "@/shared/lib/accounts/constants";
 
 const BASE: ReconciliationPlanInput = {
 	userId: "user-1",
@@ -359,4 +360,53 @@ describe("buildReconciliationPlan — atualização de valor", () => {
 
 		expect(plan.amountUpdates).toEqual([]);
 	});
+	it("grava nota de credito quando a linha e credito de fatura", () => {
+		// Sem a nota, o credito entraria como receita nos relatorios: eles
+		// excluem movimento de fatura por `note NOT LIKE 'AUTO_FATURA:%'`.
+		const plan = buildReconciliationPlan({
+			...BASE,
+			destination: { type: "card", id: "card-1" },
+			paymentMethod: "Cartão de crédito",
+			invoicePeriod: "2026-07",
+			creations: [
+				{
+					fingerprint: "fp-credito",
+					date: "2026-06-15",
+					amount: 5222.62,
+					transactionType: "income",
+					descriptor: "Inclusao de Pagamento",
+					name: "Adiantamento da fatura",
+					categoryId: null,
+					payerId: "payer-1",
+					isInvoiceCredit: true,
+				},
+			],
+		});
+
+		expect(plan.inserts[0]?.note).toBe(
+			buildInvoiceCreditNote("card-1", "2026-07", "fp-credito"),
+		);
+		expect(plan.inserts[0]?.transactionType).toBe("Receita");
+	});
+
+	it("criacao normal nao ganha nota", () => {
+		const plan = buildReconciliationPlan({
+			...BASE,
+			creations: [
+				{
+					fingerprint: "fp-comum",
+					date: "2026-07-10",
+					amount: 25.9,
+					transactionType: "expense",
+					descriptor: "LOJA TESTE",
+					name: "Loja",
+					categoryId: null,
+					payerId: "payer-1",
+				},
+			],
+		});
+
+		expect(plan.inserts[0]?.note).toBeUndefined();
+	});
+
 });
