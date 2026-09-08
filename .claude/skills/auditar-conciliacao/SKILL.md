@@ -93,7 +93,7 @@ Conferido num caso real: compras R$ 19.484,72 − estorno R$ 98,00 − adiantame
 
 | Sintoma | Causa | O que fazer |
 |---|---|---|
-| Saldo da conta nunca bate com o banco | O card é **projetado até o fim do mês**, inclui lançamentos futuros; o banco só tem o realizado | Some as saídas ainda não realizadas do mês antes de comparar |
+| Saldo da conta nunca bate com o banco | O saldo soma **tudo que está com `isSettled = true`, sem filtro de data** (`accounts-queries.ts`). Não é projeção: é "o que está marcado como pago" | Procurar lançamento **futuro marcado como pago** — recorrente nasce assim. Cada um antecipa uma saída que não ocorreu |
 | Lançamento com "remover" cinza | Nota começa com `AUTO_FATURA:` — foi gerado pela quitação da fatura (`page-helpers.ts`, campo `readonly`) | Cartões → fatura → **período correto** → "Desfazer pagamento" |
 | Pagamento de fatura não aparece na tela do cartão | A tela abre no período atual | Navegar até o período em que o pagamento foi registrado |
 | Recorrente cai sempre em "só no banco" | Data fixa (dia 15) distante do débito real (dia 10) | Ensinar o de-para com **Vincular a lançamento existente**; casa por nome+período e ignora data |
@@ -115,6 +115,17 @@ o valor real quando a linha casa.
 
 **Antes de recomendar exclusão, procure a contrapartida.** Um lançamento órfão no app pode ser o par
 legítimo de uma linha que casou errado com outro lançamento. Verifique quem casou com quem.
+
+**Pagamento adiantado desloca o período e quebra o `name-period`.** Quem paga em agosto o boleto que
+vence em setembro tem o débito num mês e o lançamento em outro. A regra casa por **período do
+débito**, então ela nunca alcança — e, pior, pode casar com a parcela do mês errado, deixando a
+parcela correta órfã. O sintoma é uma parcela a mais marcada como paga do que débitos ocorridos. A
+solução no dado é alinhar a data do lançamento ao mês do débito; não há como resolver alargando
+janela.
+
+**Recorrente marcado como pago antes da hora é a causa mais comum de saldo que não bate.** As
+parcelas futuras nascem liquidadas. Conte: quantos débitos daquele credor saíram de fato no extrato,
+e quantas parcelas estão com o check verde. Se houver mais checks que débitos, a diferença é essa.
 
 **Medir antes de calibrar.** Ao mexer na janela de data do matcher, meça: em dados reais, ±2
 manteve os mesmos casamentos automáticos de ±1 e zerou os órfãos de borda, enquanto ±3 em diante
