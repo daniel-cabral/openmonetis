@@ -101,7 +101,12 @@ docker-compose.override.yml
 
 # === AI Assistants (Claude, Gemini, Cursor, etc) ===
 # Arquivos de configuração de assistentes de IA
-.claude/
+.claude/*
+# Skills do projeto sao versionadas: conhecimento do time, nao configuracao local.
+# O git nao reinclui arquivo cujo diretorio pai esta excluido, dai o passo a passo.
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/auditar-conciliacao/
 .gemini/
 .cursor/
 QWEN.md
