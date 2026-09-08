@@ -5,6 +5,19 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.11.2] - 2026-09-08
+
+Correção de um caso em que a conciliação criava uma despesa que nunca existiu. Uma fatura de cartão pode ter créditos — adiantamentos pagos durante o período e estornos —, e eles abatem o valor dela. A versão anterior mandava toda linha negativa da fatura para um balde informativo sem ação nenhuma, o que está certo para o pagamento da fatura anterior (que já é despesa da conta corrente e seria duplicado), mas errado para os créditos: sem eles lançados, o app soma apenas as compras e enxerga um saldo devedor maior que o real. Ao marcar a fatura como paga, a diferença virava um lançamento automático — e, por nascer com nota de fatura, um lançamento que o usuário não conseguia nem apagar pela tela. Num caso real isso somou R$ 6.899,44 numa fatura que já estava quitada. Agora o crédito pode virar lançamento como qualquer outra linha, o balde informativo diz claramente por que o pagamento da fatura anterior não tem ação, e a quitação anuncia o que vai lançar antes de gravar.
+
+### Corrigido
+
+- Crédito da fatura (adiantamento, estorno) não podia virar lançamento, o que inflava o saldo devedor calculado pelo app e gerava complemento indevido na quitação
+
+### Alterado
+
+- Balde informativo passa a conter apenas o pagamento da fatura anterior, com o motivo visível na linha
+- A quitação anuncia o valor da fatura, o quanto já foi abatido e a despesa que será lançada; quando não há saldo, avisa que nada será lançado
+
 ## [2.11.1] - 2026-09-08
 
 Ajuste de calibragem na conciliação. A janela de data do matcher era de um dia para cada lado, e no uso real isso deixava linhas órfãs na borda — o débito caía dois dias depois do que estava lançado e nada casava. Antes de mexer, o efeito foi medido sobre um mês real de dados: ±2 mantém exatamente os mesmos casamentos automáticos de ±1 e elimina as linhas sem par, enquanto ±3 em diante piora nos dois sentidos ao mesmo tempo, casando menos e gerando mais ambiguidade, porque valores repetidos no mês começam a se cruzar. A tabela da medição ficou registrada no comentário da própria constante, para que ela não seja alargada de novo por intuição.

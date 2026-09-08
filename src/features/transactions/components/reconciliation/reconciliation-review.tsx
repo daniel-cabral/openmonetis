@@ -10,7 +10,7 @@ import {
 	buildConsumedTransactionIds,
 	evaluateApplyBlock,
 	initialRowName,
-	isNonPurchaseLine,
+	isInvoicePaymentLine,
 	linkPeriodForRow,
 	listLinkCandidates,
 	type ReconciliationRowDecision,
@@ -72,10 +72,10 @@ export function ReconciliationReview({
 }: ReconciliationReviewProps) {
 	const matchedRows = rows.filter((r) => r.status === "matched");
 	const bankOnlyRows = rows.filter(
-		(r) => r.status === "bank-only" && !isNonPurchaseLine(r.row),
+		(r) => r.status === "bank-only" && !isInvoicePaymentLine(r.row),
 	);
 	const informationalRows = rows.filter(
-		(r) => r.status === "bank-only" && isNonPurchaseLine(r.row),
+		(r) => r.status === "bank-only" && isInvoicePaymentLine(r.row),
 	);
 	const ambiguousRows = rows.filter((r) => r.status === "ambiguous");
 
@@ -553,7 +553,9 @@ export function ReconciliationReview({
 				{bankOnlyRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
-			<BucketSection title={`Informativo (${informationalRows.length})`}>
+			<BucketSection
+				title={`Pagamento da fatura anterior (${informationalRows.length})`}
+			>
 				{informationalRows.map((row) => (
 					<RowCard key={row.fingerprint}>
 						<div className="flex flex-col">
@@ -562,7 +564,7 @@ export function ReconciliationReview({
 								{formatDate(row.row.date)} ·{" "}
 								{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
 								{" · "}
-								{row.row.lineKind === "invoice-payment" ? "Pagamento de fatura" : "Estorno"}
+								já lançado na conta corrente, não vira lançamento aqui
 							</span>
 						</div>
 					</RowCard>

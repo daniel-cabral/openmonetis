@@ -13,7 +13,8 @@ import {
 	evaluateApplyBlock,
 	filterAppOnlyByScope,
 	initialRowName,
-	isNonPurchaseLine,
+	isCreditLine,
+	isInvoicePaymentLine,
 	linkPeriodForRow,
 	listLinkCandidates,
 	resolveAmountUpdate,
@@ -260,15 +261,22 @@ describe("buildReconciliationApplyPayload", () => {
 	});
 });
 
-describe("isNonPurchaseLine", () => {
-	it("é falso quando lineKind é purchase ou ausente (extrato)", () => {
-		expect(isNonPurchaseLine(row({ lineKind: "purchase" }))).toBe(false);
-		expect(isNonPurchaseLine(row({ lineKind: undefined }))).toBe(false);
+describe("isInvoicePaymentLine e isCreditLine", () => {
+	it("distingue pagamento da fatura anterior de credito desta fatura", () => {
+		// Pag Fatura Boleto quita a fatura anterior e ja e despesa da conta;
+		// Inclusao de Pagamento e Estorno abatem esta fatura e podem ser lancados.
+		expect(isInvoicePaymentLine(row({ lineKind: "invoice-payment" }))).toBe(true);
+		expect(isCreditLine(row({ lineKind: "invoice-payment" }))).toBe(false);
+
+		expect(isCreditLine(row({ lineKind: "credit" }))).toBe(true);
+		expect(isInvoicePaymentLine(row({ lineKind: "credit" }))).toBe(false);
 	});
 
-	it("é verdadeiro para credit e invoice-payment", () => {
-		expect(isNonPurchaseLine(row({ lineKind: "credit" }))).toBe(true);
-		expect(isNonPurchaseLine(row({ lineKind: "invoice-payment" }))).toBe(true);
+	it("compra e linha de extrato nao sao nem um nem outro", () => {
+		expect(isInvoicePaymentLine(row({ lineKind: "purchase" }))).toBe(false);
+		expect(isCreditLine(row({ lineKind: "purchase" }))).toBe(false);
+		expect(isInvoicePaymentLine(row({ lineKind: undefined }))).toBe(false);
+		expect(isCreditLine(row({ lineKind: undefined }))).toBe(false);
 	});
 });
 
