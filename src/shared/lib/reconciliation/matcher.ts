@@ -2,9 +2,25 @@ import { normalizeDescriptionKey } from "@/features/transactions/lib/import-util
 import type { ImportedTransaction } from "@/shared/lib/import/types";
 import { derivePeriodFromDate } from "@/shared/utils/period";
 
-// Folga de data aplicada tanto à Data Lançamento quanto à Data Contábil,
-// coerente com a defasagem medida entre as duas colunas do extrato.
-const DATE_WINDOW_DAYS = 1;
+// Folga de data aplicada tanto à Data Lançamento quanto à Data Contábil.
+//
+// Medido sobre um mês real (58 linhas do extrato contra 63 lançamentos do app),
+// contando quantas linhas casariam com candidato único, quantas ficariam
+// ambíguas e quantas não achariam par nenhum:
+//
+//   janela | casa sozinho | ambíguo | sem par
+//     ±1   |      47      |    6    |    5
+//     ±2   |      47      |   11    |    0
+//     ±3   |      46      |   12    |    0
+//     ±5   |      44      |   14    |    0
+//     ±7   |      42      |   16    |    0
+//
+// ±2 é o teto útil: mantém os mesmos 47 casamentos automáticos de ±1 e zera as
+// linhas órfãs de borda. A partir de ±3 a janela piora nos dois sentidos ao
+// mesmo tempo — casa menos e gera mais ambiguidade — porque valores repetidos
+// no mês começam a se cruzar. Recorrente com data fixa distante do débito não
+// se resolve alargando isto: é caso para o de-para de nome, que ignora data.
+const DATE_WINDOW_DAYS = 2;
 
 // Tolerância de arredondamento de parcela, em centavos.
 const CENTS_TOLERANCE = 5;

@@ -5,6 +5,15 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.11.1] - 2026-09-08
+
+Ajuste de calibragem na conciliação. A janela de data do matcher era de um dia para cada lado, e no uso real isso deixava linhas órfãs na borda — o débito caía dois dias depois do que estava lançado e nada casava. Antes de mexer, o efeito foi medido sobre um mês real de dados: ±2 mantém exatamente os mesmos casamentos automáticos de ±1 e elimina as linhas sem par, enquanto ±3 em diante piora nos dois sentidos ao mesmo tempo, casando menos e gerando mais ambiguidade, porque valores repetidos no mês começam a se cruzar. A tabela da medição ficou registrada no comentário da própria constante, para que ela não seja alargada de novo por intuição.
+
+### Alterado
+
+- Janela de data do matcher de ±1 para ±2 dias, com a medição que sustenta o número registrada no código
+- Teste fixando o teto da janela: um candidato a dois dias casa, um a três não
+
 ## [2.11.0] - 2026-09-08
 
 Esta versão entrega o extrato como autoridade sobre o valor. Até aqui, conciliar uma linha com um lançamento que já existia preservava o valor digitado no app — e como despesas recorrentes são lançadas por estimativa, o orçamento ficava com o número que o banco nunca cobrou. Pior: o vínculo manual, que é justamente o caminho da primeira conciliação de cada credor, não tinha como alinhar o valor de jeito nenhum, e fazia isso em silêncio. Agora, sempre que o valor do arquivo difere do lançamento, o valor do arquivo prevalece; a revisão mostra a diferença antes de aplicar e o desfazer restaura o anterior. A escolha entre manter e atualizar deixou de existir, porque não havia decisão real a tomar: o extrato é fato, o lançamento é palpite. Lançamento dividido continua intocado, com a razão à vista.
