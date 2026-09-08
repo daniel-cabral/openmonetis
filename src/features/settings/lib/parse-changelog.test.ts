@@ -11,20 +11,26 @@ const readNormalized = (file: string) =>
 const changelog = readNormalized("CHANGELOG.md");
 const readme = readNormalized("README.md");
 
-describe("versao 2.10.0", () => {
-	it("package.json aponta a versao 2.10.0", () => {
-		expect(pkg.version).toBe("2.10.0");
+// A versao vem do package.json em vez de ser fixada aqui: o que interessa e a
+// coerencia entre os tres lugares da regra 6 do AGENTS.md, nao um numero
+// especifico que obrigaria a editar este teste a cada release.
+const versao = pkg.version;
+const escapado = versao.replace(/\./g, "\\.");
+
+describe(`versao ${versao}`, () => {
+	it("README traz o badge da versao do package.json", () => {
+		expect(readme).toMatch(new RegExp(`badge/version-${escapado}-blue`));
 	});
 
-	it("README traz o badge de versao 2.10.0", () => {
-		expect(readme).toMatch(/badge\/version-2\.10\.0-blue/);
-	});
-
-	it("CHANGELOG tem entrada 2.10.0 com paragrafo de prosa antes das secoes", () => {
+	it("CHANGELOG tem a entrada da versao com paragrafo de prosa antes das secoes", () => {
 		const match = changelog.match(
-			/## \[2\.10\.0\][^\n]*\n\n([^\n#][^\n]+)\n\n### /,
+			new RegExp(`## \\[${escapado}\\][^\\n]*\\n\\n([^\\n#][^\\n]+)\\n\\n### `),
 		);
 		expect(match).not.toBeNull();
 		expect(match?.[1]?.length ?? 0).toBeGreaterThan(40);
+	});
+
+	it("a versao do package.json segue SemVer", () => {
+		expect(versao).toMatch(/^\d+\.\d+\.\d+$/);
 	});
 });

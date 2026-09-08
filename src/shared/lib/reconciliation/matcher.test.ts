@@ -645,6 +645,40 @@ describe("matchReconciliationRows com de-para de nome", () => {
 		});
 	});
 
+	it("reporta divergência de valor também fora da regra de nome e período", () => {
+		// A tolerância de centavos casa 86,59 do arquivo com 86,61 do app; o
+		// extrato é a autoridade, então a diferença precisa ficar visível.
+		const result = matchReconciliationRows({
+			rows: [
+				entry(
+					{
+						description: "MP *TRANSCEND",
+						amount: 86.59,
+						transactionType: "expense",
+						installment: { number: 2, total: 3 },
+					},
+					"fp-parcela",
+				),
+			],
+			transactions: [
+				transaction({
+					id: "tx-parcela",
+					amount: 86.61,
+					installmentCount: 3,
+					currentInstallment: 2,
+				}),
+			],
+			destinationKind: "card",
+		});
+
+		expect(result.rows[0]).toMatchObject({
+			status: "matched",
+			rule: "cents",
+			transactionId: "tx-parcela",
+			amountDivergence: { appAmount: 86.61, rowAmount: 86.59 },
+		});
+	});
+
 	it("dá precedência à regra exata sobre a de nome e período", () => {
 		const result = matchReconciliationRows({
 			rows: [aluguelRow()],

@@ -5,6 +5,22 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.11.0] - 2026-09-08
+
+Esta versão entrega o extrato como autoridade sobre o valor. Até aqui, conciliar uma linha com um lançamento que já existia preservava o valor digitado no app — e como despesas recorrentes são lançadas por estimativa, o orçamento ficava com o número que o banco nunca cobrou. Pior: o vínculo manual, que é justamente o caminho da primeira conciliação de cada credor, não tinha como alinhar o valor de jeito nenhum, e fazia isso em silêncio. Agora, sempre que o valor do arquivo difere do lançamento, o valor do arquivo prevalece; a revisão mostra a diferença antes de aplicar e o desfazer restaura o anterior. A escolha entre manter e atualizar deixou de existir, porque não havia decisão real a tomar: o extrato é fato, o lançamento é palpite. Lançamento dividido continua intocado, com a razão à vista.
+
+### Corrigido
+
+- Vínculo manual a um lançamento existente não alinhava o valor ao do arquivo, deixando a estimativa do recorrente no lugar do valor cobrado
+- Divergência de valor só era detectada em casamentos pela regra de nome e período; a tolerância de centavos e o casamento por fingerprint passavam batido
+
+### Alterado
+
+- O valor do arquivo passa a prevalecer automaticamente em qualquer caminho de casamento, incluindo o vínculo manual
+- A decisão por linha entre "manter valor do app" e "atualizar para o valor do arquivo" foi removida, substituída por um aviso do que será feito
+- Divergência de valor não bloqueia mais o "Aplicar"; o único bloqueio restante é criação sem nome
+- O teste de coerência de versão passa a derivar o número do `package.json` em vez de fixá-lo
+
 ## [2.10.0] - 2026-09-07
 
 Esta versão ensina a conciliação a reconhecer, pelo nome, despesas fixas que já existem como lançamento recorrente. Antes disso, o extrato mostrava só o descriptor cru do banco (`CASA NOVA LOCADORA LTDA - EPP - Boleto`) e caía no balde "só no banco" sempre que a data ou o valor batido pelo banco divergia um pouco do lançamento já digitado — a única saída era criar um lançamento novo, duplicando o recorrente. Agora o usuário vincula a linha ao lançamento existente uma vez, o de-para descriptor→nome fica aprendido e os meses seguintes casam sozinhos por nome e período, com decisão explícita quando o valor também divergir. De quebra, a conciliação de fatura ganha quatro correções apuradas na validação com dados reais: o fechamento soma o conjunto certo de linhas, o total recalcula ao ser editado, o balde "só no app" passa a respeitar o período da fatura, e o pagamento da fatura anterior não é mais oferecido para virar lançamento por engano.

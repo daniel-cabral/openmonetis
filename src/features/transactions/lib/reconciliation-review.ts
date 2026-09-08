@@ -69,6 +69,12 @@ export type ReconciliationRowDecision =
 			descriptor: string;
 			/** Nome do lançamento vinculado, o que o de-para aprende. */
 			name: string;
+			/** Alinhamento do valor ao do arquivo, quando eles divergem. */
+			amountUpdate?: {
+				amount: number;
+				transactionType: "income" | "expense";
+				isDivided: boolean;
+			};
 	  }
 	| { action: "ignore"; reason: string }
 	| { action: "skip" };
@@ -154,6 +160,14 @@ export function buildReconciliationApplyPayload(
 				descriptor: decision.descriptor,
 				name: decision.name,
 			});
+			if (decision.amountUpdate) {
+				payload.amountUpdates.push({
+					transactionId: decision.transactionId,
+					amount: decision.amountUpdate.amount,
+					transactionType: decision.amountUpdate.transactionType,
+					isDivided: decision.amountUpdate.isDivided,
+				});
+			}
 		} else if (decision.action === "ignore") {
 			payload.ignores.push({ fingerprint, reason: decision.reason });
 		}
@@ -285,21 +299,15 @@ export function buildConsumedTransactionIds(
 export type ApplyBlock = { blocked: false } | { blocked: true; reason: string };
 
 /**
- * Bloqueia o "Aplicar" enquanto houver linha casada com divergência de valor
- * sem escolha (manter/atualizar) ou linha marcada para criação com nome
- * vazio — em ambos os casos o motivo fica visível na tela.
+ * Bloqueia o "Aplicar" enquanto houver linha marcada para criação com nome
+ * vazio, com o motivo visível na tela. Divergência de valor não bloqueia mais:
+ * o arquivo é a autoridade e o alinhamento é automático, apenas anunciado.
  */
 export function evaluateApplyBlock(params: {
-	unresolvedDivergentCount: number;
 	emptyNameCreationCount: number;
 }): ApplyBlock {
 	const reasons: string[] = [];
 
-	if (params.unresolvedDivergentCount > 0) {
-		reasons.push(
-			`${params.unresolvedDivergentCount} linha(s) com divergência de valor sem escolha`,
-		);
-	}
 	if (params.emptyNameCreationCount > 0) {
 		reasons.push(`${params.emptyNameCreationCount} criação(ões) sem nome`);
 	}
@@ -332,4 +340,39 @@ export function listLinkCandidates(params: {
 					consumedByFingerprint !== params.fingerprint,
 			};
 		});
+}
+
+/**
+ * O valor a gravar no lançamento casado. O arquivo do banco é a autoridade: o
+ * que o usuário lançou pode ser estimativa de um recorrente, e manter a
+ * estimativa depois de conhecer o valor cobrado distorce o orçamento.
+ *
+ * Devolve `null` quando não há o que alinhar — valores já iguais — ou quando o
+ * lançamento é dividido, caso em que o valor vive distribuído entre as partes
+ * por pagador e mexer só no total deixaria a soma inconsistente.
+ */
+export function resolveAmountUpdate(params: {
+	candidate: AppTransaction;
+	rowAmount: number;
+	rowTransactionType: "income" | "expense";
+}): {
+	transactionId: string;
+	amount: number;
+	transactionType: "income" | "expense";
+	isDivided: boolean;
+} | null {
+	if (params.candidate.isDivided) return null;
+	if (
+		Math.round(params.candidate.amount * 100) ===
+		Math.round(params.rowAmount * 100)
+	) {
+		return null;
+	}
+
+	return {
+		transactionId: params.candidate.id,
+		amount: params.rowAmount,
+		transactionType: params.rowTransactionType,
+		isDivided: false,
+	};
 }
