@@ -5,6 +5,14 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.11.4] - 2026-09-08
+
+Correção de um bug antigo e silencioso na leitura de valores digitados. Todo campo de dinheiro do sistema — total da fatura, limite do cartão, saldo inicial da conta e orçamento — trocava a vírgula por ponto sem remover o separador de milhar, então "12.164,10" virava "12.164.10" e o resultado era NaN. Na tela isso aparecia como "diferença de R$ NaN" no fechamento aritmético, sem explicar a causa, e quem digitava o valor sem o ponto de milhar nunca via o problema. Agora o ponto é tratado como milhar sempre que existe vírgula decimal; sem vírgula ele continua valendo como decimal, porque "1.5" é um e meio e não há como distinguir milhar nesse caso.
+
+### Corrigido
+
+- Campos de valor rejeitavam separador de milhar e produziam NaN: total da fatura, limite do cartão, saldo inicial da conta e orçamento
+
 ## [2.11.3] - 2026-09-08
 
 Complemento da versão anterior, que deixou o crédito da fatura virar lançamento mas esqueceu do outro lado: esse lançamento entrava nos relatórios como receita. Crédito de fatura não é renda — é movimento entre conta e cartão, da mesma natureza do pagamento —, e o sistema já sabia disso para os pagamentos, excluindo-os de renda e despesa por uma nota reservada. Faltava dar ao crédito uma nota própria, e ela precisava resolver três coisas ao mesmo tempo: herdar essa exclusão, sobreviver ao "desfazer pagamento" (que remove por igualdade exata a nota do complemento) e ficar fora da soma de pagamentos parciais, senão o crédito seria abatido duas vezes no cálculo da quitação, já que ele reduz o total da fatura por ser receita no cartão. Nenhuma das duas notas existentes servia.
