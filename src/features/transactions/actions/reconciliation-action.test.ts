@@ -221,6 +221,51 @@ describe("applyReconciliationAction — de-para de nome e valor", () => {
 	});
 });
 
+describe("applyReconciliationAction — liquidação do casado", () => {
+	const settledWrites = () =>
+		writes.filter(
+			(write) =>
+				write.kind === "update" &&
+				write.table === transactions &&
+				"ofxImportFingerprint" in (write.payload as object),
+		);
+
+	it("marca como pago o lançamento casado quando o destino é conta", async () => {
+		selectQueue.push([{ id: TX_ID, categoryId: null }]);
+
+		const result = await applyReconciliationAction({
+			...baseInput,
+			confirmations: [
+				{ fingerprint: "fp-1", transactionId: TX_ID, descriptor: DESCRIPTOR },
+			],
+		});
+
+		expect(result.success).toBe(true);
+		expect(settledWrites().map((write) => write.payload)).toEqual([
+			{ ofxImportFingerprint: "fp-1", isSettled: true },
+		]);
+	});
+
+	it("não mexe em isSettled quando o destino é cartão", async () => {
+		selectQueue.push([{ id: TX_ID, categoryId: null }]);
+
+		const result = await applyReconciliationAction({
+			...baseInput,
+			destination: { type: "card" as const, id: ACCOUNT_ID },
+			paymentMethod: "Cartão de crédito",
+			invoicePeriod: "2026-09",
+			confirmations: [
+				{ fingerprint: "fp-1", transactionId: TX_ID, descriptor: DESCRIPTOR },
+			],
+		});
+
+		expect(result.success).toBe(true);
+		expect(settledWrites().map((write) => write.payload)).toEqual([
+			{ ofxImportFingerprint: "fp-1" },
+		]);
+	});
+});
+
 describe("undoReconciliationAction", () => {
 	it("restaura o valor anterior dos lançamentos atualizados", async () => {
 		const result = await undoReconciliationAction({

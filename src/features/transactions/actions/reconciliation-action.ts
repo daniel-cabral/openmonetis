@@ -293,10 +293,15 @@ export async function applyReconciliationAction(
 
 			const reconciled: { transactionId: string; fingerprint: string }[] = [];
 
+			// Casou com uma linha do extrato: o dinheiro já saiu da conta, então o
+			// lançamento pendente vira pago. No cartão isSettled fica null.
+			const settledOnMatch =
+				destination.type === "account" ? { isSettled: true } : {};
+
 			for (const update of plan.fingerprintUpdates) {
 				const [updated] = await tx
 					.update(transactions)
-					.set({ ofxImportFingerprint: update.fingerprint })
+					.set({ ofxImportFingerprint: update.fingerprint, ...settledOnMatch })
 					.where(
 						and(
 							eq(transactions.userId, userId),

@@ -5,6 +5,14 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.11.5] - 2026-09-14
+
+A conciliação de extrato casava um boleto ou Pix pendente com a linha do banco, gravava o de-para e corrigia o valor, mas deixava o lançamento como não pago. O dinheiro já tinha saído da conta — o extrato é a prova —, e o saldo do app continuava acima do banco até alguém marcar cada casado à mão. Agora, quando o destino é uma conta, o lançamento casado vira pago no mesmo passo. No cartão nada muda: lançamento de cartão não tem esse estado, quem paga é a fatura.
+
+### Corrigido
+
+- Lançamento pendente casado na conciliação de conta ficava como não pago mesmo com o débito no extrato
+
 ## [2.11.4] - 2026-09-08
 
 Correção de um bug antigo e silencioso na leitura de valores digitados. Todo campo de dinheiro do sistema — total da fatura, limite do cartão, saldo inicial da conta e orçamento — trocava a vírgula por ponto sem remover o separador de milhar, então "12.164,10" virava "12.164.10" e o resultado era NaN. Na tela isso aparecia como "diferença de R$ NaN" no fechamento aritmético, sem explicar a causa, e quem digitava o valor sem o ponto de milhar nunca via o problema. Agora o ponto é tratado como milhar sempre que existe vírgula decimal; sem vírgula ele continua valendo como decimal, porque "1.5" é um e meio e não há como distinguir milhar nesse caso.
