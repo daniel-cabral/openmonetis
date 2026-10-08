@@ -209,7 +209,7 @@ git commit -m "feat(trips): filtro de viagem compartilhado para relatorios" -- s
 - Consumes: `transactions.tripId`, `transactions.period`, `transactions.userId` de `@/db/schema`; `db` de `@/shared/lib/db`.
 - Produces: `type TripPeriodRange = { startPeriod: string; endPeriod: string }`; `fetchTripPeriodRanges(userId: string): Promise<Record<string, TripPeriodRange>>` (chave = `tripId`; viagem sem lançamento não aparece). Uma query agrupada por viagem, para o cliente de Tendências ajustar De/Até sem ida ao servidor (design D3).
 
-- [ ] 2.1 Escrever o teste que falha
+- [x] 2.1 Escrever o teste que falha
 
 ```ts
 // src/shared/lib/trips/period-ranges.test.ts
@@ -263,9 +263,9 @@ describe("fetchTripPeriodRanges", () => {
 });
 ```
 
-- [ ] 2.2 Rodar e ver falhar: `pnpm exec vitest run src/shared/lib/trips/period-ranges.test.ts` (FAIL, módulo não existe). Se a coluna de usuário em `transactions` não se chamar `user_id` no schema, ajuste só a regex.
+- [x] 2.2 Rodar e ver falhar: `pnpm exec vitest run src/shared/lib/trips/period-ranges.test.ts` (FAIL, módulo não existe). Se a coluna de usuário em `transactions` não se chamar `user_id` no schema, ajuste só a regex.
 
-- [ ] 2.3 Implementar
+- [x] 2.3 Implementar
 
 ```ts
 // src/shared/lib/trips/period-ranges.ts
@@ -306,9 +306,9 @@ export async function fetchTripPeriodRanges(
 }
 ```
 
-- [ ] 2.4 Rodar e ver passar: `pnpm exec vitest run src/shared/lib/trips/period-ranges.test.ts` (PASS)
+- [x] 2.4 Rodar e ver passar: `pnpm exec vitest run src/shared/lib/trips/period-ranges.test.ts` (PASS)
 
-- [ ] 2.5 Lint e commit
+- [x] 2.5 Lint e commit
 
 ```bash
 pnpm exec biome check src/shared/lib/trips/period-ranges.ts src/shared/lib/trips/period-ranges.test.ts
