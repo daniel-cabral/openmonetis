@@ -3297,7 +3297,7 @@ git commit -m "feat(trips): dialogo de criar e editar viagem" -- src/features/tr
 - Consumes: `fetchTripsOverview`, `TripListItem` (Task 12), `TripDialog` (Task 18).
 - Produces: rota `/trips`. Sem teste automatizado (página fina; query testada na Task 12).
 
-- [ ] **Step 1: Implementar**
+- [x] **Step 1: Implementar**
 
 `src/app/(dashboard)/trips/layout.tsx`:
 
@@ -3417,12 +3417,12 @@ export function TripsPage({ trips }: { trips: TripListItem[] }) {
 
 `trips-page.tsx` é client e importa o tipo `TripListItem` de `queries.ts` com `import type`, que não leva código de servidor ao bundle.
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `pnpm exec next typegen && pnpm exec tsc --noEmit && pnpm exec biome check --formatter-enabled=false "src/app/(dashboard)/trips/layout.tsx" "src/app/(dashboard)/trips/page.tsx" src/features/trips/components/trips-page.tsx`
 Expected: verde.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git commit -m "feat(trips): pagina de lista de viagens" -- "src/app/(dashboard)/trips/layout.tsx" "src/app/(dashboard)/trips/page.tsx" src/features/trips/components/trips-page.tsx
