@@ -1846,7 +1846,7 @@ git commit -m "feat(trips): custo liquido e quebras da viagem" -- src/features/t
   - `type TripDetail = { trip: { id: string; name: string; startDate: string; endDate: string; note: string | null }; summary: TripSummary; linked: TripTransactionRow[]; suggestions: TripTransactionRow[] }`
   - `fetchTripDetail(userId: string, tripId: string): Promise<TripDetail | null>` (null quando a viagem não existe ou é de outro usuário)
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -1984,12 +1984,12 @@ describe("fetchTripDetail", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/trips/queries.test.ts`
 Expected: FAIL (módulos inexistentes).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `src/features/trips/lib/suggestions.ts`:
 
@@ -2135,12 +2135,12 @@ export async function fetchTripDetail(
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/trips/queries.test.ts && pnpm exec tsc --noEmit`
 Expected: PASS, tsc limpo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): detalhe da viagem com sugestoes" -- src/features/trips/lib/suggestions.ts src/features/trips/queries.ts src/features/trips/queries.test.ts
