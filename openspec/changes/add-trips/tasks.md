@@ -985,7 +985,7 @@ git commit -m "feat(trips): revalidacao e item Viagens no menu" -- src/shared/li
   - `findOverlappingTrip(candidate: { id?: string; startDate: string; endDate: string }, trips: TripOption[]): TripOption | undefined`
   - `buildOverlapMessage(trip: TripOption): string`
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1055,12 +1055,12 @@ describe("createTripSchema", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/trips/lib/overlap.test.ts`
 Expected: FAIL (módulos inexistentes).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `src/features/trips/lib/schemas.ts`:
 
@@ -1139,12 +1139,12 @@ export function buildOverlapMessage(trip: TripOption): string {
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/trips/lib/overlap.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): validacao de datas e sobreposicao de viagens" -- src/features/trips/lib/
