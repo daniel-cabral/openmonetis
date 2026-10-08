@@ -283,6 +283,8 @@ export const resolvePeriod = (purchaseDate: string, period?: string | null) => {
 const isValidDateInput = (value: string) =>
 	!Number.isNaN(parseLocalDateString(value).getTime());
 
+const tripIdSchema = z.string().uuid("Viagem inválida.").nullable().optional();
+
 const baseFields = z.object({
 	purchaseDate: z
 		.string({ message: "Informe a data da transação." })
@@ -331,6 +333,7 @@ const baseFields = z.object({
 	accountId: uuidSchema("FinancialAccount").nullable().optional(),
 	cardId: uuidSchema("Cartão").nullable().optional(),
 	categoryId: uuidSchema("Category").nullable().optional(),
+	tripId: tripIdSchema,
 	note: noteSchema,
 	installmentCount: z.coerce
 		.number()
@@ -716,6 +719,9 @@ export const buildTransactionRecords = ({
 		accountId: data.accountId ?? null,
 		cardId: data.cardId ?? null,
 		categoryId: data.categoryId ?? null,
+		// Transfers never belong to a trip (D5).
+		tripId:
+			data.transactionType === "Transferência" ? null : (data.tripId ?? null),
 		recurrenceCount: null as number | null,
 		installmentCount: null as number | null,
 		currentInstallment: null as number | null,
@@ -804,6 +810,8 @@ export const buildTransactionRecords = ({
 					period: recurrencePeriod,
 					isSettled: settled,
 					recurrenceCount: recurrenceTotal,
+					// Recurrences link only the first occurrence (D4).
+					tripId: index === 0 ? basePayload.tripId : null,
 					dueDate: recurrenceDueDate,
 					splitGroupId,
 					boletoPaymentDate:
@@ -908,6 +916,7 @@ export const updateBulkSchema = z.object({
 		.trim()
 		.min(1, "Informe o estabelecimento."),
 	categoryId: uuidSchema("Category").nullable().optional(),
+	tripId: tripIdSchema,
 	note: noteSchema,
 	payerId: uuidSchema("Payer").nullable().optional(),
 	accountId: uuidSchema("FinancialAccount").nullable().optional(),
