@@ -4,7 +4,9 @@ import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 
 // Detecção é sugestão: o perfil detectado é apenas o valor inicial do select,
 // sempre editável pelo usuário na confirmação de origem.
-export function resolveDefaultProfileId(detectResult: DetectResult): string | null {
+export function resolveDefaultProfileId(
+	detectResult: DetectResult,
+): string | null {
 	return detectResult.detected?.id ?? detectResult.profiles[0]?.id ?? null;
 }
 

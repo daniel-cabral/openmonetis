@@ -47,7 +47,9 @@ describe("parseC6InvoiceCsv", () => {
 
 	it("interpreta Parcela 'Única' como ausência de parcelamento", () => {
 		const result = parseC6InvoiceCsv(readFixture());
-		const unica = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
+		const unica = result.transactions.find(
+			(t) => t.description === "ASSINATURA NUVEM TESTE",
+		);
 		expect(unica?.installment).toBeUndefined();
 	});
 
@@ -71,7 +73,9 @@ describe("parseC6InvoiceCsv", () => {
 
 	it("marca isPurchase: true para linhas de compra normais", () => {
 		const result = parseC6InvoiceCsv(readFixture());
-		const compra = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
+		const compra = result.transactions.find(
+			(t) => t.description === "ASSINATURA NUVEM TESTE",
+		);
 		expect(compra?.isPurchase).toBe(true);
 		expect(compra?.transactionType).toBe("expense");
 		expect(compra?.amount).toBe(19.9);
@@ -84,7 +88,9 @@ describe("parseC6InvoiceCsv", () => {
 		);
 		expect(emDolar?.fx).toEqual({ currency: "USD", amount: 50 });
 
-		const semFx = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
+		const semFx = result.transactions.find(
+			(t) => t.description === "ASSINATURA NUVEM TESTE",
+		);
 		expect(semFx?.fx).toBeUndefined();
 	});
 
@@ -96,7 +102,9 @@ describe("parseC6InvoiceCsv", () => {
 		const estorno = result.transactions.find(
 			(t) => t.description === "Estorno Tarifa",
 		);
-		const compra = result.transactions.find((t) => t.description === "ASSINATURA NUVEM TESTE");
+		const compra = result.transactions.find(
+			(t) => t.description === "ASSINATURA NUVEM TESTE",
+		);
 
 		expect(compra?.lineKind).toBe("purchase");
 		expect(pagamento?.lineKind).toBe("invoice-payment");

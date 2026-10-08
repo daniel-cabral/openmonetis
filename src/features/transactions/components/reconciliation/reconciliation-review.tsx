@@ -51,7 +51,9 @@ interface ReconciliationReviewProps {
 	payerOptions: SelectOption[];
 	defaultPayerId: string;
 	isApplying: boolean;
-	onApply: (entries: { fingerprint: string; decision: ReconciliationRowDecision }[]) => void;
+	onApply: (
+		entries: { fingerprint: string; decision: ReconciliationRowDecision }[],
+	) => void;
 }
 
 const signedAmount = (amount: number, transactionType: "income" | "expense") =>
@@ -147,10 +149,12 @@ export function ReconciliationReview({
 	const consumedBy = useMemo(() => {
 		const linkedByFingerprint: Record<string, string | null> = {};
 		for (const [fingerprint, state] of Object.entries(bankOnlyState)) {
-			if (state.action === "link") linkedByFingerprint[fingerprint] = state.transactionId;
+			if (state.action === "link")
+				linkedByFingerprint[fingerprint] = state.transactionId;
 		}
 		for (const [fingerprint, state] of Object.entries(ambiguousState)) {
-			if (state.action === "confirm") linkedByFingerprint[fingerprint] = state.transactionId;
+			if (state.action === "confirm")
+				linkedByFingerprint[fingerprint] = state.transactionId;
 		}
 		return buildConsumedTransactionIds(rows, linkedByFingerprint);
 	}, [rows, bankOnlyState, ambiguousState]);
@@ -177,7 +181,10 @@ export function ReconciliationReview({
 	};
 
 	const decisions = (() => {
-		const entries: { fingerprint: string; decision: ReconciliationRowDecision }[] = [];
+		const entries: {
+			fingerprint: string;
+			decision: ReconciliationRowDecision;
+		}[] = [];
 
 		for (const row of matchedRows) {
 			if (row.status !== "matched") continue;
@@ -297,7 +304,11 @@ export function ReconciliationReview({
 	})();
 
 	const emptyNameCreationCount = bankOnlyRows.filter((row) => {
-		const state = getBankOnly(row.fingerprint, row.row.description, row.row.categoryRaw);
+		const state = getBankOnly(
+			row.fingerprint,
+			row.row.description,
+			row.row.categoryRaw,
+		);
 		return state.action === "create" && state.name.trim() === "";
 	}).length;
 
@@ -375,7 +386,9 @@ export function ReconciliationReview({
 									<span className="font-medium">{row.row.description}</span>
 									<span className="text-muted-foreground text-xs">
 										{formatDate(row.row.date)} ·{" "}
-										{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
+										{formatCurrency(
+											signedAmount(row.row.amount, row.row.transactionType),
+										)}
 										{app ? ` · casada por ${row.rule}` : ""}
 									</span>
 								</div>
@@ -410,7 +423,9 @@ export function ReconciliationReview({
 									<span className="font-medium">{row.row.description}</span>
 									<span className="text-muted-foreground text-xs">
 										{formatDate(row.row.date)} ·{" "}
-										{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
+										{formatCurrency(
+											signedAmount(row.row.amount, row.row.transactionType),
+										)}
 									</span>
 								</div>
 								<div className="flex flex-1 flex-wrap items-center gap-3">
@@ -419,7 +434,10 @@ export function ReconciliationReview({
 										onValueChange={(value) =>
 											setBankOnlyState((prev) => ({
 												...prev,
-												[row.fingerprint]: { ...state, action: value as BankOnlyAction },
+												[row.fingerprint]: {
+													...state,
+													action: value as BankOnlyAction,
+												},
 											}))
 										}
 									>
@@ -445,7 +463,10 @@ export function ReconciliationReview({
 												onChange={(e) =>
 													setBankOnlyState((prev) => ({
 														...prev,
-														[row.fingerprint]: { ...state, name: e.target.value },
+														[row.fingerprint]: {
+															...state,
+															name: e.target.value,
+														},
 													}))
 												}
 											/>
@@ -454,7 +475,10 @@ export function ReconciliationReview({
 												onValueChange={(value) =>
 													setBankOnlyState((prev) => ({
 														...prev,
-														[row.fingerprint]: { ...state, categoryId: value || null },
+														[row.fingerprint]: {
+															...state,
+															categoryId: value || null,
+														},
 													}))
 												}
 											>
@@ -544,7 +568,10 @@ export function ReconciliationReview({
 											onChange={(e) =>
 												setBankOnlyState((prev) => ({
 													...prev,
-													[row.fingerprint]: { ...state, reason: e.target.value },
+													[row.fingerprint]: {
+														...state,
+														reason: e.target.value,
+													},
 												}))
 											}
 										/>
@@ -566,7 +593,9 @@ export function ReconciliationReview({
 							<span className="font-medium">{row.row.description}</span>
 							<span className="text-muted-foreground text-xs">
 								{formatDate(row.row.date)} ·{" "}
-								{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
+								{formatCurrency(
+									signedAmount(row.row.amount, row.row.transactionType),
+								)}
 								{" · "}
 								já lançado na conta corrente, não vira lançamento aqui
 							</span>
@@ -602,7 +631,9 @@ export function ReconciliationReview({
 									<span className="font-medium">{row.row.description}</span>
 									<span className="text-muted-foreground text-xs">
 										{formatDate(row.row.date)} ·{" "}
-										{formatCurrency(signedAmount(row.row.amount, row.row.transactionType))}
+										{formatCurrency(
+											signedAmount(row.row.amount, row.row.transactionType),
+										)}
 										{" · "}
 										{row.candidateIds.length} candidatos
 									</span>
@@ -615,7 +646,11 @@ export function ReconciliationReview({
 												: state.action
 										}
 										onValueChange={(value) => {
-											if (value === "create" || value === "ignore" || value === "skip") {
+											if (
+												value === "create" ||
+												value === "ignore" ||
+												value === "skip"
+											) {
 												setAmbiguousState((prev) => ({
 													...prev,
 													[row.fingerprint]: {
@@ -646,13 +681,18 @@ export function ReconciliationReview({
 													<SelectItem key={candidateId} value={candidateId}>
 														{candidate
 															? `${candidate.name} · ${formatDate(candidate.date)} · ${formatCurrency(
-																	signedAmount(candidate.amount, candidate.transactionType),
+																	signedAmount(
+																		candidate.amount,
+																		candidate.transactionType,
+																	),
 																)}`
 															: candidateId}
 													</SelectItem>
 												);
 											})}
-											<SelectItem value="create">Criar lançamento novo</SelectItem>
+											<SelectItem value="create">
+												Criar lançamento novo
+											</SelectItem>
 											<SelectItem value="ignore">Ignorar</SelectItem>
 											<SelectItem value="skip">Pular</SelectItem>
 										</SelectContent>
@@ -666,7 +706,10 @@ export function ReconciliationReview({
 											onChange={(e) =>
 												setAmbiguousState((prev) => ({
 													...prev,
-													[row.fingerprint]: { ...state, reason: e.target.value },
+													[row.fingerprint]: {
+														...state,
+														reason: e.target.value,
+													},
 												}))
 											}
 										/>
@@ -698,8 +741,9 @@ function matchCategoryByRawLabel(
 	if (!categoryRaw) return null;
 	const normalized = categoryRaw.trim().toLowerCase();
 	return (
-		categoryOptions.find((option) => option.label.trim().toLowerCase() === normalized)
-			?.value ?? null
+		categoryOptions.find(
+			(option) => option.label.trim().toLowerCase() === normalized,
+		)?.value ?? null
 	);
 }
 

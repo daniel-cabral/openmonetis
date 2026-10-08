@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/shared/lib/actions/helpers", () => ({ revalidateForEntity: vi.fn() }));
+vi.mock("@/shared/lib/actions/helpers", () => ({
+	revalidateForEntity: vi.fn(),
+}));
 
 import {
 	buildTransactionRecords,
@@ -17,7 +19,10 @@ const LANCAMENTO_ID = "66666666-6666-4666-8666-666666666666";
 
 type Params = Parameters<typeof buildTransactionRecords>[0];
 
-const params = (data: Record<string, unknown>, shares: Params["shares"]): Params => ({
+const params = (
+	data: Record<string, unknown>,
+	shares: Params["shares"],
+): Params => ({
 	data: {
 		purchaseDate: "2026-03-02",
 		name: "TAP",
@@ -51,18 +56,27 @@ describe("tripId nos registros", () => {
 			]),
 		);
 		expect(records).toHaveLength(20);
-		expect(new Set(records.map((record) => record.tripId))).toEqual(new Set([TRIP_ID]));
+		expect(new Set(records.map((record) => record.tripId))).toEqual(
+			new Set([TRIP_ID]),
+		);
 	});
 
 	it("recorrente criado com viagem vincula só a primeira ocorrência", () => {
 		const records = buildTransactionRecords(
-			params({ condition: "Recorrente", recurrenceCount: 12, installmentCount: undefined }, [
-				{ payerId: PAYER_A, amountCents: 5590 },
-			]),
+			params(
+				{
+					condition: "Recorrente",
+					recurrenceCount: 12,
+					installmentCount: undefined,
+				},
+				[{ payerId: PAYER_A, amountCents: 5590 }],
+			),
 		);
 		expect(records).toHaveLength(12);
 		expect(records[0]?.tripId).toBe(TRIP_ID);
-		expect(records.slice(1).every((record) => record.tripId === null)).toBe(true);
+		expect(records.slice(1).every((record) => record.tripId === null)).toBe(
+			true,
+		);
 	});
 
 	it("transferência nunca grava viagem", () => {
@@ -98,12 +112,18 @@ describe("schemas", () => {
 	};
 
 	it("aceitam uuid, null e ausência; rejeitam lixo", () => {
-		expect(updateSchema.safeParse({ ...validUpdate, tripId: TRIP_ID }).success).toBe(true);
-		expect(updateSchema.safeParse({ ...validUpdate, tripId: null }).success).toBe(true);
+		expect(
+			updateSchema.safeParse({ ...validUpdate, tripId: TRIP_ID }).success,
+		).toBe(true);
+		expect(
+			updateSchema.safeParse({ ...validUpdate, tripId: null }).success,
+		).toBe(true);
 		expect(updateSchema.safeParse(validUpdate).success).toBe(true);
 		const rejected = updateSchema.safeParse({ ...validUpdate, tripId: "abc" });
 		expect(rejected.success).toBe(false);
-		expect(rejected.error?.issues.map((issue) => issue.message)).toContain("Viagem inválida.");
+		expect(rejected.error?.issues.map((issue) => issue.message)).toContain(
+			"Viagem inválida.",
+		);
 
 		const bulk = updateBulkSchema.parse({
 			id: PAYER_A,
@@ -113,8 +133,12 @@ describe("schemas", () => {
 		});
 		expect(bulk.tripId).toBe(TRIP_ID);
 		expect(
-			updateBulkSchema.safeParse({ id: PAYER_A, scope: "all", name: "TAP", tripId: "abc" })
-				.success,
+			updateBulkSchema.safeParse({
+				id: PAYER_A,
+				scope: "all",
+				name: "TAP",
+				tripId: "abc",
+			}).success,
 		).toBe(false);
 	});
 });

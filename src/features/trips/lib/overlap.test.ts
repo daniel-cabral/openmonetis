@@ -13,8 +13,18 @@ const lisboa: TripOption = {
 describe("findOverlappingTrip", () => {
 	it.each([
 		["Porto cruza Lisboa", "2026-05-20", "2026-05-25", "Lisboa"],
-		["começa no dia em que Lisboa termina", "2026-05-22", "2026-05-24", "Lisboa"],
-		["termina no dia em que Lisboa começa", "2026-05-01", "2026-05-12", "Lisboa"],
+		[
+			"começa no dia em que Lisboa termina",
+			"2026-05-22",
+			"2026-05-24",
+			"Lisboa",
+		],
+		[
+			"termina no dia em que Lisboa começa",
+			"2026-05-01",
+			"2026-05-12",
+			"Lisboa",
+		],
 		["contém Lisboa inteira", "2026-05-01", "2026-05-30", "Lisboa"],
 		["começa no dia seguinte", "2026-05-23", "2026-05-25", undefined],
 		["termina na véspera", "2026-05-01", "2026-05-11", undefined],

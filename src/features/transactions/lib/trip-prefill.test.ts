@@ -23,7 +23,11 @@ describe("resolveAutoTripId", () => {
 
 	it("mudar a data para fora do intervalo limpa enquanto o usuário não mexeu", () => {
 		expect(
-			resolveAutoTripId({ ...base, purchaseDate: "2026-03-02", currentTripId: "trip-lisboa" }),
+			resolveAutoTripId({
+				...base,
+				purchaseDate: "2026-03-02",
+				currentTripId: "trip-lisboa",
+			}),
 		).toBeUndefined();
 	});
 
@@ -39,7 +43,9 @@ describe("resolveAutoTripId", () => {
 	});
 
 	it("limpar manualmente dentro do intervalo continua limpo", () => {
-		expect(resolveAutoTripId({ ...base, touched: true, currentTripId: undefined })).toBeUndefined();
+		expect(
+			resolveAutoTripId({ ...base, touched: true, currentTripId: undefined }),
+		).toBeUndefined();
 	});
 
 	it("edição mostra o gravado e não recalcula", () => {

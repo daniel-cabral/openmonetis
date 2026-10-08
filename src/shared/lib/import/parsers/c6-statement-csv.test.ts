@@ -49,7 +49,10 @@ describe("parseC6StatementCsv", () => {
 		const recebido = result.transactions.find((t) =>
 			t.sourceDescription.includes("Pix recebido c6 de Empresa Teste 1 LTDA"),
 		);
-		expect(recebido).toMatchObject({ transactionType: "income", amount: 2990.4 });
+		expect(recebido).toMatchObject({
+			transactionType: "income",
+			amount: 2990.4,
+		});
 	});
 
 	it("combina Título e Descrição sem duplicar quando forem iguais", () => {

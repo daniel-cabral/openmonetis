@@ -32,7 +32,9 @@ const {
 					writes.push({ kind: "insert", table, payload: values });
 					return awaitable({
 						returning: () =>
-							Promise.resolve(values.map((_, index) => ({ id: `new-${index}` }))),
+							Promise.resolve(
+								values.map((_, index) => ({ id: `new-${index}` })),
+							),
 					});
 				},
 				onConflictDoUpdate: () => {

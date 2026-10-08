@@ -79,7 +79,9 @@ export async function fetchReconciliationCandidatesAction(
 		return { success: false, error: "Data inválida." };
 	}
 
-	const rangeFrom = new Date(parsedFrom.getTime() - RANGE_BUFFER_DAYS * DAY_IN_MS);
+	const rangeFrom = new Date(
+		parsedFrom.getTime() - RANGE_BUFFER_DAYS * DAY_IN_MS,
+	);
 	const rangeTo = new Date(parsedTo.getTime() + RANGE_BUFFER_DAYS * DAY_IN_MS);
 
 	// A data comprada pode cair fora do intervalo do arquivo (ex.: compra de

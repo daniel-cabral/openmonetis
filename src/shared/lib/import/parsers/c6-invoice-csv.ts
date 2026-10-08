@@ -6,7 +6,9 @@ function parseBrDate(raw: string): string {
 	return `${year}-${month}-${day}`;
 }
 
-function parseInstallment(raw: string): { number: number; total: number } | undefined {
+function parseInstallment(
+	raw: string,
+): { number: number; total: number } | undefined {
 	const match = raw.trim().match(/^(\d+)\/(\d+)$/);
 	if (!match) return undefined;
 	return { number: Number(match[1]), total: Number(match[2]) };

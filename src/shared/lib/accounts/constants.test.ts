@@ -27,14 +27,16 @@ describe("nota de crédito de fatura", () => {
 		// sumInvoicePartialPayments soma tudo sob esse prefixo. O credito ja reduz
 		// o total da fatura ao ser receita no cartao; contado aqui, seria abatido
 		// duas vezes.
-		expect(credito.startsWith(buildInvoicePaymentNotePrefix(CARD, PERIOD))).toBe(
-			false,
-		);
+		expect(
+			credito.startsWith(buildInvoicePaymentNotePrefix(CARD, PERIOD)),
+		).toBe(false);
 	});
 
 	it("é reconhecível como crédito, e as notas de pagamento não são", () => {
 		expect(isInvoiceCreditNote(credito)).toBe(true);
-		expect(isInvoiceCreditNote(buildInvoicePaymentNote(CARD, PERIOD))).toBe(false);
+		expect(isInvoiceCreditNote(buildInvoicePaymentNote(CARD, PERIOD))).toBe(
+			false,
+		);
 		expect(
 			isInvoiceCreditNote(`${buildInvoicePaymentNotePrefix(CARD, PERIOD)}xyz`),
 		).toBe(false);

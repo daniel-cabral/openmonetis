@@ -6,7 +6,9 @@ import pkg from "../../../../package.json";
 // O working copy deste repo grava CRLF; sem normalizar, os regexes abaixo
 // falham dependendo de qual branch escreveu o arquivo por ultimo.
 const readNormalized = (file: string) =>
-	fs.readFileSync(path.join(process.cwd(), file), "utf-8").replace(/\r\n/g, "\n");
+	fs
+		.readFileSync(path.join(process.cwd(), file), "utf-8")
+		.replace(/\r\n/g, "\n");
 
 const changelog = readNormalized("CHANGELOG.md");
 const readme = readNormalized("README.md");

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+	revalidatePath: vi.fn(),
+	revalidateTag: vi.fn(),
+}));
 vi.mock("next/cache", () => mocks);
 
 import { NAV_SECTIONS } from "@/shared/components/navigation/navbar/nav-items";
@@ -24,7 +27,9 @@ describe("revalidateForEntity trips", () => {
 
 describe("menu", () => {
 	it("tem o item Viagens em Organização", () => {
-		const organizacao = NAV_SECTIONS.find((section) => section.label === "Organização");
+		const organizacao = NAV_SECTIONS.find(
+			(section) => section.label === "Organização",
+		);
 		expect(organizacao?.items.map((item) => item.href)).toContain("/trips");
 	});
 });

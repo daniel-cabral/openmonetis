@@ -61,9 +61,7 @@ describe("toAppTransaction", () => {
 	});
 
 	it("leva period e isDivided para o matcher usar na regra de nome+período", () => {
-		const app = toAppTransaction(
-			dbRow({ period: "2026-08", isDivided: true }),
-		);
+		const app = toAppTransaction(dbRow({ period: "2026-08", isDivided: true }));
 
 		expect(app).toMatchObject({ period: "2026-08", isDivided: true });
 	});

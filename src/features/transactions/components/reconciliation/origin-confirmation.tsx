@@ -77,7 +77,9 @@ export function OriginConfirmation({
 
 				<div className="flex flex-col gap-1.5">
 					<Label>
-						{destinationKind === "card" ? "Cartão de destino" : "Conta de destino"}
+						{destinationKind === "card"
+							? "Cartão de destino"
+							: "Conta de destino"}
 					</Label>
 					<Select
 						value={destinationId ?? ""}

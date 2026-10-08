@@ -225,13 +225,22 @@ export function isCreditLine(row: ImportedTransaction): boolean {
 export function filterAppOnlyByScope(
 	transactions: AppTransaction[],
 	scope:
-		| { destinationKind: Extract<DestinationKind, "account">; from: string; to: string }
-		| { destinationKind: Extract<DestinationKind, "card">; invoicePeriod: string },
+		| {
+				destinationKind: Extract<DestinationKind, "account">;
+				from: string;
+				to: string;
+		  }
+		| {
+				destinationKind: Extract<DestinationKind, "card">;
+				invoicePeriod: string;
+		  },
 ): AppTransaction[] {
 	if (scope.destinationKind === "card") {
 		return transactions.filter((tx) => tx.period === scope.invoicePeriod);
 	}
-	return transactions.filter((tx) => tx.date >= scope.from && tx.date <= scope.to);
+	return transactions.filter(
+		(tx) => tx.date >= scope.from && tx.date <= scope.to,
+	);
 }
 
 export type ReconciliationClosure =
@@ -302,9 +311,12 @@ export function buildConsumedTransactionIds(
 	const consumed = new Map<string, string>();
 
 	for (const row of rows) {
-		if (row.status === "matched") consumed.set(row.transactionId, row.fingerprint);
+		if (row.status === "matched")
+			consumed.set(row.transactionId, row.fingerprint);
 	}
-	for (const [fingerprint, transactionId] of Object.entries(linkedByFingerprint)) {
+	for (const [fingerprint, transactionId] of Object.entries(
+		linkedByFingerprint,
+	)) {
 		if (transactionId) consumed.set(transactionId, fingerprint);
 	}
 

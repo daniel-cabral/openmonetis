@@ -302,7 +302,12 @@ describe("buildReconciliationPlan — descriptor, nome e de-para de nome", () =>
 		const plan = buildReconciliationPlan({
 			...BASE,
 			creations: [
-				{ ...CREATION, fingerprint: "fp-1", descriptor: "DROGASIL2919", name: "Farmácia" },
+				{
+					...CREATION,
+					fingerprint: "fp-1",
+					descriptor: "DROGASIL2919",
+					name: "Farmácia",
+				},
 			],
 			manualLinks: [
 				{
@@ -408,5 +413,4 @@ describe("buildReconciliationPlan — atualização de valor", () => {
 
 		expect(plan.inserts[0]?.note).toBeUndefined();
 	});
-
 });

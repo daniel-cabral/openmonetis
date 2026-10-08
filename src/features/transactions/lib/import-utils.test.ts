@@ -13,9 +13,9 @@ describe("normalizeDescriptionKey", () => {
 	});
 
 	it("derruba a praça separada por corrida de espaços, como o C6 exporta", () => {
-		expect(
-			normalizeDescriptionKey("DM*HOSTINGERCOMB   SAO PAULO   BRA"),
-		).toBe("hostingercomb");
+		expect(normalizeDescriptionKey("DM*HOSTINGERCOMB   SAO PAULO   BRA")).toBe(
+			"hostingercomb",
+		);
 		expect(
 			normalizeDescriptionKey("CINE RITZ DIVINOPOLI   DIVINOPOLIS   BRA"),
 		).toBe("cine ritz divinopoli");

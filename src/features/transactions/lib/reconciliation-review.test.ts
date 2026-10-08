@@ -21,7 +21,9 @@ import {
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
 
-function row(overrides: Partial<ImportedTransaction> = {}): ImportedTransaction {
+function row(
+	overrides: Partial<ImportedTransaction> = {},
+): ImportedTransaction {
 	return {
 		externalId: null,
 		externalIdOccurrence: 0,
@@ -265,7 +267,9 @@ describe("isInvoicePaymentLine e isCreditLine", () => {
 	it("distingue pagamento da fatura anterior de credito desta fatura", () => {
 		// Pag Fatura Boleto quita a fatura anterior e ja e despesa da conta;
 		// Inclusao de Pagamento e Estorno abatem esta fatura e podem ser lancados.
-		expect(isInvoicePaymentLine(row({ lineKind: "invoice-payment" }))).toBe(true);
+		expect(isInvoicePaymentLine(row({ lineKind: "invoice-payment" }))).toBe(
+			true,
+		);
 		expect(isCreditLine(row({ lineKind: "invoice-payment" }))).toBe(false);
 
 		expect(isCreditLine(row({ lineKind: "credit" }))).toBe(true);
@@ -482,9 +486,13 @@ describe("listLinkCandidates", () => {
 		});
 
 		expect(result).toHaveLength(2);
-		expect(result.find((c) => c.transaction.id === "tx-1")?.consumed).toBe(true);
+		expect(result.find((c) => c.transaction.id === "tx-1")?.consumed).toBe(
+			true,
+		);
 		// o escolhido pela própria linha continua disponível para ela
-		expect(result.find((c) => c.transaction.id === "tx-2")?.consumed).toBe(false);
+		expect(result.find((c) => c.transaction.id === "tx-2")?.consumed).toBe(
+			false,
+		);
 	});
 });
 

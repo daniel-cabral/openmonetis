@@ -35,7 +35,10 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { type DetectResult, detectParserProfile } from "@/shared/lib/import/parsers/detect";
+import {
+	type DetectResult,
+	detectParserProfile,
+} from "@/shared/lib/import/parsers/detect";
 import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 import type { ImportStatement } from "@/shared/lib/import/types";
 import { buildReconciliationFingerprintPayloads } from "@/shared/lib/reconciliation/fingerprint";
@@ -63,13 +66,20 @@ type ReviewState = {
 	nameMappings: Record<string, string>;
 };
 
-function extendedDateRange(statement: ImportStatement): { from: string; to: string } {
+function extendedDateRange(statement: ImportStatement): {
+	from: string;
+	to: string;
+} {
 	const dates = statement.transactions.flatMap((t) =>
 		[t.date, t.postedDate].filter((d): d is string => Boolean(d)),
 	);
 	const sorted = [...dates].sort();
 	return {
-		from: sorted[0] ?? statement.period?.from ?? statement.transactions[0]?.date ?? "",
+		from:
+			sorted[0] ??
+			statement.period?.from ??
+			statement.transactions[0]?.date ??
+			"",
 		to:
 			sorted[sorted.length - 1] ??
 			statement.period?.to ??
@@ -182,7 +192,8 @@ export function ReconciliationPage({
 		// Aprendido tem precedência sobre a categoria que o banco manda na linha.
 		const learnedCategoryByFingerprint = new Map<string, string>();
 		for (const { fingerprint, row } of rows) {
-			const categoryId = categoryMappings[normalizeDescriptionKey(row.description)];
+			const categoryId =
+				categoryMappings[normalizeDescriptionKey(row.description)];
 			if (categoryId) learnedCategoryByFingerprint.set(fingerprint, categoryId);
 		}
 
@@ -275,7 +286,8 @@ export function ReconciliationPage({
 				(r) => r.status === "bank-only" && !isInvoicePaymentLine(r.row),
 			).length,
 			appOnly: appOnlyTransactions.length,
-			ambiguous: review.match.rows.filter((r) => r.status === "ambiguous").length,
+			ambiguous: review.match.rows.filter((r) => r.status === "ambiguous")
+				.length,
 		};
 	}, [review, appOnlyTransactions]);
 
@@ -382,7 +394,9 @@ export function ReconciliationPage({
 									</span>
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<Label>Total da fatura (R$), para o fechamento aritmético</Label>
+									<Label>
+										Total da fatura (R$), para o fechamento aritmético
+									</Label>
 									<Input
 										className="w-48"
 										placeholder="0,00"
@@ -396,7 +410,10 @@ export function ReconciliationPage({
 
 					{!review && (
 						<div className="flex justify-end">
-							<Button disabled={!canAdvance || isPending} onClick={handleAdvance}>
+							<Button
+								disabled={!canAdvance || isPending}
+								onClick={handleAdvance}
+							>
 								{isPending ? "Processando…" : "Avançar"}
 							</Button>
 						</div>
