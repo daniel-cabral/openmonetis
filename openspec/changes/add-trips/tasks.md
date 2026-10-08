@@ -411,7 +411,7 @@ git commit -m "feat(trips): elegibilidade e viagem da data em shared" -- src/sha
   - `fetchTripOptionsAction(): Promise<TripOption[]>` (`"use server"`, em `actions.ts`)
   - `queries.ts` reexporta `type TripOption`.
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -514,12 +514,12 @@ describe("fetchTripOptionsAction", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/shared/lib/trips/queries.test.ts`
 Expected: FAIL (módulos inexistentes).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `src/shared/lib/trips/queries.ts`:
 
@@ -592,12 +592,12 @@ export async function fetchTripOptionsAction(): Promise<TripOption[]> {
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/shared/lib/trips/queries.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): queries compartilhadas de viagem" -- src/shared/lib/trips/queries.ts src/shared/lib/trips/actions.ts src/shared/lib/trips/queries.test.ts
