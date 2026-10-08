@@ -1453,7 +1453,7 @@ git commit -m "feat(trips): criar, editar e excluir viagem" -- src/features/trip
   - `linkTransactionsToTripAction(input: { tripId: string; transactionIds: string[] }): Promise<ActionResult<{ count: number }>>`
   - `unlinkTransactionsFromTripAction(input: { transactionIds: string[] }): Promise<ActionResult<{ count: number }>>`
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -1545,12 +1545,12 @@ describe("unlinkTransactionsFromTripAction", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/trips/link-actions.test.ts`
 Expected: FAIL (exports inexistentes).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Acrescentar imports em `src/features/trips/actions.ts`:
 
@@ -1610,12 +1610,12 @@ export async function unlinkTransactionsFromTripAction(
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/trips/link-actions.test.ts src/features/trips/actions.test.ts`
 Expected: PASS nos dois.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): vincular e desvincular lancamentos em lote" -- src/features/trips/actions.ts src/features/trips/link-actions.test.ts
