@@ -52,7 +52,7 @@
   - `trip-filter-param.ts` (sem import de runtime, seguro no cliente): `TRIP_FILTER_PARAM = "viagem"`, `TRIP_FILTER_NONE_VALUE = "sem"`, `type TripFilter = { kind: "all" } | { kind: "none" } | { kind: "trip"; tripId: string; name: string }`, `parseTripFilterParam(value: string | null, userTrips: TripOption[]): TripFilter`, `tripFilterToParam(filter: TripFilter): string | null`.
   - `trip-filter-condition.ts` (servidor): `tripFilterCondition(filter: TripFilter): SQL | undefined`.
 
-- [ ] 1.1 Escrever o teste que falha
+- [x] 1.1 Escrever o teste que falha
 
 ```ts
 // src/shared/lib/trips/trip-filter.test.ts
@@ -137,9 +137,9 @@ describe("tripFilterCondition", () => {
 });
 ```
 
-- [ ] 1.2 Rodar e ver falhar: `pnpm exec vitest run src/shared/lib/trips/trip-filter.test.ts` (esperado: FAIL, módulos `./trip-filter-param` e `./trip-filter-condition` não existem)
+- [x] 1.2 Rodar e ver falhar: `pnpm exec vitest run src/shared/lib/trips/trip-filter.test.ts` (esperado: FAIL, módulos `./trip-filter-param` e `./trip-filter-condition` não existem)
 
-- [ ] 1.3 Implementar
+- [x] 1.3 Implementar
 
 ```ts
 // src/shared/lib/trips/trip-filter-param.ts
@@ -189,9 +189,9 @@ export function tripFilterCondition(filter: TripFilter): SQL | undefined {
 }
 ```
 
-- [ ] 1.4 Rodar e ver passar: `pnpm exec vitest run src/shared/lib/trips/trip-filter.test.ts` (PASS). Se o Biome reclamar do `!` (noNonNullAssertion) no teste, troque por `as SQL` importando `type SQL` de `drizzle-orm`.
+- [x] 1.4 Rodar e ver passar: `pnpm exec vitest run src/shared/lib/trips/trip-filter.test.ts` (PASS). Se o Biome reclamar do `!` (noNonNullAssertion) no teste, troque por `as SQL` importando `type SQL` de `drizzle-orm`.
 
-- [ ] 1.5 Lint e commit
+- [x] 1.5 Lint e commit
 
 ```bash
 pnpm exec biome check src/shared/lib/trips/trip-filter-param.ts src/shared/lib/trips/trip-filter-condition.ts src/shared/lib/trips/trip-filter.test.ts
