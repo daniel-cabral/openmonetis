@@ -251,7 +251,7 @@ git commit -m "feat(trips): migracao da tabela viagens" -- drizzle/
   - `isTripEligible(row: { transactionType: string; note: string | null | undefined }): boolean`
   - `tripEligibleCondition(): SQL` (condição Drizzle sobre `transactions`)
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -314,12 +314,12 @@ describe("tripEligibleCondition", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/shared/lib/trips/eligibility.test.ts`
 Expected: FAIL (módulos inexistentes).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `src/shared/lib/trips/types.ts`:
 
@@ -379,12 +379,12 @@ export function tripEligibleCondition(): SQL {
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/shared/lib/trips/eligibility.test.ts`
 Expected: PASS. Se o texto renderizado diferir só em aspas/qualificação (`"lancamentos"."transfer_id" is null`), os `toContain` acima continuam valendo; não afrouxar as asserções.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): elegibilidade e viagem da data em shared" -- src/shared/lib/trips/
