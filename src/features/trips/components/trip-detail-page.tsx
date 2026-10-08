@@ -10,19 +10,15 @@ import { Button } from "@/shared/components/ui/button";
 import { formatDateOnly } from "@/shared/utils/date";
 import { TripBreakdowns } from "./trip-breakdowns";
 import { TripDialog } from "./trip-dialog";
+import { TripSuggestions } from "./trip-suggestions";
 import { TripSummaryCards } from "./trip-summary-cards";
+import { TripTransactionsList } from "./trip-transactions-list";
 
 type TripDetailPageProps = {
 	detail: TripDetail;
-	linkedSlot?: React.ReactNode;
-	suggestionsSlot?: React.ReactNode;
 };
 
-export function TripDetailPage({
-	detail,
-	linkedSlot,
-	suggestionsSlot,
-}: TripDetailPageProps) {
+export function TripDetailPage({ detail }: TripDetailPageProps) {
 	const router = useRouter();
 	const { trip } = detail;
 
@@ -77,8 +73,12 @@ export function TripDetailPage({
 			<TripBreakdowns summary={detail.summary} />
 
 			<div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-				<div>{linkedSlot}</div>
-				<div>{suggestionsSlot}</div>
+				<div>
+					<TripTransactionsList rows={detail.linked} />
+				</div>
+				<div>
+					<TripSuggestions tripId={trip.id} rows={detail.suggestions} />
+				</div>
 			</div>
 		</div>
 	);
