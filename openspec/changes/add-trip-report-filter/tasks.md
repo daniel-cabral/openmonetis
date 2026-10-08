@@ -618,7 +618,7 @@ git commit -m "feat(reports): recorte por viagem em estabelecimentos" -- src/fea
   - `buildTripSearchParams(currentSearch: string, tripParam: string | null, range: TripPeriodRange): string`
   - `buildResetSearchParams(currentSearch: string, range: TripPeriodRange): string` (Limpar: remove `viagem` e `categorias`, grava `inicio`/`fim`, preserva o resto)
 
-- [ ] 5.1 Escrever o teste que falha
+- [x] 5.1 Escrever o teste que falha
 
 ```ts
 // src/features/reports/lib/trip-range.test.ts
@@ -703,9 +703,9 @@ describe("buildResetSearchParams", () => {
 });
 ```
 
-- [ ] 5.2 Rodar e ver falhar: `pnpm exec vitest run src/features/reports/lib/trip-range.test.ts` (FAIL, módulo não existe)
+- [x] 5.2 Rodar e ver falhar: `pnpm exec vitest run src/features/reports/lib/trip-range.test.ts` (FAIL, módulo não existe)
 
-- [ ] 5.3 Implementar
+- [x] 5.3 Implementar
 
 ```ts
 // src/features/reports/lib/trip-range.ts
@@ -761,9 +761,9 @@ export function buildResetSearchParams(
 }
 ```
 
-- [ ] 5.4 Rodar e ver passar: `pnpm exec vitest run src/features/reports/lib/trip-range.test.ts` (PASS)
+- [x] 5.4 Rodar e ver passar: `pnpm exec vitest run src/features/reports/lib/trip-range.test.ts` (PASS)
 
-- [ ] 5.5 Lint e commit
+- [x] 5.5 Lint e commit
 
 ```bash
 pnpm exec biome check src/features/reports/lib/trip-range.ts src/features/reports/lib/trip-range.test.ts
