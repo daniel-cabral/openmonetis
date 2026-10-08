@@ -3666,7 +3666,7 @@ git commit -m "feat(trips): pagina da viagem com totais e quebras" -- "src/app/(
 - Consumes: `linkTransactionsToTripAction`, `unlinkTransactionsFromTripAction` (Task 9), `TripTransactionRow` (Task 10).
 - Produces: lista de vinculados com "Desvincular" por linha; caixa lateral de sugestões com checkbox e "Vincular selecionados". Sem teste automatizado; as actions estão testadas na Task 9.
 
-- [ ] **Step 1: Implementar**
+- [x] **Step 1: Implementar**
 
 Rótulo compartilhado de linha, no topo de cada componente (duplicado de propósito, 3 linhas):
 
@@ -3856,12 +3856,12 @@ Em `trip-detail-page.tsx`, importar os dois componentes e trocar `{linkedSlot}` 
 
 removendo as props `linkedSlot`/`suggestionsSlot` (órfãs desta task).
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec biome check --formatter-enabled=false src/features/trips/components/trip-transactions-list.tsx src/features/trips/components/trip-suggestions.tsx src/features/trips/components/trip-detail-page.tsx`
 Expected: verde.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git commit -m "feat(trips): vinculados e sugestoes em lote na pagina da viagem" -- src/features/trips/components/trip-transactions-list.tsx src/features/trips/components/trip-suggestions.tsx src/features/trips/components/trip-detail-page.tsx
