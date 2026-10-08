@@ -331,7 +331,7 @@ git commit -m "feat(trips): intervalo de periodos por viagem" -- src/shared/lib/
   - `fetchCategoryReport(userId: string, filters: CategoryReportFilters)` respeita `filters.tripFilter`.
   - `fetchCategoryChartData(userId: string, startPeriod: string, endPeriod: string, categoryIds?: string[], tripFilter?: TripFilter)`.
 
-- [ ] 3.1 Escrever o teste que falha
+- [x] 3.1 Escrever o teste que falha
 
 ```ts
 // src/features/reports/lib/category-report-queries.test.ts
@@ -418,9 +418,9 @@ describe("Tendências: recorte por viagem", () => {
 });
 ```
 
-- [ ] 3.2 Rodar e ver falhar: `pnpm exec vitest run src/features/reports/lib/category-report-queries.test.ts` (esperado: FAIL em `tsc`/asserção, `tripFilter` ignorado e `"viagem_id"` ausente do SQL)
+- [x] 3.2 Rodar e ver falhar: `pnpm exec vitest run src/features/reports/lib/category-report-queries.test.ts` (esperado: FAIL em `tsc`/asserção, `tripFilter` ignorado e `"viagem_id"` ausente do SQL)
 
-- [ ] 3.3 Implementar. Em `src/shared/lib/types/reports.ts`, adicionar o import no topo e o campo:
+- [x] 3.3 Implementar. Em `src/shared/lib/types/reports.ts`, adicionar o import no topo e o campo:
 
 ```ts
 import type { TripFilter } from "@/shared/lib/trips/trip-filter-param";
@@ -444,9 +444,9 @@ Em `category-report-queries.ts`: importar `import { tripFilterCondition } from "
 
 Em `category-chart-queries.ts`: importar `tripFilterCondition` e `type TripFilter` (de `@/shared/lib/trips/trip-filter-param`), acrescentar o 5º parâmetro `tripFilter?: TripFilter` em `fetchCategoryChartData` e, logo após o `if (categoryIds ...)`, o mesmo bloco `tripCondition` acima.
 
-- [ ] 3.4 Rodar e ver passar: `pnpm exec vitest run src/features/reports/lib/category-report-queries.test.ts` (PASS) e `pnpm exec tsc --noEmit` (sem erros)
+- [x] 3.4 Rodar e ver passar: `pnpm exec vitest run src/features/reports/lib/category-report-queries.test.ts` (PASS) e `pnpm exec tsc --noEmit` (sem erros)
 
-- [ ] 3.5 Lint e commit
+- [x] 3.5 Lint e commit
 
 ```bash
 pnpm exec biome check src/shared/lib/types/reports.ts src/features/reports/lib/category-report-queries.ts src/features/reports/lib/category-chart-queries.ts src/features/reports/lib/category-report-queries.test.ts
