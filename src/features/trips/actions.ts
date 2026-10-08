@@ -1,6 +1,7 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 import { trips } from "@/db/schema";
 import {
 	handleActionError,
@@ -8,7 +9,12 @@ import {
 } from "@/shared/lib/actions/helpers";
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
-import { fetchUserTrips } from "@/shared/lib/trips/queries";
+import { uuidSchema } from "@/shared/lib/schemas/common";
+import { setTripForTransactions } from "@/shared/lib/trips/link";
+import {
+	fetchUserTrips,
+	validateTripOwnership,
+} from "@/shared/lib/trips/queries";
 import type { ActionResult } from "@/shared/lib/types/actions";
 import { parseLocalDateString } from "@/shared/utils/date";
 import { buildOverlapMessage, findOverlappingTrip } from "./lib/overlap";
@@ -117,5 +123,77 @@ export async function deleteTripAction(
 		};
 	} catch (error) {
 		return handleActionError(error);
+	}
+}
+
+const transactionIdsSchema = z
+	.array(uuidSchema("Lançamento"))
+	.min(1, "Selecione ao menos um lançamento.");
+
+const linkSchema = z.object({
+	tripId: uuidSchema("Viagem"),
+	transactionIds: transactionIdsSchema,
+});
+const unlinkSchema = z.object({ transactionIds: transactionIdsSchema });
+
+export async function linkTransactionsToTripAction(
+	input: z.input<typeof linkSchema>,
+): Promise<ActionResult<{ count: number }>> {
+	try {
+		const user = await getUser();
+		const data = linkSchema.parse(input);
+
+		const ownershipError = await validateTripOwnership(user.id, data.tripId);
+		if (ownershipError) return { success: false, error: ownershipError };
+
+		const count = await setTripForTransactions(
+			db,
+			user.id,
+			data.transactionIds,
+			data.tripId,
+		);
+
+		revalidateForEntity("trips", user.id);
+		return {
+			success: true,
+			message: "Lançamentos vinculados à viagem.",
+			data: { count },
+		};
+	} catch (error) {
+		const result = handleActionError(error);
+		return {
+			success: false,
+			error: result.success ? "Ocorreu um erro inesperado." : result.error,
+		};
+	}
+}
+
+export async function unlinkTransactionsFromTripAction(
+	input: z.input<typeof unlinkSchema>,
+): Promise<ActionResult<{ count: number }>> {
+	try {
+		const user = await getUser();
+		const data = unlinkSchema.parse(input);
+
+		// Unlinking touches only the received rows, never their installments (D4).
+		const count = await setTripForTransactions(
+			db,
+			user.id,
+			data.transactionIds,
+			null,
+		);
+
+		revalidateForEntity("trips", user.id);
+		return {
+			success: true,
+			message: "Lançamento desvinculado da viagem.",
+			data: { count },
+		};
+	} catch (error) {
+		const result = handleActionError(error);
+		return {
+			success: false,
+			error: result.success ? "Ocorreu um erro inesperado." : result.error,
+		};
 	}
 }
