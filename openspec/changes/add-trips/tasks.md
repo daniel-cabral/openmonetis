@@ -2161,7 +2161,7 @@ git commit -m "feat(trips): detalhe da viagem com sugestoes" -- src/features/tri
   - `type TripListItem = { id: string; name: string; startDate: string; endDate: string; note: string | null; linkedCount: number; netCost: number }`
   - `fetchTripsOverview(userId: string): Promise<TripListItem[]>` (ordem `startDate desc`; `netCost` com a mesma regra de D6, calculado no SQL)
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 Mesmo bloco `vi.hoisted`/`vi.mock` da Task 11 (copiar inteiro, com `Chain`, `queue`, `wheres`, `dbMock`, `getAdminPayerIdMock` e os dois `vi.mock`), depois:
 
@@ -2226,12 +2226,12 @@ describe("fetchTripsOverview", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/trips/overview.test.ts`
 Expected: FAIL (`fetchTripsOverview` inexistente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Acrescentar `desc`, `inArray`, `sql` ao import de `drizzle-orm` em `queries.ts` e:
 
@@ -2288,12 +2288,12 @@ export async function fetchTripsOverview(userId: string): Promise<TripListItem[]
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/trips/overview.test.ts src/features/trips/queries.test.ts && pnpm exec tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): lista de viagens com custo liquido" -- src/features/trips/queries.ts src/features/trips/overview.test.ts
