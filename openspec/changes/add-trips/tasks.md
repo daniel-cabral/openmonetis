@@ -3139,7 +3139,7 @@ git commit -m "feat(transactions): campo Viagem no dialogo de lancamento" -- src
 - Consumes: `createTripAction`, `updateTripAction` (Task 8).
 - Produces: `TripDialog({ mode, trip, trigger, open, onOpenChange }: { mode: "create" | "update"; trip?: { id: string; name: string; startDate: string; endDate: string; note: string | null }; trigger?: React.ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void })`. Sem teste automatizado (sem RTL); validação e sobreposição já testadas nas Tasks 7 e 8.
 
-- [ ] **Step 1: Implementar**
+- [x] **Step 1: Implementar**
 
 ```tsx
 "use client";
@@ -3271,12 +3271,12 @@ export function TripDialog({ mode, trip, trigger, open, onOpenChange }: TripDial
 }
 ```
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec biome check --formatter-enabled=false src/features/trips/components/trip-dialog.tsx`
 Expected: verde.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git commit -m "feat(trips): dialogo de criar e editar viagem" -- src/features/trips/components/trip-dialog.tsx
