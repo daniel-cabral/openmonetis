@@ -22,6 +22,8 @@ import {
 import { excludeTransactionsFromExcludedAccounts } from "@/shared/lib/accounts/query-filters";
 import { db } from "@/shared/lib/db";
 import { getAdminPayerId } from "@/shared/lib/payers/get-admin-id";
+import { tripFilterCondition } from "@/shared/lib/trips/trip-filter-condition";
+import type { TripFilter } from "@/shared/lib/trips/trip-filter-param";
 import { safeToNumber } from "@/shared/utils/number";
 import { getPreviousPeriod } from "@/shared/utils/period";
 
@@ -73,17 +75,20 @@ export async function fetchTopEstablishmentsData(
 	userId: string,
 	currentPeriod: string,
 	periodFilter: PeriodFilter = "6",
+	tripFilter: TripFilter = { kind: "all" },
 ): Promise<TopEstablishmentsData> {
 	const months = parseInt(periodFilter, 10);
 	const periods = buildPeriodRange(currentPeriod, months);
 	const startPeriod = periods[0];
 	const adminPayerId = await getAdminPayerId(userId);
 	const periodLabel =
-		months === 3
-			? "Últimos 3 meses"
-			: months === 6
-				? "Últimos 6 meses"
-				: "Últimos 12 meses";
+		tripFilter.kind === "trip"
+			? `Viagem: ${tripFilter.name}`
+			: months === 3
+				? "Últimos 3 meses"
+				: months === 6
+					? "Últimos 6 meses"
+					: "Últimos 12 meses";
 
 	if (!adminPayerId) {
 		return {
@@ -101,13 +106,22 @@ export async function fetchTopEstablishmentsData(
 		};
 	}
 
+	// A specific trip shows the whole trip: the month window does not apply.
+	const periodConditions =
+		tripFilter.kind === "trip"
+			? []
+			: [
+					gte(transactions.period, startPeriod),
+					lte(transactions.period, currentPeriod),
+				];
+	const tripCondition = tripFilterCondition(tripFilter);
 	const baseExpenseConditions = [
 		eq(transactions.userId, userId),
-		gte(transactions.period, startPeriod),
-		lte(transactions.period, currentPeriod),
+		...periodConditions,
 		eq(transactions.payerId, adminPayerId),
 		eq(transactions.transactionType, DESPESA),
-	] as const;
+		...(tripCondition ? [tripCondition] : []),
+	];
 	const exclusionConditions = [
 		or(
 			isNull(transactions.note),
