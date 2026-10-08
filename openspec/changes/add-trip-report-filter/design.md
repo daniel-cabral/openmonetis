@@ -21,8 +21,9 @@ usuário → tratado como `all` (sem vazar existência). Sempre filtrado por `us
 ### D3: Ajuste de intervalo em Tendências
 
 Ao escolher uma viagem no seletor, o cliente navega com `viagem=<id>` e De/Até = menor e maior
-`periodo` entre os lançamentos da viagem. Se o usuário depois mudar De/Até, o URL manda. Viagem sem
-lançamentos mantém o intervalo atual.
+`periodo` entre os lançamentos da viagem (todas as pessoas, não só o admin). Se o usuário depois mudar
+De/Até, o URL manda. Viagem sem lançamentos mantém o intervalo atual. "Limpar" também volta a viagem
+para "Todos os lançamentos".
 
 ### D4: Janela em Estabelecimentos
 

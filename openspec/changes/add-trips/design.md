@@ -27,11 +27,19 @@ na data enquanto o usuário não mexer no campo. Ao editar, mostra o valor grava
 servidor grava exatamente o que vier do formulário: não há vínculo automático no backend. Isso vale
 igual para lançamentos que vêm do inbox, porque a revisão usa o mesmo diálogo.
 
-### D4: Vínculo se propaga para série e divisão
+### D4: Vincular propaga para parcelas e divisão; desvincular é por linha
 
-Gravar `viagem_id` num lançamento com `series_id` atualiza todas as linhas da série. Com
-`split_group_id`, atualiza todas as linhas do grupo. Mesma regra para vincular, desvincular e vincular
+**Vincular** um lançamento parcelado (`condicao = 'Parcelado'`) atualiza todas as linhas da série
+(`series_id`), independente do escopo escolhido na edição ("só esta" incluso). Com `split_group_id`,
+atualiza todas as linhas do grupo. Lançamento **recorrente** vincula só a ocorrência: assinatura ou
+conta fixa não deve levar 12 meses para dentro da viagem. Vale igual para o diálogo e para o vínculo
 em lote pelas sugestões.
+
+**Desvincular** age só na linha escolhida, nunca na série nem no grupo de divisão. Isso permite tirar
+da viagem uma parcela ou a parte de uma pessoa que não é gasto da viagem.
+
+O servidor só propaga quando o valor de `viagem_id` muda: reabrir e salvar um lançamento sem mexer no
+campo não revincula uma parcela desvinculada antes.
 
 ### D5: O que entra na viagem
 

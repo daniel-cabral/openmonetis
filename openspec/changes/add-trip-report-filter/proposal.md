@@ -17,7 +17,8 @@ viagens distorcendo a média.
   dela (ex.: passagem em 10x). O usuário pode alterar o intervalo depois.
 - Em Estabelecimentos, escolher uma viagem ignora a janela de "últimos N meses" e mostra a viagem
   inteira; "Sem viagens" mantém a janela.
-- Fora do escopo: Uso de cartões (mês único, com limite e status de fatura) e Análise de parcelas.
+- Fora do escopo: Uso de cartões (mês único, com limite e status de fatura), Análise de parcelas e a
+  exportação de Tendências (o arquivo exportado não indica o recorte por viagem).
 
 ## Capabilities
 

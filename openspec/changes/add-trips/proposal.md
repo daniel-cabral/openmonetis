@@ -15,7 +15,8 @@ continuam correndo aluguel, assinaturas e contas fixas, que não são gasto da v
     meses antes);
   - na página da viagem, lançamentos do intervalo ainda sem viagem aparecem como **sugestões**,
     vinculáveis em lote; lançamentos vinculados podem ser desvinculados.
-- Vínculo em lançamento parcelado ou recorrente vale para a **série inteira** (`series_id`).
+- Vincular um lançamento parcelado vale para a **série inteira** (`series_id`) e para o grupo de
+  divisão; recorrente vincula só a ocorrência. Desvincular sempre age só na linha escolhida.
 - Rota `/trips` (lista) e `/trips/[id]` (detalhe, layout "tudo visível": cards de total, grade com
   quebras por categoria, cartão/conta e pessoa, sugestões e lista de lançamentos).
 - Total da viagem = **custo líquido do usuário**: despesas da pessoa admin menos receitas vinculadas

@@ -21,6 +21,11 @@ escolhido SHALL ficar no URL e sobreviver a recarregamento.
 - **WHEN** o URL traz `viagem=<id>` de uma viagem que não pertence ao usuário
 - **THEN** o relatório se comporta como "Todos os lançamentos"
 
+#### Scenario: Limpar volta para todos
+
+- **WHEN** o usuário está em Tendências com "Lisboa" escolhida e clica em "Limpar"
+- **THEN** o seletor volta para "Todos os lançamentos" e o URL perde `viagem`
+
 ### Requirement: Intervalo cobre a viagem inteira
 
 Em Tendências, escolher uma viagem SHALL ajustar De/Até para o menor e o maior período entre os

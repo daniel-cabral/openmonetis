@@ -34,13 +34,31 @@ viagem. Transferências e lançamentos `AUTO_FATURA` NÃO SHALL exibir o campo.
 
 ### Requirement: Vínculo vale para a série e a divisão
 
-Vincular ou desvincular um lançamento parcelado, recorrente ou dividido SHALL aplicar o mesmo
-`viagem_id` a todas as linhas da série e do grupo de divisão.
+Vincular um lançamento parcelado SHALL aplicar o mesmo `viagem_id` a todas as parcelas da série,
+qualquer que seja o escopo escolhido na edição. Vincular um lançamento dividido SHALL aplicar o
+mesmo `viagem_id` a todas as linhas do grupo de divisão. Vincular um lançamento recorrente SHALL
+afetar só a ocorrência vinculada. Desvincular SHALL afetar só a linha desvinculada, nunca a série nem
+o grupo de divisão.
 
 #### Scenario: Passagem parcelada
 
 - **WHEN** o usuário vincula a parcela 1/10 da TAP a "Lisboa"
 - **THEN** as 10 parcelas ficam vinculadas a "Lisboa"
+
+#### Scenario: Recorrente vincula só a ocorrência
+
+- **WHEN** o usuário vincula a "Netflix" de maio, lançamento recorrente, a "Lisboa"
+- **THEN** só a ocorrência de maio fica vinculada; os outros meses continuam sem viagem
+
+#### Scenario: Desvincular uma parcela
+
+- **WHEN** as 10 parcelas da TAP estão em "Lisboa" e o usuário desvincula a parcela 7/10
+- **THEN** só a parcela 7/10 fica sem viagem; as outras 9 continuam em "Lisboa"
+
+#### Scenario: Salvar sem mexer no campo não revincula
+
+- **WHEN** a parcela 7/10 foi desvinculada e o usuário edita a parcela 3/10 sem mexer no campo "Viagem"
+- **THEN** a parcela 7/10 continua sem viagem
 
 ### Requirement: Sugestões de vínculo
 
