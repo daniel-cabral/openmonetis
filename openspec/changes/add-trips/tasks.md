@@ -3444,7 +3444,7 @@ git commit -m "feat(trips): pagina de lista de viagens" -- "src/app/(dashboard)/
 - Consumes: `fetchTripDetail`, `TripDetail` (Task 11), `TripDialog` (Task 18), `deleteTripAction` (Task 8).
 - Produces: rota `/trips/[tripId]` com layout "tudo visível" (cards de total, grade de quebras); `TripDetailPage` reserva os slots `linkedSlot` e `suggestionsSlot` preenchidos na Task 21. Sem teste automatizado.
 
-- [ ] **Step 1: Implementar**
+- [x] **Step 1: Implementar**
 
 `src/app/(dashboard)/trips/[tripId]/page.tsx`:
 
@@ -3640,12 +3640,12 @@ export function TripDetailPage({ detail, linkedSlot, suggestionsSlot }: TripDeta
 }
 ```
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `pnpm exec next typegen && pnpm exec tsc --noEmit && pnpm exec biome check --formatter-enabled=false "src/app/(dashboard)/trips/[tripId]/page.tsx" src/features/trips/components/trip-detail-page.tsx src/features/trips/components/trip-summary-cards.tsx src/features/trips/components/trip-breakdowns.tsx`
 Expected: verde.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git commit -m "feat(trips): pagina da viagem com totais e quebras" -- "src/app/(dashboard)/trips/[tripId]/page.tsx" src/features/trips/components/trip-detail-page.tsx src/features/trips/components/trip-summary-cards.tsx src/features/trips/components/trip-breakdowns.tsx
