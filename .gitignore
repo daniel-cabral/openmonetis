@@ -145,3 +145,6 @@ graphify-out/
 
 # dados financeiros reais usados como amostra
 .examples/
+
+# brainstorm visual companion
+.superpowers/
