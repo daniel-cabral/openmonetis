@@ -16,6 +16,8 @@ import {
 	buildEntriesByPayer,
 	sendPayerAutoEmails,
 } from "@/shared/lib/payers/notifications";
+import { setTripForTransactions } from "@/shared/lib/trips/link";
+import { validateTripOwnership } from "@/shared/lib/trips/queries";
 import type { ActionResult } from "@/shared/lib/types/actions";
 import { formatDecimalForDbRequired } from "@/shared/utils/currency";
 import {
@@ -68,6 +70,11 @@ export async function createTransactionAction(
 		});
 		if (ownershipError) {
 			return { success: false, error: ownershipError };
+		}
+
+		const tripError = await validateTripOwnership(user.id, data.tripId);
+		if (tripError) {
+			return { success: false, error: tripError };
 		}
 
 		const period = resolvePeriod(data.purchaseDate, data.period);
@@ -223,6 +230,11 @@ export async function updateTransactionAction(
 			return { success: false, error: ownershipError };
 		}
 
+		const tripError = await validateTripOwnership(user.id, data.tripId);
+		if (tripError) {
+			return { success: false, error: tripError };
+		}
+
 		const existing = (await db.query.transactions.findFirst({
 			columns: {
 				id: true,
@@ -234,6 +246,7 @@ export async function updateTransactionAction(
 				accountId: true,
 				cardId: true,
 				categoryId: true,
+				tripId: true,
 			},
 			where: and(
 				eq(transactions.id, data.id),
@@ -250,6 +263,7 @@ export async function updateTransactionAction(
 					accountId: string | null;
 					cardId: string | null;
 					categoryId: string | null;
+					tripId: string | null;
 			  }
 			| undefined;
 
@@ -346,6 +360,12 @@ export async function updateTransactionAction(
 			.where(
 				and(eq(transactions.id, data.id), eq(transactions.userId, user.id)),
 			);
+
+		// Only a real change propagates: re-saving must not relink an installment
+		// that was unlinked on its own (D4).
+		if (data.tripId !== undefined && data.tripId !== existing.tripId) {
+			await setTripForTransactions(db, user.id, [data.id], data.tripId);
+		}
 
 		if (isInitialBalanceTransaction(existing) && existing.accountId) {
 			const updatedInitialBalance = formatDecimalForDbRequired(
@@ -845,6 +865,11 @@ export async function updateTransactionSplitPairAction(
 			return { success: false, error: ownershipError };
 		}
 
+		const tripError = await validateTripOwnership(user.id, data.tripId);
+		if (tripError) {
+			return { success: false, error: tripError };
+		}
+
 		const existing = await db.query.transactions.findFirst({
 			columns: {
 				id: true,
@@ -856,6 +881,7 @@ export async function updateTransactionSplitPairAction(
 				cardId: true,
 				categoryId: true,
 				splitGroupId: true,
+				tripId: true,
 			},
 			where: and(
 				eq(transactions.id, data.id),
@@ -948,6 +974,10 @@ export async function updateTransactionSplitPairAction(
 					);
 			}
 		});
+
+		if (data.tripId !== undefined && data.tripId !== existing.tripId) {
+			await setTripForTransactions(db, user.id, [data.id], data.tripId);
+		}
 
 		revalidate(user.id);
 		return { success: true, message: "Lançamentos atualizados com sucesso." };

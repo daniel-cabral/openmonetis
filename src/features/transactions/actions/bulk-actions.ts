@@ -15,6 +15,8 @@ import {
 	buildEntriesByPayer,
 	sendPayerAutoEmails,
 } from "@/shared/lib/payers/notifications";
+import { setTripForTransactions } from "@/shared/lib/trips/link";
+import { validateTripOwnership } from "@/shared/lib/trips/queries";
 import type { ActionResult } from "@/shared/lib/types/actions";
 import { addMonthsToDate, parseLocalDateString } from "@/shared/utils/date";
 import { addMonthsToPeriod, parsePeriod } from "@/shared/utils/period";
@@ -184,6 +186,11 @@ export async function updateTransactionBulkAction(
 			return { success: false, error: ownershipError };
 		}
 
+		const tripError = await validateTripOwnership(user.id, data.tripId);
+		if (tripError) {
+			return { success: false, error: tripError };
+		}
+
 		const existing = await db.query.transactions.findFirst({
 			columns: {
 				id: true,
@@ -197,6 +204,7 @@ export async function updateTransactionBulkAction(
 				payerId: true,
 				cardId: true,
 				note: true,
+				tripId: true,
 			},
 			where: and(
 				eq(transactions.id, data.id),
@@ -445,6 +453,10 @@ export async function updateTransactionBulkAction(
 						);
 				}
 			});
+
+			if (data.tripId !== undefined && data.tripId !== existing.tripId) {
+				await setTripForTransactions(db, user.id, [data.id], data.tripId);
+			}
 		};
 
 		if (data.scope === "current") {
