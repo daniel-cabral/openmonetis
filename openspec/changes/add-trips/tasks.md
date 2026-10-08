@@ -2470,7 +2470,7 @@ git commit -m "feat(transactions): gravar viagem ao criar lancamento" -- src/fea
 - Consumes: `validateTripOwnership` (Task 4), `setTripForTransactions` (Task 5), `tripId` nos schemas (Task 13).
 - Produces: em create, update, split pair e bulk update: viagem de outro usuário devolve `{ success: false, error: "Viagem não encontrada." }` antes de qualquer escrita; em update/split/bulk, quando `tripId !== undefined` **e** difere de `existing.tripId`, depois da escrita principal, `setTripForTransactions(db, user.id, [data.id], tripId)`. Vincular expande para parcelas e grupo de divisão independente do escopo escolhido; desvincular (`null`) solta só esta linha (D4, regra no helper da Task 5). `tripId` ausente ou igual ao gravado não mexe no vínculo, para não revincular uma parcela desvinculada antes.
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -2665,12 +2665,12 @@ describe("createTransactionAction", () => {
 
 Se algum `refine` de `refineLancamento` exigir campo extra para Pix e o update falhar por validação, acrescente o campo ao objeto `fields` (não afrouxe o schema).
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/transactions/actions/trip-link-wiring.test.ts`
 Expected: FAIL (`setTripMock` nunca chamado; ownership não validado).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Nos dois arquivos, importar:
 
@@ -2712,12 +2712,12 @@ Em `bulk-actions.ts`, no final de `applyUpdates` (depois do `await db.transactio
 
 `createTransactionAction` não chama `setTripForTransactions`: os registros já saem com `tripId` (Task 13).
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/transactions/ && pnpm exec tsc --noEmit`
 Expected: PASS em todo `src/features/transactions/`, tsc limpo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(transactions): validar e propagar viagem ao editar lancamento" -- src/features/transactions/actions/single-actions.ts src/features/transactions/actions/bulk-actions.ts src/features/transactions/actions/trip-link-wiring.test.ts
