@@ -3881,7 +3881,7 @@ git commit -m "feat(trips): vinculados e sugestoes em lote na pagina da viagem" 
 **Interfaces:**
 - Produces: versão minor preparada, coerente nos três lugares (AGENTS.md regra 6). Não criar nem enviar tag.
 
-- [ ] **Step 1: CHANGELOG**
+- [x] **Step 1: CHANGELOG**
 
 ```markdown
 ## [2.12.0] - <data do dia, YYYY-MM-DD>
@@ -3897,7 +3897,7 @@ Dava para saber quanto se gastou num mês, mas não numa viagem: a compra no car
 - Item "Viagens" no menu
 ```
 
-- [ ] **Step 2: package.json e README**
+- [x] **Step 2: package.json e README**
 
 `package.json`: `"version": "2.12.0"`. `README.md` linha 13: `version-2.11.5-blue` vira `version-2.12.0-blue`. Em "### Funcionalidades", depois do bullet do Calendário:
 
@@ -3907,7 +3907,7 @@ Dava para saber quanto se gastou num mês, mas não numa viagem: a compra no car
 
 (Não alterar os bullets existentes.)
 
-- [ ] **Step 3: Verificação completa**
+- [x] **Step 3: Verificação completa**
 
 Run, um por vez:
 
@@ -3921,7 +3921,7 @@ graphify update .
 
 Expected: typegen e tsc sem erros; vitest todo verde; biome sem erros nos arquivos alterados; graphify atualizado. Conferir que `package.json`, `CHANGELOG.md` e o badge dizem `2.12.0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -m "feat(trips): viagens com vinculo de lancamentos (2.12.0)" -- CHANGELOG.md package.json README.md graphify-out/

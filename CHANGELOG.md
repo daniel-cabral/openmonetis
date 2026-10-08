@@ -5,6 +5,18 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.12.0] - 2026-10-08
+
+Dava para saber quanto se gastou num mês, mas não numa viagem: a compra no cartão cai na fatura seguinte e, no meio da viagem, aluguel e assinaturas continuam correndo. Esta versão traz as viagens. Cada lançamento pode pertencer a uma viagem; o diálogo já sugere a viagem pela data da compra, a página da viagem lista os lançamentos do período ainda sem vínculo para vincular em lote, e parcelados e divididos entram inteiros. O total mostrado é o custo líquido da pessoa principal: despesas menos reembolsos, pagos ou não.
+
+### Adicionado
+
+- Viagens: cadastro com nome, período e anotação, sem sobreposição entre viagens
+- Campo "Viagem" no lançamento, pré-preenchido pela data da compra
+- Página da viagem com custo líquido, despesas, reembolsos e quebras por categoria, cartão ou conta e pessoa
+- Sugestões de vínculo com vinculação em lote e desvinculação
+- Item "Viagens" no menu
+
 ## [2.11.5] - 2026-09-14
 
 A conciliação de extrato casava um boleto ou Pix pendente com a linha do banco, gravava o de-para e corrigia o valor, mas deixava o lançamento como não pago. O dinheiro já tinha saído da conta — o extrato é a prova —, e o saldo do app continuava acima do banco até alguém marcar cada casado à mão. Agora, quando o destino é uma conta, o lançamento casado vira pago no mesmo passo. No cartão nada muda: lançamento de cartão não tem esse estado, quem paga é a fatura.
