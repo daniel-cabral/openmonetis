@@ -37,7 +37,7 @@ import {
 import { Label } from "@/shared/components/ui/label";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
 import { fetchTripOptionsAction } from "@/shared/lib/trips/actions";
-import { isTripEligible } from "@/shared/lib/trips/eligibility";
+import { isTripEligible } from "@/shared/lib/trips/is-trip-eligible";
 import type { TripOption } from "@/shared/lib/trips/types";
 import { AttachmentFilePicker } from "../../attachments/attachment-file-picker";
 import { AttachmentSection } from "../../attachments/attachment-section";
