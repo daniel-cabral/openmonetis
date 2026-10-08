@@ -168,6 +168,7 @@ export function TransactionsPage({
 		cardId: string | undefined;
 		categoryId: string | undefined;
 		note: string;
+		tripId: string | null;
 		isSettled: boolean | null;
 		dueDate: string | null;
 		boletoPaymentDate: string | null;
@@ -181,6 +182,7 @@ export function TransactionsPage({
 		name: string;
 		categoryId: string | undefined;
 		note: string;
+		tripId: string | null;
 		payerId: string | undefined;
 		accountId: string | undefined;
 		cardId: string | undefined;
@@ -314,6 +316,7 @@ export function TransactionsPage({
 		name: string;
 		categoryId: string | undefined;
 		note: string;
+		tripId: string | null;
 		payerId: string | undefined;
 		accountId: string | undefined;
 		cardId: string | undefined;
@@ -349,6 +352,7 @@ export function TransactionsPage({
 			name: pendingEditData.name,
 			categoryId: pendingEditData.categoryId,
 			note: pendingEditData.note,
+			tripId: pendingEditData.tripId,
 			payerId: pendingEditData.payerId,
 			accountId: pendingEditData.accountId,
 			cardId: pendingEditData.cardId,
@@ -479,6 +483,7 @@ export function TransactionsPage({
 			cardId: pendingSplitEditData.cardId ?? null,
 			categoryId: pendingSplitEditData.categoryId ?? null,
 			note: pendingSplitEditData.note,
+			tripId: pendingSplitEditData.tripId,
 			isSettled: pendingSplitEditData.isSettled,
 			dueDate: pendingSplitEditData.dueDate ?? undefined,
 			boletoPaymentDate: pendingSplitEditData.boletoPaymentDate ?? undefined,

@@ -17,6 +17,7 @@ import {
 	buildTransactionInitialState,
 	deriveCreditCardPeriod,
 } from "@/features/transactions/lib/form-helpers";
+import { resolveAutoTripId } from "@/features/transactions/lib/trip-prefill";
 import { useAppPreferences } from "@/shared/components/providers/app-preferences-provider";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -35,6 +36,9 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
+import { fetchTripOptionsAction } from "@/shared/lib/trips/actions";
+import { isTripEligible } from "@/shared/lib/trips/eligibility";
+import type { TripOption } from "@/shared/lib/trips/types";
 import { AttachmentFilePicker } from "../../attachments/attachment-file-picker";
 import { AttachmentSection } from "../../attachments/attachment-section";
 import { BasicFieldsSection } from "./basic-fields-section";
@@ -49,6 +53,7 @@ import type {
 	TransactionDialogProps,
 } from "./transaction-dialog-types";
 import { TransactionSummaryCard } from "./transaction-summary-card";
+import { TripSection } from "./trip-section";
 
 export function TransactionDialog({
 	mode,
@@ -104,6 +109,8 @@ export function TransactionDialog({
 	const [pendingDetachIds, setPendingDetachIds] = useState<string[]>([]);
 	const [pendingUploadFiles, setPendingUploadFiles] = useState<File[]>([]);
 	const [extrasOpen, setExtrasOpen] = useState(false);
+	const [tripOptions, setTripOptions] = useState<TripOption[]>([]);
+	const [tripTouched, setTripTouched] = useState(false);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const { showTransactionSummary } = useAppPreferences();
 
@@ -165,6 +172,43 @@ export function TransactionDialog({
 		cardOptions,
 		mode,
 	]);
+
+	useEffect(() => {
+		if (!dialogOpen) return;
+		setTripTouched(false);
+		let cancelled = false;
+		fetchTripOptionsAction()
+			.then((options) => {
+				if (!cancelled) setTripOptions(options);
+			})
+			.catch(() => {
+				if (!cancelled) setTripOptions([]);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [dialogOpen]);
+
+	const purchaseDate = formState.purchaseDate;
+	useEffect(() => {
+		if (!dialogOpen) return;
+		setFormState((prev) => {
+			const next = resolveAutoTripId({
+				mode,
+				touched: tripTouched,
+				trips: tripOptions,
+				purchaseDate,
+				currentTripId: prev.tripId,
+			});
+			return next === prev.tripId ? prev : { ...prev, tripId: next };
+		});
+	}, [dialogOpen, mode, tripTouched, tripOptions, purchaseDate]);
+
+	const showTripField = isTripEligible({
+		transactionType: formState.transactionType,
+		note: transaction?.note ?? null,
+	});
+	const tripIdForSubmit = showTripField ? (formState.tripId ?? null) : null;
 
 	const categoryGroups = useMemo(() => {
 		const filtered = categoryOptions.filter(
@@ -344,6 +388,7 @@ export function TransactionDialog({
 			cardId: formState.cardId ?? null,
 			categoryId: formState.categoryId ?? null,
 			note: formState.note.trim() || null,
+			tripId: tripIdForSubmit,
 			isSettled:
 				formState.paymentMethod === "Cartão de crédito"
 					? null
@@ -436,6 +481,7 @@ export function TransactionDialog({
 					name: formState.name.trim(),
 					categoryId: formState.categoryId,
 					note: formState.note.trim() || "",
+					tripId: tripIdForSubmit,
 					payerId: formState.payerId,
 					accountId: formState.accountId,
 					cardId: formState.cardId,
@@ -470,6 +516,7 @@ export function TransactionDialog({
 					paymentMethod: formState.paymentMethod,
 					categoryId: formState.categoryId,
 					note: formState.note.trim() || "",
+					tripId: tripIdForSubmit,
 					payerId: formState.payerId,
 					accountId: formState.accountId,
 					cardId: formState.cardId,
@@ -652,6 +699,14 @@ export function TransactionDialog({
 							<>
 								<div className="border-t border-border/40 my-3" />
 								<div className="space-y-3">
+									{showTripField ? (
+										<TripSection
+											formState={formState}
+											onFieldChange={handleFieldChange}
+											tripOptions={tripOptions}
+											onTouched={() => setTripTouched(true)}
+										/>
+									) : null}
 									<NoteSection
 										formState={formState}
 										onFieldChange={handleFieldChange}
@@ -705,6 +760,14 @@ export function TransactionDialog({
 										showInstallments={showInstallments}
 										showRecurrence={showRecurrence}
 									/>
+									{showTripField ? (
+										<TripSection
+											formState={formState}
+											onFieldChange={handleFieldChange}
+											tripOptions={tripOptions}
+											onTouched={() => setTripTouched(true)}
+										/>
+									) : null}
 									<NoteSection
 										formState={formState}
 										onFieldChange={handleFieldChange}

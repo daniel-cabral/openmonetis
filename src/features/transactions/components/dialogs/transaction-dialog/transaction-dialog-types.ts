@@ -41,6 +41,7 @@ export interface TransactionDialogProps {
 		name: string;
 		categoryId: string | undefined;
 		note: string;
+		tripId: string | null;
 		payerId: string | undefined;
 		accountId: string | undefined;
 		cardId: string | undefined;
@@ -62,6 +63,7 @@ export interface TransactionDialogProps {
 		paymentMethod: string;
 		categoryId: string | undefined;
 		note: string;
+		tripId: string | null;
 		payerId: string | undefined;
 		accountId: string | undefined;
 		cardId: string | undefined;
