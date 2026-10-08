@@ -464,7 +464,7 @@ git commit -m "feat(reports): recorte por viagem nas queries de tendencias" -- s
 - Consumes: `TripFilter`, `tripFilterCondition` (Task 1).
 - Produces: `fetchTopEstablishmentsData(userId: string, currentPeriod: string, periodFilter: PeriodFilter = "6", tripFilter: TripFilter = { kind: "all" }): Promise<TopEstablishmentsData>`; com `kind: "trip"`, sem `gte/lte` de período e `periodLabel = "Viagem: <nome>"`.
 
-- [ ] 4.1 Escrever o teste que falha
+- [x] 4.1 Escrever o teste que falha
 
 ```ts
 // src/features/reports/establishments/queries.test.ts
@@ -539,9 +539,9 @@ describe("Estabelecimentos: recorte por viagem", () => {
 });
 ```
 
-- [ ] 4.2 Rodar e ver falhar: `pnpm exec vitest run src/features/reports/establishments/queries.test.ts` (FAIL: 4º argumento ignorado, `"periodo" >=` presente no modo viagem)
+- [x] 4.2 Rodar e ver falhar: `pnpm exec vitest run src/features/reports/establishments/queries.test.ts` (FAIL: 4º argumento ignorado, `"periodo" >=` presente no modo viagem)
 
-- [ ] 4.3 Implementar em `queries.ts`. Imports novos:
+- [x] 4.3 Implementar em `queries.ts`. Imports novos:
 
 ```ts
 import { tripFilterCondition } from "@/shared/lib/trips/trip-filter-condition";
@@ -594,9 +594,9 @@ Substituir `baseExpenseConditions` (o `as const` sai porque o array passa a ter 
 
 O resto da função não muda.
 
-- [ ] 4.4 Rodar e ver passar: `pnpm exec vitest run src/features/reports/establishments/queries.test.ts` (PASS) e `pnpm exec tsc --noEmit`
+- [x] 4.4 Rodar e ver passar: `pnpm exec vitest run src/features/reports/establishments/queries.test.ts` (PASS) e `pnpm exec tsc --noEmit`
 
-- [ ] 4.5 Lint e commit
+- [x] 4.5 Lint e commit
 
 ```bash
 pnpm exec biome check src/features/reports/establishments/queries.ts src/features/reports/establishments/queries.test.ts
