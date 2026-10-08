@@ -46,7 +46,7 @@
 **Interfaces:**
 - Produces: `trips` (pgTable `viagens`), `Trip = typeof trips.$inferSelect`, `transactions.tripId`, índices `viagens_user_id_data_inicio_idx` e `lancamentos_user_id_viagem_id_idx`, relation `transactionsRelations.trip`.
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { getTableConfig } from "drizzle-orm/pg-core";
@@ -105,12 +105,12 @@ describe("trips schema", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/db/schema.trips.test.ts`
 Expected: FAIL (`trips` não exportado / `viagem_id` ausente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Antes do bloco de `transactions`:
 
@@ -189,12 +189,12 @@ Tipo, junto de `export type Transaction`:
 export type Trip = typeof trips.$inferSelect;
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/db/schema.trips.test.ts && pnpm exec tsc --noEmit`
 Expected: PASS, tsc sem erros.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/db/schema.ts src/db/schema.trips.test.ts

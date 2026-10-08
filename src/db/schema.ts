@@ -627,6 +627,34 @@ export const installmentAnticipations = pgTable(
 	}),
 );
 
+// ===================== TRIPS =====================
+
+export const trips = pgTable(
+	"viagens",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		name: text("nome").notNull(),
+		startDate: date("data_inicio", { mode: "date" }).notNull(),
+		endDate: date("data_fim", { mode: "date" }).notNull(),
+		note: text("anotacao"),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		userIdStartDateIdx: index("viagens_user_id_data_inicio_idx").on(
+			table.userId,
+			table.startDate,
+		),
+	}),
+);
+
 // ===================== TRANSACTIONS =====================
 
 export const transactions = pgTable(
@@ -684,6 +712,9 @@ export const transactions = pgTable(
 		ofxFitId: text("ofx_fit_id"),
 		ofxImportFingerprint: text("ofx_import_fingerprint"),
 		importBatchId: text("import_batch_id"),
+		tripId: uuid("viagem_id").references(() => trips.id, {
+			onDelete: "set null",
+		}),
 	},
 	(table) => ({
 		// Índice composto mais importante: userId + period (usado em quase todas as queries do dashboard)
@@ -717,6 +748,11 @@ export const transactions = pgTable(
 		userIdSplitGroupIdIdx: index("lancamentos_user_id_split_group_id_idx").on(
 			table.userId,
 			table.splitGroupId,
+		),
+		// Index for the per-trip slice (userId + tripId)
+		userIdTripIdIdx: index("lancamentos_user_id_viagem_id_idx").on(
+			table.userId,
+			table.tripId,
 		),
 		// Índice para buscar transferências relacionadas
 		transferIdIdx: index("lancamentos_transfer_id_idx").on(table.transferId),
@@ -754,6 +790,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
 	financialAccounts: many(financialAccounts),
 	invoices: many(invoices),
 	transactions: many(transactions),
+	trips: many(trips),
 	budgets: many(budgets),
 	payers: many(payers),
 	installmentAnticipations: many(installmentAnticipations),
@@ -916,9 +953,21 @@ export const transactionsRelations = relations(
 			fields: [transactions.anticipationId],
 			references: [installmentAnticipations.id],
 		}),
+		trip: one(trips, {
+			fields: [transactions.tripId],
+			references: [trips.id],
+		}),
 		transactionAttachments: many(transactionAttachments),
 	}),
 );
+
+export const tripsRelations = relations(trips, ({ one, many }) => ({
+	user: one(user, {
+		fields: [trips.userId],
+		references: [user.id],
+	}),
+	transactions: many(transactions),
+}));
 
 export const installmentAnticipationsRelations = relations(
 	installmentAnticipations,
@@ -1058,6 +1107,7 @@ export type Budget = typeof budgets.$inferSelect;
 export type Note = typeof notes.$inferSelect;
 export type SavedInsight = typeof savedInsights.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type Trip = typeof trips.$inferSelect;
 export type InstallmentAnticipation =
 	typeof installmentAnticipations.$inferSelect;
 export type ApiToken = typeof apiTokens.$inferSelect;
