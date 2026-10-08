@@ -4,6 +4,7 @@ import { HighlightsCards } from "@/features/reports/components/establishments/hi
 import { PeriodFilterButtons } from "@/features/reports/components/establishments/period-filter";
 import { SummaryCards } from "@/features/reports/components/establishments/summary-cards";
 import { TopCategories } from "@/features/reports/components/establishments/top-categories";
+import { EstablishmentsTripFilter } from "@/features/reports/components/establishments/trip-filter";
 import {
 	fetchTopEstablishmentsData,
 	type PeriodFilter,
@@ -11,6 +12,12 @@ import {
 import { ContentErrorBoundary } from "@/shared/components/feedback/content-error-boundary";
 import { Card } from "@/shared/components/ui/card";
 import { getUser } from "@/shared/lib/auth/server";
+import { fetchUserTrips } from "@/shared/lib/trips/queries";
+import {
+	parseTripFilterParam,
+	TRIP_FILTER_PARAM,
+	tripFilterToParam,
+} from "@/shared/lib/trips/trip-filter-param";
 import { parsePeriodParam } from "@/shared/utils/period";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -56,19 +63,36 @@ async function EstablishmentsContent({ searchParams }: PageProps) {
 	const { period: currentPeriod } = parsePeriodParam(periodoParam);
 	const periodFilter = validatePeriodFilter(mesesParam);
 
+	const trips = await fetchUserTrips(user.id);
+	const tripFilter = parseTripFilterParam(
+		getSingleParam(resolvedSearchParams, TRIP_FILTER_PARAM),
+		trips,
+	);
+
 	const data = await fetchTopEstablishmentsData(
 		user.id,
 		currentPeriod,
 		periodFilter,
+		tripFilter,
 	);
 
 	return (
 		<main className="flex flex-col gap-4">
-			<Card className="flex-row items-center justify-between p-3">
+			<Card className="flex-col gap-2 p-3 md:flex-row md:items-center md:justify-between">
 				<span className="text-sm text-muted-foreground">
-					Selecione o intervalo de meses
+					{tripFilter.kind === "trip"
+						? data.periodLabel
+						: "Selecione o intervalo de meses"}
 				</span>
-				<PeriodFilterButtons currentFilter={periodFilter} />
+				<div className="flex flex-col gap-2 md:flex-row md:items-center">
+					<EstablishmentsTripFilter
+						trips={trips}
+						value={tripFilterToParam(tripFilter)}
+					/>
+					{tripFilter.kind === "trip" ? null : (
+						<PeriodFilterButtons currentFilter={periodFilter} />
+					)}
+				</div>
 			</Card>
 
 			<SummaryCards summary={data.summary} />
