@@ -621,7 +621,7 @@ git commit -m "feat(trips): queries compartilhadas de viagem" -- src/shared/lib/
   - `expandTripLinkScope(rows: TripLinkRow[]): TripLinkScope` (série só de `condition === "Parcelado"`; recorrente fica só na linha)
   - `setTripForTransactions(executor: TripLinkExecutor, userId: string, transactionIds: string[], tripId: string | null): Promise<number>` (devolve quantas linhas mudaram; `executor` é `db` ou o `tx` de `db.transaction`). Com `tripId` string: vincula expandindo para parcelas e grupo de divisão (D4). Com `tripId` null: desvincula **só** os ids recebidos. Não valida posse da viagem: quem chama usa `validateTripOwnership` antes.
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -768,12 +768,12 @@ describe("setTripForTransactions", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/shared/lib/trips/link.test.ts`
 Expected: FAIL (módulo inexistente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 ```ts
 import { and, eq, inArray, or, type SQL } from "drizzle-orm";
@@ -865,12 +865,12 @@ export async function setTripForTransactions(
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/shared/lib/trips/link.test.ts && pnpm exec tsc --noEmit`
 Expected: PASS, tsc limpo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): vinculo propaga para parcelas e divisao, desvinculo por linha" -- src/shared/lib/trips/link.ts src/shared/lib/trips/link.test.ts
