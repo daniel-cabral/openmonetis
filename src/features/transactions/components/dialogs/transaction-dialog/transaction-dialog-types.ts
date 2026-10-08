@@ -1,4 +1,5 @@
 import type { TransactionFormState } from "@/features/transactions/lib/form-helpers";
+import type { TripOption } from "@/shared/lib/trips/types";
 import type { SelectOption, TransactionItem } from "../../types";
 
 export type FormState = TransactionFormState;
@@ -119,3 +120,8 @@ export interface ConditionSectionProps extends BaseFieldSectionProps {
 }
 
 export type NoteSectionProps = BaseFieldSectionProps;
+
+export interface TripSectionProps extends BaseFieldSectionProps {
+	tripOptions: TripOption[];
+	onTouched: () => void;
+}

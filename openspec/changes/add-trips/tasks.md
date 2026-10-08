@@ -2861,7 +2861,7 @@ git commit -m "feat(transactions): formulario carrega a viagem do lancamento" --
   - `TripSection({ formState, onFieldChange, tripOptions, onTouched }: TripSectionProps)`
   - `interface TripSectionProps extends BaseFieldSectionProps { tripOptions: TripOption[]; onTouched: () => void }`
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -2920,12 +2920,12 @@ describe("resolveAutoTripId", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/transactions/lib/trip-prefill.test.ts`
 Expected: FAIL (módulo inexistente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `src/features/transactions/lib/trip-prefill.ts`:
 
@@ -3006,12 +3006,12 @@ export function TripSection({
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/transactions/lib/trip-prefill.test.ts && pnpm exec tsc --noEmit`
 Expected: PASS, tsc limpo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(transactions): campo Viagem com pre-preenchimento pela data" -- src/features/transactions/lib/trip-prefill.ts src/features/transactions/lib/trip-prefill.test.ts src/features/transactions/components/dialogs/transaction-dialog/trip-section.tsx src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog-types.ts
