@@ -215,17 +215,17 @@ git commit -m "feat(trips): tabela viagens e coluna viagem_id em lancamentos" --
 - Consumes: schema da Task 1.
 - Produces: migração aplicável por `pnpm run db:migrate` (o deploy roda as migrações).
 
-- [ ] **Step 1: Gerar**
+- [x] **Step 1: Gerar**
 
 Run: `pnpm run db:generate`
 Se o drizzle-kit reclamar da URL ausente: `DATABASE_URL=postgres://x:x@localhost:5432/x pnpm run db:generate` (generate não conecta).
 
-- [ ] **Step 2: Conferir o SQL gerado**
+- [x] **Step 2: Conferir o SQL gerado**
 
 Run: `grep -E 'CREATE TABLE "viagens"|ADD COLUMN "viagem_id" uuid|ON DELETE set null|lancamentos_user_id_viagem_id_idx|viagens_user_id_data_inicio_idx' drizzle/0037_*.sql`
 Expected: as cinco ocorrências presentes. Se o arquivo trouxer qualquer statement além de `viagens`, `viagem_id`, suas FKs e os dois índices, PARE e reporte (drift de snapshot, não corrigir aqui).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add drizzle/
