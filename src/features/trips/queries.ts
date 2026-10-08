@@ -1,4 +1,15 @@
-import { and, asc, eq, gte, isNull, lte, type SQL } from "drizzle-orm";
+import {
+	and,
+	asc,
+	desc,
+	eq,
+	gte,
+	inArray,
+	isNull,
+	lte,
+	type SQL,
+	sql,
+} from "drizzle-orm";
 import {
 	cards,
 	categories,
@@ -121,4 +132,57 @@ export async function fetchTripDetail(
 		linked,
 		suggestions: dedupeSuggestions(candidates),
 	};
+}
+
+export type TripListItem = {
+	id: string;
+	name: string;
+	startDate: string;
+	endDate: string;
+	note: string | null;
+	linkedCount: number;
+	netCost: number;
+};
+
+export async function fetchTripsOverview(
+	userId: string,
+): Promise<TripListItem[]> {
+	const adminPayerId = await getAdminPayerId(userId);
+
+	// Despesa is stored negative and Receita positive, so -sum(amount) is the net cost (D6).
+	const netCost = adminPayerId
+		? sql<string>`coalesce(sum(-${transactions.amount}) filter (where ${and(
+				eq(transactions.payerId, adminPayerId),
+				inArray(transactions.transactionType, ["Despesa", "Receita"]),
+			)}), 0)`
+		: sql<string>`0`;
+
+	const rows = await db
+		.select({
+			id: trips.id,
+			name: trips.name,
+			startDate: trips.startDate,
+			endDate: trips.endDate,
+			note: trips.note,
+			linkedCount: sql<number>`count(${transactions.id})::int`,
+			netCost,
+		})
+		.from(trips)
+		.leftJoin(
+			transactions,
+			and(eq(transactions.tripId, trips.id), eq(transactions.userId, userId)),
+		)
+		.where(eq(trips.userId, userId))
+		.groupBy(trips.id)
+		.orderBy(desc(trips.startDate));
+
+	return rows.map((row) => ({
+		id: row.id,
+		name: row.name,
+		startDate: toDateOnlyString(row.startDate) ?? "",
+		endDate: toDateOnlyString(row.endDate) ?? "",
+		note: row.note,
+		linkedCount: Number(row.linkedCount),
+		netCost: Number(row.netCost),
+	}));
 }
