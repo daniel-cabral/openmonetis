@@ -9,6 +9,7 @@ import {
 	RiCheckDoubleLine,
 	RiFileChartLine,
 	RiGroupLine,
+	RiPlaneLine,
 	RiPriceTag3Line,
 	RiSecurePaymentLine,
 	RiSparklingLine,
@@ -129,6 +130,13 @@ export const NAV_SECTIONS: NavSection[] = [
 				label: "Anotações",
 				description: "Guarde lembretes e observações",
 				icon: <RiTodoLine className="size-4" />,
+				iconClass: "text-primary",
+			},
+			{
+				href: "/trips",
+				label: "Viagens",
+				description: "Gastos agrupados por viagem",
+				icon: <RiPlaneLine className="size-4" />,
 				iconClass: "text-primary",
 			},
 			{

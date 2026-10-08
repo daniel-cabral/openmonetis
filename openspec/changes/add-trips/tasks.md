@@ -890,7 +890,7 @@ git commit -m "feat(trips): vinculo propaga para parcelas e divisao, desvinculo 
 **Interfaces:**
 - Produces: `revalidateForEntity("trips", userId)` revalida `/trips` e `/transactions`; `transactions` passa a revalidar também `/trips`. Item de menu `/trips` "Viagens".
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -927,12 +927,12 @@ describe("menu", () => {
 
 Se importar `nav-items.tsx` (JSX) no vitest falhar por transformação, mova o terceiro bloco para fora do teste e verifique o menu só por `tsc`; não altere `vitest.config.mts`.
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/shared/lib/actions/helpers.trips.test.ts`
 Expected: FAIL (`"trips"` não é chave de `revalidateConfig`).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Em `revalidateConfig`:
 
@@ -955,12 +955,12 @@ Em `nav-items.tsx`, importar `RiPlaneLine` (ordem alfabética do bloco de import
 			},
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/shared/lib/actions/helpers.trips.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): revalidacao e item Viagens no menu" -- src/shared/lib/actions/helpers.ts src/shared/components/navigation/navbar/nav-items.tsx src/shared/lib/actions/helpers.trips.test.ts
