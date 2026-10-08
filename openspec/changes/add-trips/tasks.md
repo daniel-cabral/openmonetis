@@ -3032,7 +3032,7 @@ git commit -m "feat(transactions): campo Viagem com pre-preenchimento pela data"
 - Consumes: `fetchTripOptionsAction` (Task 4), `isTripEligible` (Task 3), `resolveAutoTripId`, `TripSection` (Task 16), `tripId` nos schemas e actions (Tasks 13 e 14).
 - Produces: comportamento de UI do spec "Campo Viagem no lançamento". Sem teste automatizado (não há RTL no repo); a lógica está coberta pelas Tasks 3, 14 e 16. Portão: `tsc` + lint por arquivo.
 
-- [ ] **Step 1: Estado e carregamento das viagens**
+- [x] **Step 1: Estado e carregamento das viagens**
 
 Em `transaction-dialog.tsx`, imports:
 
@@ -3092,7 +3092,7 @@ Depois do `useEffect` existente que reinicia o formulário quando `dialogOpen` m
 	const tripIdForSubmit = showTripField ? (formState.tripId ?? null) : null;
 ```
 
-- [ ] **Step 2: Payloads**
+- [x] **Step 2: Payloads**
 
 No `payload: CreateTransactionInput` (~linha 324), depois de `note`: `tripId: tripIdForSubmit,` (o `updatePayload` já espalha `payload`). Em `onBulkEditRequest({...})` e `onSplitEditRequest({...})`, depois de `note`: `tripId: tripIdForSubmit,`.
 
@@ -3100,7 +3100,7 @@ Em `transaction-dialog-types.ts`, nos tipos de `data` de `onBulkEditRequest` e `
 
 Em `transactions-page.tsx`: acrescentar `tripId: string | null;` nos tipos de estado `pendingSplitEditData` e `pendingEditData` e no parâmetro de `handleBulkEditRequest`; em `handleBulkEdit`, no objeto de `updateTransactionBulkAction`, depois de `note`: `tripId: pendingEditData.tripId,`; no `payload` de `handleSplitEdit`, depois de `note`: `tripId: pendingSplitEditData.tripId,`.
 
-- [ ] **Step 3: Renderizar a seção**
+- [x] **Step 3: Renderizar a seção**
 
 Nos dois ramos de extras (edição ~linha 655 e criação ~linha 708), imediatamente antes de cada `<NoteSection`:
 
@@ -3115,12 +3115,12 @@ Nos dois ramos de extras (edição ~linha 655 e criação ~linha 708), imediatam
 									) : null}
 ```
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec vitest run src/features/transactions/ && pnpm exec biome check --formatter-enabled=false src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog.tsx src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog-types.ts src/features/transactions/components/page/transactions-page.tsx`
 Expected: tudo verde. Se o Biome acusar `useExhaustiveDependencies`, ajuste as dependências sem suprimir a regra.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(transactions): campo Viagem no dialogo de lancamento" -- src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog.tsx src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog-types.ts src/features/transactions/components/page/transactions-page.tsx
