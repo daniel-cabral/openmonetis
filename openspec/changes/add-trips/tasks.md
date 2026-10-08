@@ -1167,7 +1167,7 @@ git commit -m "feat(trips): validacao de datas e sobreposicao de viagens" -- src
   - `updateTripAction(input: UpdateTripInput): Promise<ActionResult>`
   - `deleteTripAction(input: DeleteTripInput): Promise<ActionResult>`
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -1312,12 +1312,12 @@ describe("deleteTripAction", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/trips/actions.test.ts`
 Expected: FAIL (módulo inexistente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 ```ts
 "use server";
@@ -1426,12 +1426,12 @@ export async function deleteTripAction(input: DeleteTripInput): Promise<ActionRe
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/trips/actions.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): criar, editar e excluir viagem" -- src/features/trips/actions.ts src/features/trips/actions.test.ts
