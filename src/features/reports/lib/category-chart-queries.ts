@@ -4,6 +4,8 @@ import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constant
 import { excludeTransactionsFromExcludedAccounts } from "@/shared/lib/accounts/query-filters";
 import { db } from "@/shared/lib/db";
 import { getAdminPayerId } from "@/shared/lib/payers/get-admin-id";
+import { tripFilterCondition } from "@/shared/lib/trips/trip-filter-condition";
+import type { TripFilter } from "@/shared/lib/trips/trip-filter-param";
 import { safeToNumber as toNumber } from "@/shared/utils/number";
 import { formatPeriodMonthShort } from "@/shared/utils/period";
 import { generatePeriodRange } from "./utils";
@@ -33,6 +35,7 @@ export async function fetchCategoryChartData(
 	startPeriod: string,
 	endPeriod: string,
 	categoryIds?: string[],
+	tripFilter?: TripFilter,
 ): Promise<CategoryChartData> {
 	const periods = generatePeriodRange(startPeriod, endPeriod);
 
@@ -55,6 +58,13 @@ export async function fetchCategoryChartData(
 
 	if (categoryIds && categoryIds.length > 0) {
 		whereConditions.push(inArray(categories.id, categoryIds));
+	}
+
+	const tripCondition = tripFilter
+		? tripFilterCondition(tripFilter)
+		: undefined;
+	if (tripCondition) {
+		whereConditions.push(tripCondition);
 	}
 
 	const [rows, allCategoriesRows] = await Promise.all([

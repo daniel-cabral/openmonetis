@@ -1,3 +1,5 @@
+import type { TripFilter } from "@/shared/lib/trips/trip-filter-param";
+
 /**
  * Types for Category Report feature
  */
@@ -41,6 +43,7 @@ export type CategoryReportFilters = {
 	startPeriod: string; // Format: "YYYY-MM"
 	endPeriod: string; // Format: "YYYY-MM"
 	categoryIds?: string[]; // Optional: filter by specific categories
+	tripFilter?: TripFilter; // Optional: trip slice (all / none / one trip)
 };
 
 /**

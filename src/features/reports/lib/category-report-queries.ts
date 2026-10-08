@@ -4,6 +4,7 @@ import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constant
 import { excludeTransactionsFromExcludedAccounts } from "@/shared/lib/accounts/query-filters";
 import { db } from "@/shared/lib/db";
 import { getAdminPayerId } from "@/shared/lib/payers/get-admin-id";
+import { tripFilterCondition } from "@/shared/lib/trips/trip-filter-condition";
 import type {
 	CategoryReportData,
 	CategoryReportFilters,
@@ -24,7 +25,7 @@ export async function fetchCategoryReport(
 	userId: string,
 	filters: CategoryReportFilters,
 ): Promise<CategoryReportData> {
-	const { startPeriod, endPeriod, categoryIds } = filters;
+	const { startPeriod, endPeriod, categoryIds, tripFilter } = filters;
 
 	// Generate all periods in the range
 	const periods = generatePeriodRange(startPeriod, endPeriod);
@@ -50,6 +51,13 @@ export async function fetchCategoryReport(
 	// Add optional category filter
 	if (categoryIds && categoryIds.length > 0) {
 		whereConditions.push(inArray(categories.id, categoryIds));
+	}
+
+	const tripCondition = tripFilter
+		? tripFilterCondition(tripFilter)
+		: undefined;
+	if (tripCondition) {
+		whereConditions.push(tripCondition);
 	}
 
 	// Query to get aggregated data by category and period
