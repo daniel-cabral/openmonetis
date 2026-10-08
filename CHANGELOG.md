@@ -5,6 +5,18 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.13.0] - 2026-10-08
+
+Com as viagens vinculadas aos lançamentos, os relatórios passam a separar o gasto de viagem do gasto do dia a dia. Tendências por categoria e Estabelecimentos ganham o seletor "Viagem": dá para ver como uma viagem se espalhou pelas faturas, categoria por categoria, ou tirar todas as viagens da conta para enxergar o mês "normal". Escolher uma viagem em Tendências ajusta De/Até para cobrir todas as parcelas dela; em Estabelecimentos, mostra a viagem inteira, sem o corte de meses.
+
+### Adicionado
+
+- Seletor "Viagem" em Relatórios › Tendências por categoria e Relatórios › Estabelecimentos, com "Todos os lançamentos", "Sem viagens" e uma entrada por viagem
+- Escolha de viagem guardada no endereço da página (`viagem=<id>` ou `viagem=sem`), junto com os demais filtros
+- Em Tendências, escolher uma viagem ajusta De/Até para o primeiro e o último mês com lançamentos dela (até 24 meses)
+- Em Estabelecimentos, uma viagem específica ignora a janela de meses e mostra "Viagem: <nome>"
+- "Limpar" em Tendências também volta a viagem para "Todos os lançamentos"
+
 ## [2.12.0] - 2026-10-08
 
 Dava para saber quanto se gastou num mês, mas não numa viagem: a compra no cartão cai na fatura seguinte e, no meio da viagem, aluguel e assinaturas continuam correndo. Esta versão traz as viagens. Cada lançamento pode pertencer a uma viagem; o diálogo já sugere a viagem pela data da compra, a página da viagem lista os lançamentos do período ainda sem vínculo para vincular em lote, e parcelados e divididos entram inteiros. O total mostrado é o custo líquido da pessoa principal: despesas menos reembolsos, pagos ou não.
