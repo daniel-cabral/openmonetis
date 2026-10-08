@@ -102,7 +102,8 @@ function signedCentsOfTransaction(candidate: AppTransaction): number {
 }
 
 function daysBetween(left: string, right: string): number {
-	const diff = Date.parse(`${left}T00:00:00Z`) - Date.parse(`${right}T00:00:00Z`);
+	const diff =
+		Date.parse(`${left}T00:00:00Z`) - Date.parse(`${right}T00:00:00Z`);
 	return Math.abs(diff) / DAY_IN_MS;
 }
 
@@ -112,8 +113,8 @@ function isWithinDateWindow(
 	row: ImportedTransaction,
 	candidate: AppTransaction,
 ): boolean {
-	const dates = [row.date, row.postedDate].filter(
-		(date): date is string => Boolean(date),
+	const dates = [row.date, row.postedDate].filter((date): date is string =>
+		Boolean(date),
 	);
 
 	return dates.some(

@@ -22,7 +22,8 @@ export const parserProfiles: ParserProfile[] = [
 		label: "C6 Bank - Extrato de conta corrente",
 		kind: "statement",
 		matches: (headerSample) =>
-			headerSample.includes("Data Lançamento") && headerSample.includes("Data Contábil"),
+			headerSample.includes("Data Lançamento") &&
+			headerSample.includes("Data Contábil"),
 		parse: parseC6StatementCsv,
 		peekAccountNumber: readC6StatementAccountNumber,
 	},
@@ -31,7 +32,8 @@ export const parserProfiles: ParserProfile[] = [
 		label: "C6 Bank - Fatura de cartão",
 		kind: "invoice",
 		matches: (headerSample) =>
-			headerSample.includes("Data de Compra") && headerSample.includes("Parcela"),
+			headerSample.includes("Data de Compra") &&
+			headerSample.includes("Parcela"),
 		parse: parseC6InvoiceCsv,
 	},
 ];

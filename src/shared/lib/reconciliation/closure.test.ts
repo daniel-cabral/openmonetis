@@ -131,7 +131,8 @@ describe("checkStatementClosure", () => {
 });
 
 function invoiceLine(
-	overrides: Partial<ImportedTransaction> & Pick<ImportedTransaction, "amount" | "transactionType" | "lineKind">,
+	overrides: Partial<ImportedTransaction> &
+		Pick<ImportedTransaction, "amount" | "transactionType" | "lineKind">,
 ): ImportedTransaction {
 	return {
 		externalId: null,
@@ -149,9 +150,21 @@ function invoiceLine(
 // fica fora da soma, e o crédito entra com sinal negativo).
 function fatura202608(): ImportedTransaction[] {
 	return [
-		invoiceLine({ amount: 13034.33, transactionType: "expense", lineKind: "purchase" }),
-		invoiceLine({ amount: 98.0, transactionType: "income", lineKind: "credit" }),
-		invoiceLine({ amount: 12164.1, transactionType: "income", lineKind: "invoice-payment" }),
+		invoiceLine({
+			amount: 13034.33,
+			transactionType: "expense",
+			lineKind: "purchase",
+		}),
+		invoiceLine({
+			amount: 98.0,
+			transactionType: "income",
+			lineKind: "credit",
+		}),
+		invoiceLine({
+			amount: 12164.1,
+			transactionType: "income",
+			lineKind: "invoice-payment",
+		}),
 	];
 }
 

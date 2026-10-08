@@ -16,7 +16,9 @@ import {
 
 const faturaPath = join(__dirname, "__fixtures__", "c6-fatura.csv");
 
-function row(overrides: Partial<ImportedTransaction> = {}): ImportedTransaction {
+function row(
+	overrides: Partial<ImportedTransaction> = {},
+): ImportedTransaction {
 	return {
 		externalId: null,
 		externalIdOccurrence: 0,

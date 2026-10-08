@@ -37,7 +37,9 @@ import {
 
 const USER_ID = "user-1";
 const render = (condition: unknown) =>
-	new PgDialect().sqlToQuery(condition as Parameters<PgDialect["sqlToQuery"]>[0]);
+	new PgDialect().sqlToQuery(
+		condition as Parameters<PgDialect["sqlToQuery"]>[0],
+	);
 
 beforeEach(() => {
 	mocks.queue.length = 0;
@@ -59,7 +61,12 @@ describe("fetchUserTrips", () => {
 		const result = await fetchUserTrips(USER_ID);
 
 		expect(result).toEqual([
-			{ id: "t1", name: "Lisboa", startDate: "2026-05-12", endDate: "2026-05-22" },
+			{
+				id: "t1",
+				name: "Lisboa",
+				startDate: "2026-05-12",
+				endDate: "2026-05-22",
+			},
 		]);
 		const where = render(mocks.wheres[0]);
 		expect(where.sql).toContain('"user_id" = $1');

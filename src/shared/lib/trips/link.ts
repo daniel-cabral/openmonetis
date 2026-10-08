@@ -30,7 +30,9 @@ export function expandTripLinkScope(rows: TripLinkRow[]): TripLinkScope {
 	return {
 		ids: unique(rows.map((row) => row.id)),
 		seriesIds: unique(
-			rows.map((row) => (row.condition === INSTALLMENT_CONDITION ? row.seriesId : null)),
+			rows.map((row) =>
+				row.condition === INSTALLMENT_CONDITION ? row.seriesId : null,
+			),
 		),
 		splitGroupIds: unique(rows.map((row) => row.splitGroupId)),
 	};
@@ -79,7 +81,11 @@ export async function setTripForTransactions(
 		.update(transactions)
 		.set({ tripId })
 		.where(
-			and(eq(transactions.userId, userId), tripEligibleCondition(), or(...targets)),
+			and(
+				eq(transactions.userId, userId),
+				tripEligibleCondition(),
+				or(...targets),
+			),
 		)
 		.returning({ id: transactions.id });
 

@@ -38,7 +38,10 @@ describe("isTripEligible", () => {
 		[{ transactionType: "Receita", note: "reembolso" }, true],
 		[{ transactionType: "Transferência", note: null }, false],
 		[{ transactionType: "Despesa", note: "AUTO_FATURA:card:2026-06" }, false],
-		[{ transactionType: "Receita", note: "AUTO_FATURA:card:2026-06:ab12" }, false],
+		[
+			{ transactionType: "Receita", note: "AUTO_FATURA:card:2026-06:ab12" },
+			false,
+		],
 	])("%o -> %s", (row, expected) => {
 		expect(isTripEligible(row)).toBe(expected);
 	});

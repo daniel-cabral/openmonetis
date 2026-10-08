@@ -56,7 +56,8 @@ describe("fixtures mascaradas do C6", () => {
 			const cols = line.split(",");
 			const contabil = cols[1];
 			const saldo = cols[6];
-			if (!saldoPorDiaContabil.has(contabil)) saldoPorDiaContabil.set(contabil, new Set());
+			if (!saldoPorDiaContabil.has(contabil))
+				saldoPorDiaContabil.set(contabil, new Set());
 			saldoPorDiaContabil.get(contabil)?.add(saldo);
 		}
 		for (const saldos of saldoPorDiaContabil.values()) {
@@ -114,7 +115,9 @@ describe("fixtures mascaradas do C6", () => {
 	it("extrato só nomeia contrapartes fictícias", () => {
 		const raw = readRaw(extratoPath);
 		const contrapartes = [
-			...raw.matchAll(/Pix (?:enviado para|recebido de|recebido c6 de) ([^,]+)/g),
+			...raw.matchAll(
+				/Pix (?:enviado para|recebido de|recebido c6 de) ([^,]+)/g,
+			),
 		].map((match) => match[1]);
 
 		expect(contrapartes.length).toBeGreaterThan(0);

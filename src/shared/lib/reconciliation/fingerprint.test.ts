@@ -192,7 +192,9 @@ describe("buildReconciliationFingerprintPayloads", () => {
 		const rows = [statementRow()];
 		const [a] = buildReconciliationFingerprintPayloads(statementInput(rows));
 		const [b] = buildReconciliationFingerprintPayloads(
-			statementInput(rows, { destination: { type: "account", id: "account-2" } }),
+			statementInput(rows, {
+				destination: { type: "account", id: "account-2" },
+			}),
 		);
 
 		expect(a).not.toBe(b);

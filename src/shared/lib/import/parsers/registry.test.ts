@@ -17,7 +17,9 @@ describe("parserProfiles", () => {
 		const profile = parserProfiles.find((p) => p.id === "c6-statement");
 		expect(profile).toBeDefined();
 		expect(
-			profile?.matches("Data Lançamento,Data Contábil,Título,Descrição,Entrada(R$),Saída(R$),Saldo do Dia(R$)"),
+			profile?.matches(
+				"Data Lançamento,Data Contábil,Título,Descrição,Entrada(R$),Saída(R$),Saldo do Dia(R$)",
+			),
 		).toBe(true);
 	});
 

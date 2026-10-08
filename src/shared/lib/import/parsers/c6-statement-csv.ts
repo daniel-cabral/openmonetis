@@ -22,7 +22,9 @@ function parsePeriod(content: string): ImportStatement["period"] {
 	const match = content.match(
 		/Extrato de\s*(\d{2}\/\d{2}\/\d{4})\s*a\s*(\d{2}\/\d{2}\/\d{4})/,
 	);
-	return match ? { from: parseBrDate(match[1]), to: parseBrDate(match[2]) } : null;
+	return match
+		? { from: parseBrDate(match[1]), to: parseBrDate(match[2]) }
+		: null;
 }
 
 function buildDescription(titulo: string, descricao: string): string {
@@ -47,8 +49,15 @@ export function parseC6StatementCsv(rawContent: string): ImportStatement {
 			: [];
 
 	const transactions: ImportedTransaction[] = dataLines.map((line) => {
-		const [dataLancamento, dataContabil, titulo, descricao, entrada, saida, saldo] =
-			line.split(",");
+		const [
+			dataLancamento,
+			dataContabil,
+			titulo,
+			descricao,
+			entrada,
+			saida,
+			saldo,
+		] = line.split(",");
 
 		const entradaValue = Number.parseFloat(entrada);
 		const saidaValue = Number.parseFloat(saida);

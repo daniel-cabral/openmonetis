@@ -10,10 +10,17 @@ describe("importNameMappings", () => {
 
 		const columnNames = config.columns.map((column) => column.name);
 		expect(columnNames).toEqual(
-			expect.arrayContaining(["user_id", "description_key", "name", "updated_at"]),
+			expect.arrayContaining([
+				"user_id",
+				"description_key",
+				"name",
+				"updated_at",
+			]),
 		);
 
-		const userIdColumn = config.columns.find((column) => column.name === "user_id");
+		const userIdColumn = config.columns.find(
+			(column) => column.name === "user_id",
+		);
 		expect(userIdColumn?.notNull).toBe(true);
 
 		const descriptionKeyColumn = config.columns.find(
@@ -25,7 +32,9 @@ describe("importNameMappings", () => {
 		expect(nameColumn?.notNull).toBe(true);
 
 		expect(config.primaryKeys).toHaveLength(1);
-		const pkColumnNames = config.primaryKeys[0]?.columns.map((column) => column.name);
+		const pkColumnNames = config.primaryKeys[0]?.columns.map(
+			(column) => column.name,
+		);
 		expect(pkColumnNames).toEqual(
 			expect.arrayContaining(["user_id", "description_key"]),
 		);
