@@ -17,6 +17,7 @@ const PROTECTED_ROUTES = [
 	"/payers",
 	"/inbox",
 	"/reports",
+	"/trips",
 ];
 
 // Rotas públicas (não requerem autenticação)
@@ -142,6 +143,7 @@ export const config = {
 		"/payers/:path*",
 		"/inbox/:path*",
 		"/reports/:path*",
+		"/trips/:path*",
 		"/login",
 		"/signup",
 	],
