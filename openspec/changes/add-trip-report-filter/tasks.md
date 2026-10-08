@@ -785,7 +785,7 @@ git commit -m "feat(reports): intervalo de tendencias cobre a viagem" -- src/fea
 
 Gate desta task é `tsc` + testes existentes de `reports` (vitest roda em `node`, sem render de React; as regras ficaram nas Tasks 1, 3 e 5).
 
-- [ ] 6.1 Criar o seletor
+- [x] 6.1 Criar o seletor
 
 ```tsx
 // src/features/reports/components/trip-filter-select.tsx
@@ -845,7 +845,7 @@ export function TripFilterSelect({
 }
 ```
 
-- [ ] 6.2 `category-report-filters.tsx`: aceitar o slot (renderizado depois do multi-select de categoria) e o `onReset`
+- [x] 6.2 `category-report-filters.tsx`: aceitar o slot (renderizado depois do multi-select de categoria) e o `onReset`
 
 ```tsx
 export function CategoryReportFilters({
@@ -889,7 +889,7 @@ e, imediatamente antes de `{/* Start Period Picker */}`:
 					{tripFilter}
 ```
 
-- [ ] 6.3 `category-report-page.tsx`: imports, props e handler
+- [x] 6.3 `category-report-page.tsx`: imports, props e handler
 
 ```tsx
 import {
@@ -965,7 +965,7 @@ No `<CategoryReportFilters ... />`, acrescentar as props `onReset={handleReset}`
 				}
 ```
 
-- [ ] 6.4 `src/app/(dashboard)/reports/category-trends/page.tsx`: imports
+- [x] 6.4 `src/app/(dashboard)/reports/category-trends/page.tsx`: imports
 
 ```ts
 import { fetchTripPeriodRanges } from "@/shared/lib/trips/period-ranges";
@@ -990,9 +990,9 @@ Depois de `categoriasParam`: `const tripParamRaw = getSingleParam(resolvedSearch
 
 Em `filters`, acrescentar `tripFilter,`. Em `fetchCategoryChartData(...)`, passar `tripFilter` como 5º argumento. Em `<CategoryReportPage ... />`, acrescentar `trips={trips}`, `tripRanges={tripRanges}`, `tripParam={tripFilterToParam(tripFilter)}`.
 
-- [ ] 6.5 Verificar: `pnpm exec tsc --noEmit` (sem erros) e `pnpm exec vitest run src/features/reports src/shared/lib/trips` (PASS)
+- [x] 6.5 Verificar: `pnpm exec tsc --noEmit` (sem erros) e `pnpm exec vitest run src/features/reports src/shared/lib/trips` (PASS)
 
-- [ ] 6.6 Lint e commit
+- [x] 6.6 Lint e commit
 
 ```bash
 pnpm exec biome check src/features/reports/components/trip-filter-select.tsx src/features/reports/components/category-report-filters.tsx src/features/reports/components/category-report-page.tsx "src/app/(dashboard)/reports/category-trends/page.tsx"
