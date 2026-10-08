@@ -12,7 +12,9 @@ const mocks = vi.hoisted(() => {
 	};
 	const queue: unknown[][] = [];
 	const wheres: unknown[] = [];
-	const select = () => {
+	const projections: unknown[] = [];
+	const select = (projection?: unknown) => {
+		projections.push(projection);
 		const chain: Chain = Object.assign(Promise.resolve(queue.shift() ?? []), {
 			from: () => chain,
 			leftJoin: () => chain,
@@ -26,7 +28,13 @@ const mocks = vi.hoisted(() => {
 		});
 		return chain;
 	};
-	return { queue, wheres, dbMock: { select }, getAdminPayerIdMock: vi.fn() };
+	return {
+		queue,
+		wheres,
+		projections,
+		dbMock: { select },
+		getAdminPayerIdMock: vi.fn(),
+	};
 });
 
 vi.mock("@/shared/lib/db", () => ({ db: mocks.dbMock }));
@@ -41,10 +49,12 @@ const render = (condition: unknown) =>
 	new PgDialect().sqlToQuery(
 		condition as Parameters<PgDialect["sqlToQuery"]>[0],
 	);
+const netCostOf = () => (mocks.projections[0] as { netCost: unknown }).netCost;
 
 beforeEach(() => {
 	mocks.queue.length = 0;
 	mocks.wheres.length = 0;
+	mocks.projections.length = 0;
 	mocks.getAdminPayerIdMock.mockResolvedValue("admin");
 });
 
@@ -76,6 +86,11 @@ describe("fetchTripsOverview", () => {
 		const where = render(mocks.wheres[0]);
 		expect(where.sql).toContain('"user_id" = $1');
 		expect(where.params).toEqual([USER_ID]);
+
+		const netCost = render(netCostOf());
+		expect(netCost.sql).toContain("sum(-");
+		expect(netCost.sql).toContain("filter (where");
+		expect(netCost.params).toEqual(["admin", "Despesa", "Receita"]);
 	});
 
 	it("sem admin, custo zero", async () => {
@@ -92,5 +107,9 @@ describe("fetchTripsOverview", () => {
 			},
 		]);
 		expect((await fetchTripsOverview(USER_ID))[0]?.netCost).toBe(0);
+
+		const netCost = render(netCostOf());
+		expect(netCost.sql).toBe("0");
+		expect(netCost.params).toEqual([]);
 	});
 });
