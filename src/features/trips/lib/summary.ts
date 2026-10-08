@@ -7,8 +7,11 @@ export type TripTransactionRow = {
 	payerId: string | null;
 	payerName: string | null;
 	categoryName: string | null;
+	cardId: string | null;
 	cardName: string | null;
+	accountId: string | null;
 	accountName: string | null;
+	condition: string;
 	currentInstallment: number | null;
 	installmentCount: number | null;
 	seriesId: string | null;

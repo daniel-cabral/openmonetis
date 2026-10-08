@@ -22,8 +22,11 @@ const row = (overrides: Partial<TripTransactionRow>): TripTransactionRow => ({
 	payerId: "admin",
 	payerName: "Ana",
 	categoryName: "Hospedagem",
+	cardId: "c6",
 	cardName: "C6",
+	accountId: null,
 	accountName: null,
+	condition: "À vista",
 	currentInstallment: null,
 	installmentCount: null,
 	seriesId: null,
@@ -64,23 +67,55 @@ describe("painel de lancamentos da viagem", () => {
 		).toContain("Nenhuma sugestão.");
 	});
 
-	it("sugestoes com checkbox por linha e Vincular selecionados desabilitado sem selecao", () => {
+	it("sugestoes em tabela: origem, categoria, checkbox por linha e no cabecalho", () => {
 		const html = render(
 			createElement(TripSuggestions, {
 				tripId: TRIP_ID,
 				rows: [
-					row({ id: "a", name: "Mercado" }),
-					row({ id: "b", name: "Uber" }),
+					row({ id: "a", name: "Mercado", cardId: "nu", cardName: "Nubank" }),
+					row({
+						id: "b",
+						name: "Netflix",
+						condition: "Recorrente",
+						categoryName: "Assinaturas",
+					}),
+					row({
+						id: "c",
+						name: "Saque",
+						cardId: null,
+						cardName: null,
+						accountId: "a1",
+						accountName: "Conta C6",
+					}),
 				],
 			}),
 		);
 
-		expect(html.match(/role="checkbox"/g)).toHaveLength(2);
+		expect(html.match(/role="checkbox"/g)).toHaveLength(4);
 		expect(html).toContain('id="suggestion-a"');
-		expect(html).toContain('for="suggestion-b"');
+		expect(html).toContain("Nubank");
+		expect(html).toContain("Conta C6");
+		expect(html).toContain("Assinaturas");
+		expect(html).toContain("recorrente");
+		expect(html).toContain("Sugestões (3)");
+		expect(html).toContain("Origem");
 
 		const label = html.indexOf("Vincular selecionados");
 		const buttonStart = html.lastIndexOf("<button", label);
 		expect(html.slice(buttonStart, label)).toContain('disabled=""');
+	});
+
+	it("sugestoes paginam de 20 em 20", () => {
+		const rows = Array.from({ length: 25 }, (_, i) =>
+			row({ id: `r${i + 1}`, name: `Compra ${i + 1}` }),
+		);
+		const html = render(
+			createElement(TripSuggestions, { tripId: TRIP_ID, rows }),
+		);
+
+		expect(html).toContain("Compra 20<");
+		expect(html).not.toContain("Compra 21<");
+		expect(html).toContain("1 a 20 de 25");
+		expect(html).toContain("Próxima");
 	});
 });

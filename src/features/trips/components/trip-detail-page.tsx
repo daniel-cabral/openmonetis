@@ -72,14 +72,8 @@ export function TripDetailPage({ detail }: TripDetailPageProps) {
 			<TripSummaryCards summary={detail.summary} />
 			<TripBreakdowns summary={detail.summary} />
 
-			<div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-				<div>
-					<TripTransactionsList rows={detail.linked} />
-				</div>
-				<div>
-					<TripSuggestions tripId={trip.id} rows={detail.suggestions} />
-				</div>
-			</div>
+			<TripTransactionsList rows={detail.linked} />
+			<TripSuggestions tripId={trip.id} rows={detail.suggestions} />
 		</div>
 	);
 }

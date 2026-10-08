@@ -5,6 +5,18 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.13.1] - 2026-10-08
+
+As sugestões da página da viagem deixam de ser uma lista estreita na lateral e viram uma tabela larga, pensada para revisar o período inteiro de uma vez: cada lançamento mostra de qual cartão ou conta veio, dá para filtrar por origem e marcar tudo de uma vez antes de vincular.
+
+### Alterado
+
+- Sugestões da viagem em tabela de largura inteira, abaixo dos lançamentos vinculados, com data, descrição, origem (cartão ou conta), categoria e valor
+- Paginação de 20 em 20 nas sugestões
+- Filtro "Origem": todos, só cartões, só contas ou um cartão ou conta específico
+- Checkbox no cabeçalho marca a página, com atalho para selecionar todos os lançamentos do filtro; o botão mostra quantos serão vinculados
+- Lançamento recorrente aparece marcado como "recorrente"
+
 ## [2.13.0] - 2026-10-08
 
 Com as viagens vinculadas aos lançamentos, os relatórios passam a separar o gasto de viagem do gasto do dia a dia. Tendências por categoria e Estabelecimentos ganham o seletor "Viagem": dá para ver como uma viagem se espalhou pelas faturas, categoria por categoria, ou tirar todas as viagens da conta para enxergar o mês "normal". Escolher uma viagem em Tendências ajusta De/Até para cobrir todas as parcelas dela; em Estabelecimentos, mostra a viagem inteira, sem o corte de meses.
