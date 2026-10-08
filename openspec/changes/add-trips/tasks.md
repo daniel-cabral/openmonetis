@@ -2312,7 +2312,7 @@ git commit -m "feat(trips): lista de viagens com custo liquido" -- src/features/
 **Interfaces:**
 - Produces: `CreateInput`, `UpdateInput` e `UpdateBulkInput` ganham `tripId?: string | null` (mensagem "Viagem inválida."). `buildTransactionRecords` grava `tripId` em todas as parcelas e partes da divisão; em recorrente, só na primeira ocorrência (e nas partes da divisão dela), as demais saem `null` (D4); `Transferência` grava sempre `null`.
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { describe, expect, it, vi } from "vitest";
@@ -2415,12 +2415,12 @@ describe("schemas", () => {
 
 Se `updateSchema.shape` não existir (zod devolvendo wrapper após `superRefine`), troque por `updateBulkSchema.shape.tripId` e teste `updateSchema` com um `safeParse` completo de um lançamento válido; não exporte `baseFields` só para o teste.
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/transactions/actions/core-trip.test.ts`
 Expected: FAIL (`tripId` undefined nos registros / campo ausente no schema).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Em `core.ts`, constante perto de `baseFields`:
 
@@ -2444,12 +2444,12 @@ No ramo `if (data.condition === "Recorrente")`, no objeto de `records.push({...b
 					tripId: index === 0 ? basePayload.tripId : null,
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/transactions/ && pnpm exec tsc --noEmit`
 Expected: PASS (inclui os testes existentes de transactions), tsc limpo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(transactions): gravar viagem ao criar lancamento" -- src/features/transactions/actions/core.ts src/features/transactions/actions/core-trip.test.ts
@@ -2738,7 +2738,7 @@ git commit -m "feat(transactions): validar e propagar viagem ao editar lancament
 **Interfaces:**
 - Produces: `TransactionItem.tripId?: string | null`; `mapTransactionsData` preenche `tripId`; `TransactionFormState.tripId: string | undefined` (edição mostra o gravado; importação começa vazia).
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -2814,12 +2814,12 @@ describe("mapTransactionsData", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/transactions/lib/form-helpers-trip.test.ts`
 Expected: FAIL (`tripId` ausente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `types.ts`, em `TransactionItem` depois de `splitGroupId`: `tripId?: string | null;`
 
@@ -2831,12 +2831,12 @@ Expected: FAIL (`tripId` ausente).
 		tripId: isImporting ? undefined : (transaction?.tripId ?? undefined),
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/transactions/lib/form-helpers-trip.test.ts && pnpm exec tsc --noEmit`
 Expected: PASS. Se o tsc acusar outro lugar que monta `TransactionFormState` literal, acrescente `tripId: undefined` lá e liste o arquivo no relatório.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(transactions): formulario carrega a viagem do lancamento" -- src/features/transactions/components/types.ts src/features/transactions/lib/page-helpers.ts src/features/transactions/lib/form-helpers.ts src/features/transactions/lib/form-helpers-trip.test.ts

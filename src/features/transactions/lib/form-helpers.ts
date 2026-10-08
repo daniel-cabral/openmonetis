@@ -86,6 +86,7 @@ export type TransactionFormState = {
 	dueDate: string;
 	boletoPaymentDate: string;
 	note: string;
+	tripId: string | undefined;
 	isSettled: boolean | null;
 };
 
@@ -209,6 +210,7 @@ export function buildTransactionInitialState(
 		dueDate: transaction?.dueDate ?? "",
 		boletoPaymentDate,
 		note: transaction?.note ?? "",
+		tripId: isImporting ? undefined : (transaction?.tripId ?? undefined),
 		isSettled:
 			paymentMethod === "Cartão de crédito"
 				? null
