@@ -140,9 +140,6 @@ scratch/
 playground/
 /docs
 
-# graphify
-graphify-out/
-
 # dados financeiros reais usados como amostra
 .examples/
 
