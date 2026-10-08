@@ -1012,7 +1012,7 @@ git commit -m "feat(reports): seletor de viagem em tendencias por categoria" -- 
 
 Decisão de UI: com viagem específica, o card mostra `data.periodLabel` ("Viagem: Lisboa") no lugar de "Selecione o intervalo de meses" e esconde os botões 3/6/12 meses (não têm efeito). `PeriodFilterButtons` já preserva `viagem` porque parte de `searchParams.toString()`.
 
-- [ ] 7.1 Criar o wrapper cliente
+- [x] 7.1 Criar o wrapper cliente
 
 ```tsx
 // src/features/reports/components/establishments/trip-filter.tsx
@@ -1049,7 +1049,7 @@ export function EstablishmentsTripFilter({
 }
 ```
 
-- [ ] 7.2 `establishments/page.tsx`: imports
+- [x] 7.2 `establishments/page.tsx`: imports
 
 ```ts
 import { EstablishmentsTripFilter } from "@/features/reports/components/establishments/trip-filter";
@@ -1099,9 +1099,9 @@ Em `EstablishmentsContent`, depois de `periodFilter`:
 			</Card>
 ```
 
-- [ ] 7.3 Verificar: `pnpm exec tsc --noEmit` e `pnpm exec vitest run src/features/reports` (PASS)
+- [x] 7.3 Verificar: `pnpm exec tsc --noEmit` e `pnpm exec vitest run src/features/reports` (PASS)
 
-- [ ] 7.4 Lint e commit
+- [x] 7.4 Lint e commit
 
 ```bash
 pnpm exec biome check src/features/reports/components/establishments/trip-filter.tsx "src/app/(dashboard)/reports/establishments/page.tsx"
