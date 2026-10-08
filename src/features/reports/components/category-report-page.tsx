@@ -8,6 +8,11 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { CategoryChartData } from "@/features/reports/lib/category-chart-queries";
+import {
+	buildResetSearchParams,
+	buildTripSearchParams,
+	resolveTripRange,
+} from "@/features/reports/lib/trip-range";
 import { EmptyState } from "@/shared/components/feedback/empty-state";
 import { CategoryReportSkeleton } from "@/shared/components/skeletons/category-report-skeleton";
 import { Card } from "@/shared/components/ui/card";
@@ -17,12 +22,15 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/shared/components/ui/tabs";
+import type { TripPeriodRange } from "@/shared/lib/trips/period-ranges";
+import type { TripOption } from "@/shared/lib/trips/queries";
 import type { CategoryReportData } from "@/shared/lib/types/reports";
 import { CategoryReportCards } from "./category-report-cards";
 import { CategoryReportChart } from "./category-report-chart";
 import { CategoryReportExport } from "./category-report-export";
 import { CategoryReportFilters } from "./category-report-filters";
 import { CategoryReportTable } from "./category-report-table";
+import { TripFilterSelect } from "./trip-filter-select";
 import type { CategoryOption, FilterState } from "./types";
 
 interface CategoryReportPageProps {
@@ -30,6 +38,9 @@ interface CategoryReportPageProps {
 	categories: CategoryOption[];
 	initialFilters: FilterState;
 	chartData: CategoryChartData;
+	trips: TripOption[];
+	tripRanges: Record<string, TripPeriodRange>;
+	tripParam: string | null;
 }
 
 export function CategoryReportPage({
@@ -37,6 +48,9 @@ export function CategoryReportPage({
 	categories,
 	initialFilters,
 	chartData,
+	trips,
+	tripRanges,
+	tripParam,
 }: CategoryReportPageProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -94,6 +108,40 @@ export function CategoryReportPage({
 		router.push(`?${params.toString()}`, { scroll: false });
 	};
 
+	const handleTripChange = (nextTripParam: string | null) => {
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
+		const range = resolveTripRange(
+			nextTripParam ? tripRanges[nextTripParam] : undefined,
+			{ startPeriod: filters.startPeriod, endPeriod: filters.endPeriod },
+		);
+		setFilters({ ...filters, ...range });
+		startTransition(() => {
+			const search = buildTripSearchParams(
+				searchParams.toString(),
+				nextTripParam,
+				range,
+			);
+			router.push(`?${search}`, { scroll: false });
+		});
+	};
+
+	// "Limpar" also drops the trip: back to "Todos os lançamentos".
+	const handleReset = (resetFilters: FilterState) => {
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
+		setFilters(resetFilters);
+		startTransition(() => {
+			const search = buildResetSearchParams(searchParams.toString(), {
+				startPeriod: resetFilters.startPeriod,
+				endPeriod: resetFilters.endPeriod,
+			});
+			router.push(`?${search}`, { scroll: false });
+		});
+	};
+
 	// Check if no categories are available
 	const hasNoCategories = categories.length === 0;
 
@@ -107,6 +155,15 @@ export function CategoryReportPage({
 				categories={categories}
 				filters={filters}
 				onFiltersChange={handleFiltersChange}
+				onReset={handleReset}
+				tripFilter={
+					<TripFilterSelect
+						trips={trips}
+						value={tripParam}
+						onChange={handleTripChange}
+						disabled={isPending}
+					/>
+				}
 				exportButton={
 					<CategoryReportExport data={initialData} filters={filters} />
 				}

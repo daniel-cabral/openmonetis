@@ -32,7 +32,7 @@ import {
 	periodToDate,
 } from "@/shared/utils/period";
 import { slugify } from "@/shared/utils/string";
-import type { CategoryReportFiltersProps } from "./types";
+import type { CategoryReportFiltersProps, FilterState } from "./types";
 
 const getCategorySearchValue = (name: string, id: string) =>
 	`${name} ${slugify(name)} ${id}`;
@@ -47,7 +47,13 @@ export function CategoryReportFilters({
 	onFiltersChange,
 	isLoading = false,
 	exportButton,
-}: CategoryReportFiltersProps & { exportButton?: ReactNode }) {
+	tripFilter,
+	onReset,
+}: CategoryReportFiltersProps & {
+	exportButton?: ReactNode;
+	tripFilter?: ReactNode;
+	onReset?: (filters: FilterState) => void;
+}) {
 	const [open, setOpen] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
 	const [startMonthOpen, setStartMonthOpen] = useState(false);
@@ -117,11 +123,17 @@ export function CategoryReportFilters({
 		const currentPeriod = getCurrentPeriod();
 		const startPeriod = addMonthsToPeriod(currentPeriod, -5);
 
-		onFiltersChange({
+		const resetFilters: FilterState = {
 			selectedCategories: [],
 			startPeriod,
 			endPeriod: currentPeriod,
-		});
+		};
+
+		if (onReset) {
+			onReset(resetFilters);
+		} else {
+			onFiltersChange(resetFilters);
+		}
 	};
 
 	const validation =
@@ -223,6 +235,8 @@ export function CategoryReportFilters({
 							</Command>
 						</PopoverContent>
 					</Popover>
+
+					{tripFilter}
 
 					{/* Start Period Picker */}
 					<Popover open={startMonthOpen} onOpenChange={setStartMonthOpen}>

@@ -12,6 +12,13 @@ import { fetchUserCategories } from "@/features/reports/lib/category-trends-quer
 import { validateDateRange } from "@/features/reports/lib/utils";
 import { ContentErrorBoundary } from "@/shared/components/feedback/content-error-boundary";
 import { getUserId } from "@/shared/lib/auth/server";
+import { fetchTripPeriodRanges } from "@/shared/lib/trips/period-ranges";
+import { fetchUserTrips } from "@/shared/lib/trips/queries";
+import {
+	parseTripFilterParam,
+	TRIP_FILTER_PARAM,
+	tripFilterToParam,
+} from "@/shared/lib/trips/trip-filter-param";
 import type { CategoryReportFilters } from "@/shared/lib/types/reports";
 import { addMonthsToPeriod, getCurrentPeriod } from "@/shared/utils/period";
 
@@ -55,6 +62,7 @@ async function CategoryTrendsContent({ searchParams }: PageProps) {
 	const categoriasParam =
 		getSingleParam(resolvedSearchParams, "categorias") ??
 		getSingleParam(resolvedSearchParams, "categories");
+	const tripParamRaw = getSingleParam(resolvedSearchParams, TRIP_FILTER_PARAM);
 
 	// Calculate default period (last 6 months)
 	const currentPeriod = getCurrentPeriod();
@@ -79,7 +87,12 @@ async function CategoryTrendsContent({ searchParams }: PageProps) {
 	}
 
 	// Fetch all categories for the user
-	const categoryRows = await fetchUserCategories(userId);
+	const [categoryRows, trips, tripRanges] = await Promise.all([
+		fetchUserCategories(userId),
+		fetchUserTrips(userId),
+		fetchTripPeriodRanges(userId),
+	]);
+	const tripFilter = parseTripFilterParam(tripParamRaw, trips);
 
 	// Map to CategoryOption format
 	const categoryOptions: CategoryOption[] = categoryRows.map(
@@ -97,6 +110,7 @@ async function CategoryTrendsContent({ searchParams }: PageProps) {
 		endPeriod,
 		categoryIds:
 			selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+		tripFilter,
 	};
 
 	// Fetch report data
@@ -108,6 +122,7 @@ async function CategoryTrendsContent({ searchParams }: PageProps) {
 		startPeriod,
 		endPeriod,
 		selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+		tripFilter,
 	);
 
 	// Build initial filter state for client component
@@ -124,6 +139,9 @@ async function CategoryTrendsContent({ searchParams }: PageProps) {
 				categories={categoryOptions}
 				initialFilters={initialFilters}
 				chartData={chartData}
+				trips={trips}
+				tripRanges={tripRanges}
+				tripParam={tripFilterToParam(tripFilter)}
 			/>
 		</main>
 	);
