@@ -1639,7 +1639,7 @@ git commit -m "feat(trips): vincular e desvincular lancamentos em lote" -- src/f
   - `summarizeTrip(rows: TripTransactionRow[], adminPayerId: string | null): TripSummary`
 - Regra (D6): total e quebras por categoria e por cartão/conta usam só o admin; quebra por pessoa mostra a despesa de todas as pessoas.
 
-- [ ] **Step 1: Escrever o teste que falha**
+- [x] **Step 1: Escrever o teste que falha**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1732,12 +1732,12 @@ describe("summarizeTrip", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `pnpm exec vitest run src/features/trips/lib/summary.test.ts`
 Expected: FAIL (módulo inexistente).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 ```ts
 export type TripTransactionRow = {
@@ -1817,12 +1817,12 @@ export function summarizeTrip(
 }
 ```
 
-- [ ] **Step 4: Rodar e ver passar**
+- [x] **Step 4: Rodar e ver passar**
 
 Run: `pnpm exec vitest run src/features/trips/lib/summary.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(trips): custo liquido e quebras da viagem" -- src/features/trips/lib/summary.ts src/features/trips/lib/summary.test.ts
