@@ -1122,9 +1122,9 @@ git commit -m "feat(reports): seletor de viagem em estabelecimentos" -- src/feat
 
 Versão: hoje o repo está em `2.11.5`; `add-trips` sobe minor para `2.12.0`; esta change sobe para `2.13.0`. Leia `package.json` antes: se não estiver em `2.12.0`, pare e pergunte (AGENTS.md regra 6). Não criar nem enviar tag.
 
-- [ ] 8.1 Garantir que Uso de cartões e Análise de parcelas não mudaram: `git diff --stat main...HEAD -- src/features/reports/lib/cards-report-queries.ts src/features/reports/components/cards "src/app/(dashboard)/reports/card-usage" "src/app/(dashboard)/reports/installment-analysis"` (esperado: saída vazia). Se a branch é a própria `main`, use o hash do commit anterior à Task 1 no lugar de `main`.
+- [x] 8.1 Garantir que Uso de cartões e Análise de parcelas não mudaram: `git diff --stat main...HEAD -- src/features/reports/lib/cards-report-queries.ts src/features/reports/components/cards "src/app/(dashboard)/reports/card-usage" "src/app/(dashboard)/reports/installment-analysis"` (esperado: saída vazia). Se a branch é a própria `main`, use o hash do commit anterior à Task 1 no lugar de `main`.
 
-- [ ] 8.2 `package.json`: `"version": "2.13.0"`. `README.md`: badge `version-2.13.0-blue`. `CHANGELOG.md`, logo abaixo do parágrafo de formato, com a data do dia (`date +%F`):
+- [x] 8.2 `package.json`: `"version": "2.13.0"`. `README.md`: badge `version-2.13.0-blue`. `CHANGELOG.md`, logo abaixo do parágrafo de formato, com a data do dia (`date +%F`):
 
 ```markdown
 ## [2.13.0] - <data do dia, YYYY-MM-DD>
@@ -1140,13 +1140,13 @@ Com as viagens vinculadas aos lançamentos, os relatórios passam a separar o ga
 - "Limpar" em Tendências também volta a viagem para "Todos os lançamentos"
 ```
 
-- [ ] 8.3 Portão completo: `pnpm exec tsc --noEmit`, `pnpm exec vitest run --maxWorkers=4` e `pnpm exec biome check <todos os arquivos alterados nesta change>` (lista de `git diff --name-only <commit anterior à Task 1>..HEAD` + os três arquivos desta task). Todos verdes.
+- [x] 8.3 Portão completo: `pnpm exec tsc --noEmit`, `pnpm exec vitest run --maxWorkers=4` e `pnpm exec biome check <todos os arquivos alterados nesta change>` (lista de `git diff --name-only <commit anterior à Task 1>..HEAD` + os três arquivos desta task). Todos verdes.
 
-- [ ] 8.4 Commit
+- [x] 8.4 Commit
 
 ```bash
 git add CHANGELOG.md package.json README.md
 git commit -m "chore: preparar versao 2.13.0" -- CHANGELOG.md package.json README.md
 ```
 
-- [ ] 8.5 `graphify update .` (AGENTS.md, seção graphify), se o comando existir no ambiente; não commitar `graphify-out/` se estiver no `.gitignore`.
+- [x] 8.5 `graphify update .` (AGENTS.md, seção graphify), se o comando existir no ambiente; não commitar `graphify-out/` se estiver no `.gitignore`.
