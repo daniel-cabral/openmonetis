@@ -8,7 +8,10 @@ import {
 	transactionAttachments,
 	transactions,
 } from "@/db/schema";
-import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
+import {
+	ACCOUNT_AUTO_INVOICE_NOTE_PREFIX,
+	isLockedInvoicePaymentNote,
+} from "@/shared/lib/accounts/constants";
 import { handleActionError } from "@/shared/lib/actions/helpers";
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
@@ -271,7 +274,7 @@ export async function updateTransactionAction(
 			return { success: false, error: "Lançamento não encontrado." };
 		}
 
-		if (existing.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
+		if (isLockedInvoicePaymentNote(existing.note)) {
 			return {
 				success: false,
 				error: "Pagamentos automáticos de fatura não podem ser editados.",
@@ -435,7 +438,7 @@ export async function deleteTransactionAction(
 			return { success: false, error: "Lançamento não encontrado." };
 		}
 
-		if (existing.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) {
+		if (isLockedInvoicePaymentNote(existing.note)) {
 			return {
 				success: false,
 				error: "Pagamentos automáticos de fatura não podem ser removidos.",

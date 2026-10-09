@@ -31,11 +31,11 @@ import {
 	TRANSACTION_TYPES,
 } from "@/features/transactions/lib/constants";
 import {
-	ACCOUNT_AUTO_INVOICE_NOTE_PREFIX,
 	INITIAL_BALANCE_CONDITION,
 	INITIAL_BALANCE_NOTE,
 	INITIAL_BALANCE_PAYMENT_METHOD,
 	INITIAL_BALANCE_TRANSACTION_TYPE,
+	isLockedInvoicePaymentNote,
 } from "@/shared/lib/accounts/constants";
 import {
 	PAYER_ROLE_ADMIN,
@@ -604,7 +604,7 @@ export const mapTransactionsData = (rows: TransactionRowWithRelations[]) =>
 		hasAttachments: item.hasAttachments ?? false,
 		tripId: item.tripId ?? null,
 		readonly:
-			Boolean(item.note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) ||
+			isLockedInvoicePaymentNote(item.note) ||
 			(item.note === INITIAL_BALANCE_NOTE &&
 				item.transactionType === INITIAL_BALANCE_TRANSACTION_TYPE &&
 				item.condition === INITIAL_BALANCE_CONDITION &&

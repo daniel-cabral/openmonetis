@@ -5,6 +5,14 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.13.3] - 2026-10-09
+
+Crédito de fatura importado pela conciliação (adiantamento, estorno) deixa de ficar travado. Ele vem do arquivo do banco e pode ter entrado errado, então precisa poder ser editado ou excluído como qualquer lançamento. A quitação da fatura continua protegida e só sai pelo "Desfazer pagamento".
+
+### Corrigido
+
+- Créditos de fatura criados pela conciliação podem ser editados e excluídos, individualmente ou em lote
+
 ## [2.13.2] - 2026-10-09
 
 A conciliação de fatura de cartão deixa de confundir meses. Parcelas de compras antigas trazem a mesma data de compra em toda fatura, e o importador as casava com a parcela já conciliada no mês anterior, sem lançar a do mês atual. E o pagamento da fatura anterior feito fora do boleto, que o C6 chama de "Inclusao de Pagamento", era lançado como crédito e abatia da fatura nova um valor que já tinha saído da conta.

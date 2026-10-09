@@ -5,6 +5,7 @@ import {
 	buildInvoicePaymentNote,
 	buildInvoicePaymentNotePrefix,
 	isInvoiceCreditNote,
+	isLockedInvoicePaymentNote,
 } from "./constants";
 
 const CARD = "card-1";
@@ -45,5 +46,27 @@ describe("nota de crédito de fatura", () => {
 
 	it("distingue créditos diferentes da mesma fatura", () => {
 		expect(credito).not.toBe(buildInvoiceCreditNote(CARD, PERIOD, "fp-def"));
+	});
+});
+
+describe("isLockedInvoicePaymentNote", () => {
+	it("trava a quitação da fatura, mas não o crédito importado", () => {
+		// Credito vem da conciliacao e pode estar errado; precisa ser removivel.
+		// A quitacao so sai pelo "Desfazer pagamento" da fatura.
+		expect(
+			isLockedInvoicePaymentNote(buildInvoicePaymentNote(CARD, PERIOD)),
+		).toBe(true);
+		expect(
+			isLockedInvoicePaymentNote(
+				`${buildInvoicePaymentNotePrefix(CARD, PERIOD)}xyz`,
+			),
+		).toBe(true);
+		expect(
+			isLockedInvoicePaymentNote(
+				buildInvoiceCreditNote(CARD, PERIOD, "fp-abc"),
+			),
+		).toBe(false);
+		expect(isLockedInvoicePaymentNote("nota comum")).toBe(false);
+		expect(isLockedInvoicePaymentNote(null)).toBe(false);
 	});
 });

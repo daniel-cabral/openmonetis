@@ -86,3 +86,12 @@ export const buildInvoiceCreditNote = (
 
 export const isInvoiceCreditNote = (note: string | null | undefined): boolean =>
 	Boolean(note?.startsWith(ACCOUNT_AUTO_INVOICE_CREDIT_PREFIX));
+
+// Quitação da fatura (complemento ou parcial) só sai pelo "Desfazer pagamento".
+// Crédito importado pela conciliação fica livre: pode ter vindo errado do
+// arquivo e precisa poder ser removido.
+export const isLockedInvoicePaymentNote = (
+	note: string | null | undefined,
+): boolean =>
+	Boolean(note?.startsWith(ACCOUNT_AUTO_INVOICE_NOTE_PREFIX)) &&
+	!isInvoiceCreditNote(note);
