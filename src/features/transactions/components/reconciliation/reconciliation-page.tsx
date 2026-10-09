@@ -25,6 +25,7 @@ import {
 	deriveReconciliationClosure,
 	filterAppOnlyByScope,
 	isInvoicePaymentLine,
+	reclassifyPreviousInvoicePayments,
 } from "@/features/transactions/lib/reconciliation-review";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -184,7 +185,14 @@ export function ReconciliationPage({
 		}
 
 		const ignoredSet = new Set(candidates.ignoredFingerprints);
-		const rows = statement.transactions.map((row, index) => ({
+		const statementRows =
+			destinationKind === "card" && candidates.cardDueDay
+				? reclassifyPreviousInvoicePayments(statement.transactions, {
+						invoicePeriod: invoicePeriodInput,
+						dueDay: candidates.cardDueDay,
+					})
+				: statement.transactions;
+		const rows = statementRows.map((row, index) => ({
 			fingerprint: fingerprints[index] ?? "",
 			row,
 		}));
@@ -214,7 +222,7 @@ export function ReconciliationPage({
 		);
 
 		setReview({
-			statement,
+			statement: { ...statement, transactions: statementRows },
 			fingerprints,
 			match,
 			appTransactionsById,

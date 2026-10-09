@@ -13,7 +13,7 @@ import type {
 	RowClassification,
 } from "@/shared/lib/reconciliation/matcher";
 import { normalizeDecimalInput } from "@/shared/utils/currency";
-import { derivePeriodFromDate } from "@/shared/utils/period";
+import { derivePeriodFromDate, getPreviousPeriod } from "@/shared/utils/period";
 
 /** Contagem por balde, para o resumo da revisão. */
 export type ReconciliationSummary = {
@@ -216,6 +216,31 @@ export function isInvoicePaymentLine(row: ImportedTransaction): boolean {
  */
 export function isCreditLine(row: ImportedTransaction): boolean {
 	return row.lineKind === "credit";
+}
+
+/**
+ * O C6 também chama de `Inclusao de Pagamento` a quitação da fatura anterior
+ * feita fora do boleto. O que separa os dois é a data: pagamento até o
+ * vencimento da fatura anterior quita aquela fatura; depois disso é
+ * adiantamento desta. Tratá-lo como crédito abateria desta fatura um valor que
+ * já saiu da conta corrente pela quitação anterior.
+ */
+export function reclassifyPreviousInvoicePayments(
+	rows: ImportedTransaction[],
+	scope: { invoicePeriod: string; dueDay: string },
+): ImportedTransaction[] {
+	const previousDueDate = `${getPreviousPeriod(scope.invoicePeriod)}-${scope.dueDay.padStart(2, "0")}`;
+
+	return rows.map((row) =>
+		row.lineKind === "credit" &&
+		row.description
+			.toLowerCase()
+			.replace(/\s+/g, " ")
+			.includes("inclusao de pagamento") &&
+		row.date <= previousDueDate
+			? { ...row, lineKind: "invoice-payment" }
+			: row,
+	);
 }
 
 /**

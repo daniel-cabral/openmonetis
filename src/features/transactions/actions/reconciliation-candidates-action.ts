@@ -2,7 +2,7 @@
 
 import { and, eq, gte, inArray, lte, or } from "drizzle-orm";
 import { z } from "zod";
-import { reconciliationIgnores, transactions } from "@/db/schema";
+import { cards, reconciliationIgnores, transactions } from "@/db/schema";
 import {
 	validateCartaoOwnership,
 	validateContaOwnership,
@@ -34,6 +34,8 @@ export type FetchReconciliationCandidatesResult =
 			success: true;
 			transactions: AppTransaction[];
 			ignoredFingerprints: string[];
+			// Dia de vencimento do cartão; nulo quando o destino é conta.
+			cardDueDay: string | null;
 	  }
 	| { success: false; error: string };
 
@@ -86,22 +88,26 @@ export async function fetchReconciliationCandidatesAction(
 
 	// A data comprada pode cair fora do intervalo do arquivo (ex.: compra de
 	// 28/07 pertence ao período 2026-08 da fatura), então o lançamento também
-	// entra quando o período bate, mesmo com a data fora da folga.
+	// entra quando o período bate, mesmo com a data fora da folga. Na fatura o
+	// período decide sozinho: a parcela traz a data da compra original, igual
+	// todo mês, e casaria com a parcela já conciliada na fatura anterior.
 	const dateOrPeriod =
-		periods.length > 0
-			? or(
-					and(
+		destination.type === "card" && periods.length > 0
+			? inArray(transactions.period, periods)
+			: periods.length > 0
+				? or(
+						and(
+							gte(transactions.purchaseDate, rangeFrom),
+							lte(transactions.purchaseDate, rangeTo),
+						),
+						inArray(transactions.period, periods),
+					)
+				: and(
 						gte(transactions.purchaseDate, rangeFrom),
 						lte(transactions.purchaseDate, rangeTo),
-					),
-					inArray(transactions.period, periods),
-				)
-			: and(
-					gte(transactions.purchaseDate, rangeFrom),
-					lte(transactions.purchaseDate, rangeTo),
-				);
+					);
 
-	const [candidateRows, ignoredRows] = await Promise.all([
+	const [candidateRows, ignoredRows, cardRows] = await Promise.all([
 		db
 			.select({
 				id: transactions.id,
@@ -131,6 +137,12 @@ export async function fetchReconciliationCandidatesAction(
 					.from(reconciliationIgnores)
 					.where(eq(reconciliationIgnores.userId, userId))
 			: Promise.resolve([]),
+		destination.type === "card"
+			? db
+					.select({ dueDay: cards.dueDay })
+					.from(cards)
+					.where(and(eq(cards.id, destination.id), eq(cards.userId, userId)))
+			: Promise.resolve([]),
 	]);
 
 	const ignoredSet = new Set(ignoredRows.map((row) => row.fingerprint));
@@ -139,5 +151,6 @@ export async function fetchReconciliationCandidatesAction(
 		success: true,
 		transactions: candidateRows.map(toAppTransaction),
 		ignoredFingerprints: fingerprints.filter((fp) => ignoredSet.has(fp)),
+		cardDueDay: cardRows[0]?.dueDay ?? null,
 	};
 }

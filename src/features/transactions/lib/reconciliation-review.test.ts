@@ -17,6 +17,7 @@ import {
 	isInvoicePaymentLine,
 	linkPeriodForRow,
 	listLinkCandidates,
+	reclassifyPreviousInvoicePayments,
 	resolveAmountUpdate,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
@@ -281,6 +282,68 @@ describe("isInvoicePaymentLine e isCreditLine", () => {
 		expect(isCreditLine(row({ lineKind: "purchase" }))).toBe(false);
 		expect(isInvoicePaymentLine(row({ lineKind: undefined }))).toBe(false);
 		expect(isCreditLine(row({ lineKind: undefined }))).toBe(false);
+	});
+});
+
+describe("reclassifyPreviousInvoicePayments", () => {
+	it("inclusao de pagamento ate o vencimento anterior quita a fatura anterior", () => {
+		// Fatura de 2026-10 com vencimento dia 15: o pagamento de 11/09 quitou a
+		// fatura de setembro; o de 27/09 e adiantamento desta fatura.
+		const rows = [
+			row({
+				date: "2026-09-11",
+				description: "Inclusao de Pagamento    ",
+				lineKind: "credit",
+				transactionType: "income",
+			}),
+			row({
+				date: "2026-09-15",
+				description: "Inclusao de Pagamento",
+				lineKind: "credit",
+				transactionType: "income",
+			}),
+			row({
+				date: "2026-09-27",
+				description: "Inclusao de Pagamento",
+				lineKind: "credit",
+				transactionType: "income",
+			}),
+			row({
+				date: "2026-09-10",
+				description: "Estorno Tarifa",
+				lineKind: "credit",
+				transactionType: "income",
+			}),
+			row({ date: "2026-09-10", description: "LOJA", lineKind: "purchase" }),
+		];
+
+		const result = reclassifyPreviousInvoicePayments(rows, {
+			invoicePeriod: "2026-10",
+			dueDay: "15",
+		});
+
+		expect(result.map((r) => r.lineKind)).toEqual([
+			"invoice-payment",
+			"invoice-payment",
+			"credit",
+			"credit",
+			"purchase",
+		]);
+		expect(rows[0].lineKind).toBe("credit");
+	});
+
+	it("vencimento na virada de ano usa dezembro do ano anterior", () => {
+		const [result] = reclassifyPreviousInvoicePayments(
+			[
+				row({
+					date: "2025-12-05",
+					description: "Inclusao de Pagamento",
+					lineKind: "credit",
+				}),
+			],
+			{ invoicePeriod: "2026-01", dueDay: "5" },
+		);
+		expect(result.lineKind).toBe("invoice-payment");
 	});
 });
 

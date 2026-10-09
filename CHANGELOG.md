@@ -5,6 +5,15 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.13.2] - 2026-10-09
+
+A conciliação de fatura de cartão deixa de confundir meses. Parcelas de compras antigas trazem a mesma data de compra em toda fatura, e o importador as casava com a parcela já conciliada no mês anterior, sem lançar a do mês atual. E o pagamento da fatura anterior feito fora do boleto, que o C6 chama de "Inclusao de Pagamento", era lançado como crédito e abatia da fatura nova um valor que já tinha saído da conta.
+
+### Corrigido
+
+- Na conciliação de fatura, os candidatos do app passam a vir só do período da fatura, não do intervalo de datas de compra do arquivo
+- "Inclusao de Pagamento" com data até o vencimento da fatura anterior é tratada como pagamento da fatura anterior, não como crédito desta
+
 ## [2.13.1] - 2026-10-08
 
 As sugestões da página da viagem deixam de ser uma lista estreita na lateral e viram uma tabela larga, pensada para revisar o período inteiro de uma vez: cada lançamento mostra de qual cartão ou conta veio, dá para filtrar por origem e marcar tudo de uma vez antes de vincular.
