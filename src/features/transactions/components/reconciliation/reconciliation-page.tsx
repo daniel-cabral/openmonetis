@@ -324,6 +324,13 @@ export function ReconciliationPage({
 				return;
 			}
 
+			if (result.skipped > 0) {
+				toast.warning(
+					`${result.skipped} linha(s) não foram criadas: já estão vinculadas a lançamentos de outro período.`,
+					{ duration: 15000 },
+				);
+			}
+
 			const undoPayload = buildReconciliationUndoPayload(result);
 			toast.success(
 				`${result.created} criados, ${result.reconciled.length} conciliados, ${result.ignored} ignorados.`,

@@ -9,9 +9,12 @@ const {
 	validateCartaoMock,
 	selectQueue,
 	writes,
+	insertState,
 	dbMock,
 } = vi.hoisted(() => {
 	const selectQueue: unknown[][] = [];
+	// Linhas que o índice único de fingerprint recusa no insert.
+	const insertState = { conflicts: 0 };
 	const writes: { kind: string; table: unknown; payload: unknown }[] = [];
 
 	// Os builders do drizzle são aguardáveis e ainda expõem métodos: uma
@@ -33,7 +36,9 @@ const {
 					return awaitable({
 						returning: () =>
 							Promise.resolve(
-								values.map((_, index) => ({ id: `new-${index}` })),
+								values
+									.slice(insertState.conflicts)
+									.map((_, index) => ({ id: `new-${index}` })),
 							),
 					});
 				},
@@ -77,6 +82,7 @@ const {
 		validateCartaoMock: vi.fn(),
 		selectQueue,
 		writes,
+		insertState,
 		dbMock,
 	};
 });
@@ -119,6 +125,7 @@ const baseInput = {
 beforeEach(() => {
 	selectQueue.length = 0;
 	writes.length = 0;
+	insertState.conflicts = 0;
 	vi.clearAllMocks();
 	getUserIdMock.mockResolvedValue(USER_ID);
 	fetchOwnedPayerIdsMock.mockResolvedValue(new Set([PAYER_ID]));
@@ -231,6 +238,29 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 				write.table === transactions &&
 				"ofxImportFingerprint" in (write.payload as object),
 		);
+
+	it("conta as linhas que o fingerprint já existente impediu de criar", async () => {
+		// O fingerprint pode estar preso a um lançamento fora do período (casado
+		// por engano numa importação anterior); o insert pula a linha sem erro.
+		insertState.conflicts = 1;
+		const creation = {
+			date: "2026-10-01",
+			amount: 10,
+			transactionType: "expense" as const,
+			descriptor: "LOJA",
+			name: "Loja",
+		};
+
+		const result = await applyReconciliationAction({
+			...baseInput,
+			creations: [
+				{ ...creation, fingerprint: "fp-1" },
+				{ ...creation, fingerprint: "fp-2" },
+			],
+		});
+
+		expect(result).toMatchObject({ success: true, created: 1, skipped: 1 });
+	});
 
 	it("marca como pago o lançamento casado quando o destino é conta", async () => {
 		selectQueue.push([{ id: TX_ID, categoryId: null }]);

@@ -106,6 +106,9 @@ export type ApplyReconciliationResult =
 			success: true;
 			importBatchId: string;
 			created: number;
+			// Criações recusadas pelo índice único: o fingerprint já está em outro
+			// lançamento, fora do que a revisão mostrou.
+			skipped: number;
 			reconciled: { transactionId: string; fingerprint: string }[];
 			ignored: number;
 			amountUpdates: { transactionId: string; previousAmount: string }[];
@@ -399,6 +402,7 @@ export async function applyReconciliationAction(
 				success: true as const,
 				importBatchId,
 				created: inserted.length,
+				skipped: plan.inserts.length - inserted.length,
 				reconciled,
 				ignored: plan.ignores.length,
 				amountUpdates: appliedAmountUpdates,

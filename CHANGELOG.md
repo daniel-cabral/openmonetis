@@ -5,6 +5,14 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.13.4] - 2026-10-09
+
+A conciliação deixa de aplicar um lote pela metade em silêncio. Quando uma linha a criar já tem a identificação gravada em outro lançamento (por exemplo, casada por engano com um mês anterior), o banco recusa a criação; antes isso passava despercebido e a fatura ficava faltando valores. Agora a tela avisa quantas linhas não foram criadas.
+
+### Corrigido
+
+- Aviso após aplicar a conciliação quando linhas não puderam ser criadas por já estarem vinculadas a lançamentos de outro período
+
 ## [2.13.3] - 2026-10-09
 
 Crédito de fatura importado pela conciliação (adiantamento, estorno) deixa de ficar travado. Ele vem do arquivo do banco e pode ter entrado errado, então precisa poder ser editado ou excluído como qualquer lançamento. A quitação da fatura continua protegida e só sai pelo "Desfazer pagamento".
