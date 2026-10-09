@@ -84,7 +84,11 @@ Total = todas as linhas − pagamentos da fatura anterior
 Linhas negativas são de dois tipos, e confundi-los produz erro do tamanho do pagamento:
 
 - `Pag Fatura Boleto` — quitação da fatura **anterior**. Sai da conta corrente. **Não entra** na soma.
-- `Inclusao de Pagamento`, `Estorno ...` — crédito **desta** fatura (adiantamento, estorno). **Entra** na soma.
+- `Inclusao de Pagamento` **até o vencimento da fatura anterior**: também é quitação da anterior (pagamento
+  fora do boleto). **Não entra** na soma. Caso real: R$ 11.464,96 em 11/09 na fatura de outubro era a fatura
+  de setembro (R$ 11.464,95, vencimento 15/09). Desde a 2.13.2 o importador reclassifica pela data.
+- `Inclusao de Pagamento` depois desse vencimento, `Estorno ...`: crédito **desta** fatura (adiantamento,
+  estorno). **Entra** na soma.
 
 Conferido num caso real: compras R$ 19.484,72 − estorno R$ 98,00 − adiantamentos R$ 7.222,62 =
 **R$ 12.164,10**, exatamente o boleto pago.
@@ -98,6 +102,11 @@ Conferido num caso real: compras R$ 19.484,72 − estorno R$ 98,00 − adiantame
 | Pagamento de fatura não aparece na tela do cartão | A tela abre no período atual | Navegar até o período em que o pagamento foi registrado |
 | Recorrente cai sempre em "só no banco" | Data fixa (dia 15) distante do débito real (dia 10) | Ensinar o de-para com **Vincular a lançamento existente**; casa por nome+período e ignora data |
 | Balde "só no app" cheio de lixo | Candidatos trazidos pela folga de busca, fora do período do arquivo | Corrigido na 2.10.0; se voltar, é regressão do filtro por escopo |
+| Parcela antiga some da fatura nova | Até a 2.13.1 os candidatos vinham pela data da compra, igual em toda parcela, e a linha casava com a parcela do mês anterior, gravando nela o fingerprint do mês novo | Corrigido na 2.13.2 (fatura busca só no período). Dado já afetado: limpar `ofx_import_fingerprint` dos lançamentos fora do período que receberam o fingerprint (filtrar por `LIKE '%"<data>","<descrição>","<N/M>","<valor>"%'`) e reimportar |
+| Aviso "N linha(s) não foram criadas" | O fingerprint da linha já está em outro lançamento; o índice único recusa o insert (antes da 2.13.4, em silêncio) | Mesmo tratamento da linha acima |
+| Linha "só no arquivo" não foi criada | O padrão da revisão é **Pular**, que não grava nada | Reimportar e marcar **Criar**; "fatura fecha" na revisão confere o arquivo, não o app |
+| Crédito importado errado | Nota `AUTO_FATURA:CREDITO:` | Pode ser excluído desde a 2.13.3; só a quitação continua travada |
+| SQL colado no terminal do Coolify dá "unterminated quoted string" | O terminal web corta linhas longas | Mandar SQL com linhas curtas (≤ 100 caracteres) |
 | Upload do CSV não reage | `file_upload` programático não dispara o `onChange` do React | Pedir ao usuário para arrastar o arquivo; não insistir |
 | `get_page_text` devolve só uma linha da tabela | A página tem um `<article>` por linha | Usar o Exportar, não raspar a tela |
 
@@ -137,6 +146,8 @@ piorou nos dois sentidos ao mesmo tempo. A tabela está no comentário de `DATE_
 - Matcher e regras: `src/shared/lib/reconciliation/matcher.ts`
 - Fechamento aritmético: `src/shared/lib/reconciliation/closure.ts`
 - Quitação de fatura: `src/features/invoices/actions.ts`
+- Reclassificação de `Inclusao de Pagamento`: `reclassifyPreviousInvoicePayments` em
+  `src/features/transactions/lib/reconciliation-review.ts`
 - Histórico das decisões: `openspec/changes/archive/*reconciliation*/design.md` — as seções
   "Achados da validação com dados reais" trazem números verificados que contradizem decisões
   escritas antes deles
