@@ -49,8 +49,20 @@ async function fetchDashboardDataInternal(userId: string, period: string) {
 		},
 	);
 
+	const { paymentStatusData } = currentPeriodOverview;
+	const projectedBalance =
+		accountsSnapshot.totalBalance +
+		paymentStatusData.income.pending -
+		paymentStatusData.expenses.pending;
+
 	return {
-		metrics: periodOverview.metrics,
+		metrics: {
+			...periodOverview.metrics,
+			previsto: {
+				current: projectedBalance,
+				previous: accountsSnapshot.totalBalance,
+			},
+		},
 		accountsSnapshot,
 		invoicesSnapshot,
 		billsSnapshot: currentPeriodOverview.billsSnapshot,

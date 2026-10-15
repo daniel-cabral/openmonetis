@@ -89,7 +89,7 @@ const CARDS = [
 	},
 	{
 		label: "Previsto",
-		subtitle: "Saldo acumulado projetado",
+		subtitle: "Saldo projetado para o fim do mês",
 		key: "previsto",
 		icon: RiCalendar2Line,
 		invertTrend: false,
@@ -97,10 +97,8 @@ const CARDS = [
 		transactionType: null,
 		helpTitle: "Como calculamos o previsto",
 		helpLines: [
-			"Acumulamos o balanço mês a mês até o período atual.",
-			"Ele usa a mesma regra do card de balanço em cada mês do histórico.",
-			"Receitas e despesas de contas marcadas como não consideradas no saldo total ficam fora desse acumulado.",
-			"Por isso também reflete ajustes de transferências entre contas consideradas e não consideradas.",
+			"Previsto = saldo atual das contas + receitas a receber - despesas a pagar do período.",
+			"O valor de comparação é o saldo atual das contas.",
 		],
 	},
 ] as const;

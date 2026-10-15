@@ -5,6 +5,19 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.13.5] - 2026-10-15
+
+O card Previsto do dashboard passa a responder quanto sobra no fim do mês. Antes ele somava o balanço de 24 meses e não tinha relação com o saldo das contas, o que fazia o número parecer contraditório com o saldo atual e as contas pendentes.
+
+### Alterado
+
+- Previsto do dashboard agora é o saldo atual das contas somado às receitas a receber e subtraído das despesas a pagar do período
+- A comparação do card Previsto passa a ser com o saldo atual das contas
+
+### Removido
+
+- Cálculo do balanço acumulado de 24 meses, que alimentava o Previsto
+
 ## [2.13.4] - 2026-10-09
 
 A conciliação deixa de aplicar um lote pela metade em silêncio. Quando uma linha a criar já tem a identificação gravada em outro lançamento (por exemplo, casada por engano com um mês anterior), o banco recusa a criação; antes isso passava despercebido e a fatura ficava faltando valores. Agora a tela avisa quantas linhas não foram criadas.

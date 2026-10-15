@@ -189,8 +189,6 @@ export async function fetchDashboardPeriodOverview(
 			? earliestPeriod
 			: previousPeriod;
 	const periodRange = buildPeriodRange(startRangePeriod, period);
-	const forecastByPeriod = new Map<string, number>();
-	let runningForecast = 0;
 
 	for (const key of periodRange) {
 		const totals = ensurePeriodTotals(periodTotals, key);
@@ -200,9 +198,7 @@ export async function fetchDashboardPeriodOverview(
 			totals.despesas +
 			totals.reembolsos +
 			totals.transferAdjustment;
-		runningForecast += totals.balanco;
 		totals.despesas = netExpenses;
-		forecastByPeriod.set(key, runningForecast);
 	}
 
 	const currentTotals = ensurePeriodTotals(periodTotals, period);
@@ -235,10 +231,7 @@ export async function fetchDashboardPeriodOverview(
 				current: currentTotals.balanco,
 				previous: previousTotals.balanco,
 			},
-			previsto: {
-				current: forecastByPeriod.get(period) ?? runningForecast,
-				previous: forecastByPeriod.get(previousPeriod) ?? 0,
-			},
+			previsto: { current: 0, previous: 0 },
 		},
 		incomeExpenseBalanceData: { months },
 	};
