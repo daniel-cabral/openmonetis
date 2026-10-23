@@ -210,9 +210,9 @@ git commit -m "feat(categorias): salvar subcategorias junto com a categoria"
 
 Test declaration: `Test: none, because UI-only wiring; the save contract is locked by src/features/categories/actions.test.ts and the count is a single grouped select checked manually below`.
 
-- [ ] **Step 1: Implement** query, types, field component, dialog wiring (payload sends `subcategories: formState.subcategories.map(({ id, name }) => ({ id, name: name.trim() }))`).
+- [x] **Step 1: Implement** query, types, field component, dialog wiring (payload sends `subcategories: formState.subcategories.map(({ id, name }) => ({ id, name: name.trim() }))`).
 - [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/queries.ts src/features/categories/components/types.ts src/features/categories/components/category-subcategories-field.tsx src/features/categories/components/category-dialog.tsx`. Expected: no errors.
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/categories/queries.ts src/features/categories/components/types.ts src/features/categories/components/category-subcategories-field.tsx src/features/categories/components/category-dialog.tsx
@@ -415,9 +415,9 @@ git commit -m "feat(lancamentos): formulario limpa subcategoria ao trocar catego
 
 Test declaration: `Test: none, because UI-only; the visibility rule is locked by subcategory-options.test.ts and the clear-on-change rule by form-helpers-subcategory.test.ts`.
 
-- [ ] **Step 1: Implement** per Interfaces (layout per the approved mockup, second row).
+- [x] **Step 1: Implement** per Interfaces (layout per the approved mockup, second row).
 - [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five files.
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/transactions/components/subcategory-select.tsx src/features/transactions/components/dialogs/transaction-dialog/category-section.tsx src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog.tsx src/features/transactions/components/dialogs/transaction-dialog/transaction-dialog-types.ts src/features/transactions/components/page/transactions-page.tsx
@@ -503,9 +503,9 @@ git commit -m "feat(categorias): calculo do detalhamento por subcategoria"
 
 Test declaration: `Test: none, because UI-only; math and filter locked by subcategory-breakdown.test.ts`.
 
-- [ ] **Step 1: Implement** per Interfaces (Option A layout from the mockup).
+- [x] **Step 1: Implement** per Interfaces (Option A layout from the mockup).
 - [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/components/category-detail-header.tsx "src/app/(dashboard)/categories/[categoryId]/page.tsx"`.
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/categories/components/category-detail-header.tsx "src/app/(dashboard)/categories/[categoryId]/page.tsx"
@@ -535,7 +535,7 @@ git commit -m "feat(categorias): bloco por subcategoria com filtro da lista"
 
 Test declaration: `Test: new, because distinct contract (new action) with its own db fake (query.transactions.findMany, select join, update capture)`. Fake auth, db, `@/shared/lib/actions/helpers`, `@/shared/lib/payers/notifications`, `./attachments` as `trip-link-wiring.test.ts` does; not the subcategories module.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("4 faxinas de Moradia e 1 de Transporte: 4 atualizados, 1 ignorado", async () => {
@@ -554,11 +554,11 @@ it("lancamento protegido na selecao recusa o lote inteiro", async () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/bulk-subcategory-action.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/bulk-subcategory-action.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the four files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/core.ts src/features/transactions/actions/bulk-actions.ts src/features/transactions/actions.ts src/features/transactions/actions/bulk-subcategory-action.test.ts
@@ -582,9 +582,9 @@ git commit -m "feat(lancamentos): definir subcategoria em massa"
 
 Test declaration: `Test: none, because UI-only; counts, skip rule and copy locked by bulk-subcategory-action.test.ts`.
 
-- [ ] **Step 1: Implement** per Interfaces (as drawn in the mockup, second row).
+- [x] **Step 1: Implement** per Interfaces (as drawn in the mockup, second row).
 - [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/transactions/components/table/transactions-bulk-bar.tsx src/features/transactions/components/table/transactions-table.tsx src/features/transactions/components/page/transactions-page.tsx
@@ -611,7 +611,7 @@ Test declaration:
 - `Test: extends reconciliation-plan.test.ts::"confirmação com categoria alimenta o de-para com o descriptor normalizado"`.
 - `Test: extends reconciliation-action.test.ts::"grava o de-para e atualiza o valor na mesma transação, devolvendo previousAmount"` (record the `onConflictDoUpdate` config in the existing fake).
 
-- [ ] **Step 1: Write the failing assertions**
+- [x] **Step 1: Write the failing assertions**
 
 ```ts
 // category-memory-action.test.ts
@@ -632,11 +632,11 @@ expect(plan.categoryMappings).toEqual([{ userId, descriptionKey, categoryId, sub
 expect(Object.keys(upsertConfigFor(importCategoryMappings).set)).toEqual(expect.arrayContaining(["categoryId", "subcategoryId"]));
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/category-memory-action.test.ts src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/actions/reconciliation-action.test.ts`. Expected: the new assertions FAIL.
-- [ ] **Step 3: Implement** per Interfaces; adapt the two page consumers to `mapping?.categoryId` (subcategory application comes in Tasks 16 and 18).
-- [ ] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/category-memory-action.test.ts src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/actions/reconciliation-action.test.ts`. Expected: the new assertions FAIL.
+- [x] **Step 3: Implement** per Interfaces; adapt the two page consumers to `mapping?.categoryId` (subcategory application comes in Tasks 16 and 18).
+- [x] **Step 4: Run** the same command. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the touched files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/category-memory-action.ts src/features/transactions/lib/import-utils.ts src/features/transactions/actions/category-memory-action.test.ts src/features/transactions/actions/reconciliation-action.ts src/features/transactions/actions/reconciliation-action.test.ts src/features/transactions/lib/reconciliation-plan.ts src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/components/import/import-page.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx
@@ -659,7 +659,7 @@ git commit -m "feat(importacao): memoria de categoria guarda a subcategoria"
 
 Test declaration: `Test: new it in import-utils.test.ts, because distinct function in the same module`. Import action wiring: `none, because the pair rule is locked by rules.test.ts::"validateSubcategoryPairs devolve o primeiro erro do lote"`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it("FAXINA MARIA lembrada como Moradia/Faxina volta com Faxina, e categoria do banco diferente descarta", () => {
@@ -670,11 +670,11 @@ it("FAXINA MARIA lembrada como Moradia/Faxina volta com Faxina, e categoria do b
 }); // [S: Importação reaplica Faxina], Review Focus 4
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/import-utils.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/import-utils.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/import-action.ts src/features/transactions/lib/import-utils.ts src/features/transactions/lib/import-utils.test.ts
@@ -724,10 +724,10 @@ Test declaration:
 - `Test: extends reconciliation-review.test.ts::"mapeia confirm, create, ignore e ignora skip"` (create decision with `subcategoryId: FAXINA`, assert it in `payload.creations[0]`).
 - Action validation: `none, because locked by rules.test.ts::"validateSubcategoryPairs devolve o primeiro erro do lote"`.
 
-- [ ] **Step 1: Add the failing assertions** to the two existing tests.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/lib/reconciliation-review.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same command plus `src/features/transactions/actions/reconciliation-action.test.ts`. Expected: PASS.
+- [x] **Step 1: Add the failing assertions** to the two existing tests.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/lib/reconciliation-review.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same command plus `src/features/transactions/actions/reconciliation-action.test.ts`. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five files.
 - [ ] **Step 6: Commit**
 
