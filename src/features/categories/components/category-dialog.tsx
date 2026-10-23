@@ -22,6 +22,7 @@ import { CATEGORY_TYPES } from "@/shared/lib/categories/constants";
 import { getDefaultIconForType } from "@/shared/lib/categories/icons";
 
 import { CategoryFormFields } from "./category-form-fields";
+import { CategorySubcategoriesField } from "./category-subcategories-field";
 import type { Category, CategoryFormValues } from "./types";
 
 interface CategoryDialogProps {
@@ -49,6 +50,11 @@ const buildInitialValues = ({
 		name: category?.name ?? "",
 		type: initialType,
 		icon,
+		subcategories:
+			category?.subcategories.map((subcategory) => ({
+				key: subcategory.id,
+				...subcategory,
+			})) ?? [],
 	};
 };
 
@@ -113,6 +119,10 @@ export function CategoryDialog({
 			name: formState.name.trim(),
 			type: formState.type,
 			icon: formState.icon.trim(),
+			subcategories: formState.subcategories.map(({ id, name }) => ({
+				id,
+				name: name.trim(),
+			})),
 		};
 
 		startTransition(async () => {
@@ -154,6 +164,14 @@ export function CategoryDialog({
 
 				<form className="flex flex-col gap-5" onSubmit={handleSubmit}>
 					<CategoryFormFields values={formState} onChange={updateField} />
+
+					<CategorySubcategoriesField
+						value={formState.subcategories}
+						onChange={(subcategories) =>
+							updateField("subcategories", subcategories)
+						}
+						categoryName={formState.name}
+					/>
 
 					{errorMessage && (
 						<p className="text-sm text-destructive">{errorMessage}</p>
