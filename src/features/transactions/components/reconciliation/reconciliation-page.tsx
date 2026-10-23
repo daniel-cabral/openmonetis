@@ -14,7 +14,10 @@ import { ReconciliationReview } from "@/features/transactions/components/reconci
 import { ReconciliationSummary } from "@/features/transactions/components/reconciliation/reconciliation-summary";
 import { ReconciliationUploadZone } from "@/features/transactions/components/reconciliation/upload-zone";
 import type { SelectOption } from "@/features/transactions/components/types";
-import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
+import {
+	type CategoryMapping,
+	normalizeDescriptionKey,
+} from "@/features/transactions/lib/import-utils";
 import {
 	destinationKindForProfile,
 	matchAccountOptionByNumber,
@@ -63,7 +66,7 @@ type ReviewState = {
 	fingerprints: string[];
 	match: ReconciliationMatch;
 	appTransactionsById: Map<string, AppTransaction>;
-	learnedCategoryByFingerprint: Map<string, string>;
+	learnedMappingByFingerprint: Map<string, CategoryMapping>;
 	nameMappings: Record<string, string>;
 };
 
@@ -198,11 +201,12 @@ export function ReconciliationPage({
 		}));
 
 		// Aprendido tem precedência sobre a categoria que o banco manda na linha.
-		const learnedCategoryByFingerprint = new Map<string, string>();
+		const learnedMappingByFingerprint = new Map<string, CategoryMapping>();
 		for (const { fingerprint, row } of rows) {
-			const categoryId =
-				categoryMappings[normalizeDescriptionKey(row.description)]?.categoryId;
-			if (categoryId) learnedCategoryByFingerprint.set(fingerprint, categoryId);
+			const mapping =
+				categoryMappings[normalizeDescriptionKey(row.description)];
+			if (mapping?.categoryId)
+				learnedMappingByFingerprint.set(fingerprint, mapping);
 		}
 
 		const match = matchReconciliationRows({
@@ -226,7 +230,7 @@ export function ReconciliationPage({
 			fingerprints,
 			match,
 			appTransactionsById,
-			learnedCategoryByFingerprint,
+			learnedMappingByFingerprint,
 			nameMappings,
 		});
 	};
@@ -443,7 +447,7 @@ export function ReconciliationPage({
 						rows={review.match.rows}
 						appOnlyTransactions={appOnlyTransactions}
 						appTransactionsById={review.appTransactionsById}
-						learnedCategoryByFingerprint={review.learnedCategoryByFingerprint}
+						learnedMappingByFingerprint={review.learnedMappingByFingerprint}
 						nameMappings={review.nameMappings}
 						destinationKind={destinationKind}
 						invoicePeriod={invoicePeriodInput}

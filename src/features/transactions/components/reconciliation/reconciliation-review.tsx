@@ -5,7 +5,12 @@ import {
 	CategorySelectContent,
 	PayerSelectContent,
 } from "@/features/transactions/components/select-items";
+import { SubcategorySelect } from "@/features/transactions/components/subcategory-select";
 import type { SelectOption } from "@/features/transactions/components/types";
+import {
+	type CategoryMapping,
+	pickRememberedSubcategory,
+} from "@/features/transactions/lib/import-utils";
 import {
 	buildConsumedTransactionIds,
 	evaluateApplyBlock,
@@ -17,6 +22,7 @@ import {
 	type ReconciliationRowDecision,
 	resolveAmountUpdate,
 } from "@/features/transactions/lib/reconciliation-review";
+import { getSubcategoryOptions } from "@/features/transactions/lib/subcategory-options";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -43,7 +49,7 @@ interface ReconciliationReviewProps {
 	rows: RowClassification[];
 	appOnlyTransactions: AppTransaction[];
 	appTransactionsById: Map<string, AppTransaction>;
-	learnedCategoryByFingerprint: Map<string, string>;
+	learnedMappingByFingerprint: Map<string, CategoryMapping>;
 	nameMappings: Record<string, string>;
 	destinationKind: DestinationKind | null;
 	invoicePeriod: string;
@@ -63,7 +69,7 @@ export function ReconciliationReview({
 	rows,
 	appOnlyTransactions,
 	appTransactionsById,
-	learnedCategoryByFingerprint,
+	learnedMappingByFingerprint,
 	nameMappings,
 	destinationKind,
 	invoicePeriod,
@@ -93,6 +99,7 @@ export function ReconciliationReview({
 				name: string;
 				transactionId: string | null;
 				categoryId: string | null;
+				subcategoryId: string | null;
 				payerId: string | null;
 				reason: string;
 			}
@@ -115,20 +122,26 @@ export function ReconciliationReview({
 		fingerprint: string,
 		descriptor: string,
 		categoryRaw: string | null | undefined,
-	) =>
+	) => {
+		const learned = learnedMappingByFingerprint.get(fingerprint);
+		const initialCategoryId =
+			learned?.categoryId ??
+			matchCategoryByRawLabel(categoryRaw, categoryOptions);
 		// O padrao e nao escrever nada: com "create" como estado inicial, um
 		// clique em Aplicar sem revisar linha a linha criaria um lancamento para
 		// cada linha do arquivo que nao casou.
-		bankOnlyState[fingerprint] ?? {
-			action: "skip" as BankOnlyAction,
-			name: initialRowName(descriptor, nameMappings),
-			transactionId: null,
-			categoryId:
-				learnedCategoryByFingerprint.get(fingerprint) ??
-				matchCategoryByRawLabel(categoryRaw, categoryOptions),
-			payerId: null,
-			reason: "",
-		};
+		return (
+			bankOnlyState[fingerprint] ?? {
+				action: "skip" as BankOnlyAction,
+				name: initialRowName(descriptor, nameMappings),
+				transactionId: null,
+				categoryId: initialCategoryId,
+				subcategoryId: pickRememberedSubcategory(learned, initialCategoryId),
+				payerId: null,
+				reason: "",
+			}
+		);
+	};
 
 	const getAmbiguous = (fingerprint: string) =>
 		ambiguousState[fingerprint] ?? {
@@ -247,6 +260,7 @@ export function ReconciliationReview({
 								descriptor: row.row.description,
 								name: state.name,
 								categoryId: state.categoryId,
+								subcategoryId: state.subcategoryId,
 								payerId: state.payerId,
 								// Credito da fatura ganha nota propria, para nao entrar
 								// como receita nos relatorios.
@@ -478,6 +492,7 @@ export function ReconciliationReview({
 														[row.fingerprint]: {
 															...state,
 															categoryId: value || null,
+															subcategoryId: null,
 														},
 													}))
 												}
@@ -496,6 +511,20 @@ export function ReconciliationReview({
 													))}
 												</SelectContent>
 											</Select>
+											<SubcategorySelect
+												className="w-52"
+												options={getSubcategoryOptions(
+													categoryOptions,
+													state.categoryId,
+												)}
+												value={state.subcategoryId}
+												onChange={(subcategoryId) =>
+													setBankOnlyState((prev) => ({
+														...prev,
+														[row.fingerprint]: { ...state, subcategoryId },
+													}))
+												}
+											/>
 											<Select
 												value={state.payerId ?? defaultPayerId}
 												onValueChange={(value) =>
