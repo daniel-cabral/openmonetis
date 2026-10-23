@@ -387,6 +387,7 @@ export function TransactionDialog({
 			accountId: formState.accountId ?? null,
 			cardId: formState.cardId ?? null,
 			categoryId: formState.categoryId ?? null,
+			subcategoryId: formState.subcategoryId ?? null,
 			note: formState.note.trim() || null,
 			tripId: tripIdForSubmit,
 			isSettled:
@@ -480,6 +481,7 @@ export function TransactionDialog({
 					period: formState.period,
 					name: formState.name.trim(),
 					categoryId: formState.categoryId,
+					subcategoryId: formState.subcategoryId ?? null,
 					note: formState.note.trim() || "",
 					tripId: tripIdForSubmit,
 					payerId: formState.payerId,
@@ -515,6 +517,7 @@ export function TransactionDialog({
 					condition: formState.condition,
 					paymentMethod: formState.paymentMethod,
 					categoryId: formState.categoryId,
+					subcategoryId: formState.subcategoryId ?? null,
 					note: formState.note.trim() || "",
 					tripId: tripIdForSubmit,
 					payerId: formState.payerId,

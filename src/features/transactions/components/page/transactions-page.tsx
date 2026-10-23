@@ -167,6 +167,7 @@ export function TransactionsPage({
 		accountId: string | undefined;
 		cardId: string | undefined;
 		categoryId: string | undefined;
+		subcategoryId: string | null;
 		note: string;
 		tripId: string | null;
 		isSettled: boolean | null;
@@ -181,6 +182,7 @@ export function TransactionsPage({
 		period: string;
 		name: string;
 		categoryId: string | undefined;
+		subcategoryId: string | null;
 		note: string;
 		tripId: string | null;
 		payerId: string | undefined;
@@ -315,6 +317,7 @@ export function TransactionsPage({
 		period: string;
 		name: string;
 		categoryId: string | undefined;
+		subcategoryId: string | null;
 		note: string;
 		tripId: string | null;
 		payerId: string | undefined;
@@ -351,6 +354,7 @@ export function TransactionsPage({
 			period: pendingEditData.period,
 			name: pendingEditData.name,
 			categoryId: pendingEditData.categoryId,
+			subcategoryId: pendingEditData.subcategoryId,
 			note: pendingEditData.note,
 			tripId: pendingEditData.tripId,
 			payerId: pendingEditData.payerId,
@@ -482,6 +486,7 @@ export function TransactionsPage({
 			accountId: pendingSplitEditData.accountId ?? null,
 			cardId: pendingSplitEditData.cardId ?? null,
 			categoryId: pendingSplitEditData.categoryId ?? null,
+			subcategoryId: pendingSplitEditData.subcategoryId,
 			note: pendingSplitEditData.note,
 			tripId: pendingSplitEditData.tripId,
 			isSettled: pendingSplitEditData.isSettled,

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCategoryBudgetSummaryAction } from "@/features/budgets/actions";
 import type { CategoryBudgetSummary } from "@/features/budgets/queries";
 import { TRANSACTION_TYPES } from "@/features/transactions/lib/constants";
+import { getSubcategoryOptions } from "@/features/transactions/lib/subcategory-options";
 import { Label } from "@/shared/components/ui/label";
 import {
 	Select,
@@ -20,6 +21,7 @@ import {
 	CategorySelectContent,
 	TransactionTypeSelectContent,
 } from "../../select-items";
+import { SubcategorySelect } from "../../subcategory-select";
 import type { CategorySectionProps } from "./transaction-dialog-types";
 
 const BUDGET_DANGER_RATIO = 1;
@@ -53,6 +55,7 @@ export function CategorySection({
 	const cacheRef = useRef<Map<string, CategoryBudgetSummary | null>>(new Map());
 
 	const { categoryId, period, transactionType } = formState;
+	const subcategoryOptions = getSubcategoryOptions(categoryOptions, categoryId);
 	const shouldFetchBudget =
 		Boolean(categoryId) && Boolean(period) && transactionType === "Despesa";
 
@@ -105,84 +108,99 @@ export function CategorySection({
 	};
 
 	return (
-		<div className="flex w-full flex-col gap-2 md:flex-row">
-			{showTransactionTypeField ? (
-				<div className="w-full space-y-1 md:w-1/2">
-					<Label htmlFor="transactionType">Tipo de transação</Label>
-					<Select
-						value={formState.transactionType}
-						onValueChange={(value) => onFieldChange("transactionType", value)}
-					>
-						<SelectTrigger id="transactionType" className="w-full">
-							<SelectValue placeholder="Selecione">
-								{formState.transactionType && (
-									<TransactionTypeSelectContent
-										label={formState.transactionType}
-									/>
+		<>
+			<div className="flex w-full flex-col gap-2 md:flex-row">
+				{showTransactionTypeField ? (
+					<div className="w-full space-y-1 md:w-1/2">
+						<Label htmlFor="transactionType">Tipo de transação</Label>
+						<Select
+							value={formState.transactionType}
+							onValueChange={(value) => onFieldChange("transactionType", value)}
+						>
+							<SelectTrigger id="transactionType" className="w-full">
+								<SelectValue placeholder="Selecione">
+									{formState.transactionType && (
+										<TransactionTypeSelectContent
+											label={formState.transactionType}
+										/>
+									)}
+								</SelectValue>
+							</SelectTrigger>
+							<SelectContent>
+								{TRANSACTION_TYPES.filter((type) => type !== "Transferência").map(
+									(type) => (
+										<SelectItem key={type} value={type}>
+											<TransactionTypeSelectContent label={type} />
+										</SelectItem>
+									),
 								)}
+							</SelectContent>
+						</Select>
+					</div>
+				) : null}
+
+				<div
+					className={cn(
+						"space-y-1 w-full",
+						showTransactionTypeField ? "md:w-1/2" : "md:w-full",
+					)}
+				>
+					<Label htmlFor="categoria">Categoria</Label>
+					<Select
+						value={formState.categoryId ?? ""}
+						onValueChange={(value) => onFieldChange("categoryId", value)}
+					>
+						<SelectTrigger id="categoria" className="w-full">
+							<SelectValue placeholder="Selecione">
+								{formState.categoryId &&
+									(() => {
+										const selectedOption = categoryOptions.find(
+											(opt) => opt.value === formState.categoryId,
+										);
+										if (!selectedOption) return null;
+										return (
+											<span className="flex items-center gap-2">
+												<CategorySelectContent
+													label={selectedOption.label}
+													icon={selectedOption.icon}
+												/>
+												{renderBudgetBadge()}
+											</span>
+										);
+									})()}
 							</SelectValue>
 						</SelectTrigger>
 						<SelectContent>
-							{TRANSACTION_TYPES.filter((type) => type !== "Transferência").map(
-								(type) => (
-									<SelectItem key={type} value={type}>
-										<TransactionTypeSelectContent label={type} />
-									</SelectItem>
-								),
-							)}
+							{categoryGroups.map((group) => (
+								<SelectGroup key={group.label}>
+									<SelectLabel>{group.label}</SelectLabel>
+									{group.options.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											<CategorySelectContent
+												label={option.label}
+												icon={option.icon}
+											/>
+										</SelectItem>
+									))}
+								</SelectGroup>
+							))}
 						</SelectContent>
 					</Select>
 				</div>
-			) : null}
-
-			<div
-				className={cn(
-					"space-y-1 w-full",
-					showTransactionTypeField ? "md:w-1/2" : "md:w-full",
-				)}
-			>
-				<Label htmlFor="categoria">Categoria</Label>
-				<Select
-					value={formState.categoryId ?? ""}
-					onValueChange={(value) => onFieldChange("categoryId", value)}
-				>
-					<SelectTrigger id="categoria" className="w-full">
-						<SelectValue placeholder="Selecione">
-							{formState.categoryId &&
-								(() => {
-									const selectedOption = categoryOptions.find(
-										(opt) => opt.value === formState.categoryId,
-									);
-									if (!selectedOption) return null;
-									return (
-										<span className="flex items-center gap-2">
-											<CategorySelectContent
-												label={selectedOption.label}
-												icon={selectedOption.icon}
-											/>
-											{renderBudgetBadge()}
-										</span>
-									);
-								})()}
-						</SelectValue>
-					</SelectTrigger>
-					<SelectContent>
-						{categoryGroups.map((group) => (
-							<SelectGroup key={group.label}>
-								<SelectLabel>{group.label}</SelectLabel>
-								{group.options.map((option) => (
-									<SelectItem key={option.value} value={option.value}>
-										<CategorySelectContent
-											label={option.label}
-											icon={option.icon}
-										/>
-									</SelectItem>
-								))}
-							</SelectGroup>
-						))}
-					</SelectContent>
-				</Select>
 			</div>
-		</div>
+			{subcategoryOptions.length > 0 ? (
+				<div className="space-y-1 w-full">
+					<Label htmlFor="subcategoria">Subcategoria (opcional)</Label>
+					<SubcategorySelect
+						id="subcategoria"
+						options={subcategoryOptions}
+						value={formState.subcategoryId}
+						onChange={(value) =>
+							onFieldChange("subcategoryId", value ?? undefined)
+						}
+					/>
+				</div>
+			) : null}
+		</>
 	);
 }
