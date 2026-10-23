@@ -80,6 +80,7 @@ export type TransactionFormState = {
 	accountId: string | undefined;
 	cardId: string | undefined;
 	categoryId: string | undefined;
+	subcategoryId: string | undefined;
 	installmentCount: string;
 	startInstallment: string;
 	recurrenceCount: string;
@@ -195,6 +196,9 @@ export function buildTransactionInitialState(
 		categoryId: isImporting
 			? undefined
 			: (transaction?.categoryId ?? undefined),
+		subcategoryId: isImporting
+			? undefined
+			: (transaction?.subcategoryId ?? undefined),
 		installmentCount: transaction?.installmentCount
 			? String(transaction.installmentCount)
 			: "",
@@ -260,6 +264,11 @@ export function applyFieldDependencies(
 				cardInfo?.dueDay,
 			);
 		}
+	}
+
+	// Changing the category clears the subcategory, which belongs to the old one
+	if (key === "categoryId" && value !== currentState.categoryId) {
+		updates.subcategoryId = undefined;
 	}
 
 	// When condition changes, clear irrelevant fields
