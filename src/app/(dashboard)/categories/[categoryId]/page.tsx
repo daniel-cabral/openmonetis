@@ -1,6 +1,13 @@
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { CategoryDetailHeader } from "@/features/categories/components/category-detail-header";
+import {
+	buildSubcategoryBreakdown,
+	filterTransactionsBySubcategory,
+	NO_SUBCATEGORY_FILTER,
+	SUBCATEGORY_FILTER_PARAM,
+} from "@/features/categories/lib/subcategory-breakdown";
+import { fetchSubcategoriesForCategory } from "@/features/categories/queries";
 import { fetchCategoryDetails } from "@/features/dashboard/categories/category-details-queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
 import { TransactionsPage } from "@/features/transactions/components/page/transactions-page";
@@ -41,11 +48,13 @@ export default async function Page({ params, searchParams }: PageProps) {
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");
 	const { period: selectedPeriod } = parsePeriodParam(periodoParam);
 
-	const [filterSources, estabelecimentos, userPreferences] = await Promise.all([
-		fetchTransactionFilterSources(userId),
-		fetchRecentEstablishments(userId),
-		fetchUserPreferences(userId),
-	]);
+	const [filterSources, estabelecimentos, userPreferences, subcategories] =
+		await Promise.all([
+			fetchTransactionFilterSources(userId),
+			fetchRecentEstablishments(userId),
+			fetchUserPreferences(userId),
+			fetchSubcategoriesForCategory(userId, categoryId),
+		]);
 	const detail = await fetchCategoryDetails(
 		userId,
 		categoryId,
@@ -56,6 +65,43 @@ export default async function Page({ params, searchParams }: PageProps) {
 	if (!detail) {
 		notFound();
 	}
+
+	const subcategoryFilter = getSingleParam(
+		resolvedSearchParams,
+		SUBCATEGORY_FILTER_PARAM,
+	);
+	const buildCategoryHref = (subcategoryValue: string | null) => {
+		const params = new URLSearchParams();
+		for (const [key, value] of Object.entries(resolvedSearchParams ?? {})) {
+			if (key === SUBCATEGORY_FILTER_PARAM || !value) continue;
+			for (const item of Array.isArray(value) ? value : [value]) {
+				params.append(key, item);
+			}
+		}
+		if (subcategoryValue) {
+			params.set(SUBCATEGORY_FILTER_PARAM, subcategoryValue);
+		}
+		const query = params.toString();
+		return query
+			? `/categories/${categoryId}?${query}`
+			: `/categories/${categoryId}`;
+	};
+	const subcategoryRows = buildSubcategoryBreakdown(
+		detail.transactions,
+		subcategories,
+	).map((row) => {
+		const active =
+			row.subcategoryId === null
+				? subcategoryFilter === NO_SUBCATEGORY_FILTER
+				: subcategoryFilter === row.subcategoryId;
+		return {
+			...row,
+			active,
+			href: buildCategoryHref(
+				active ? null : (row.subcategoryId ?? NO_SUBCATEGORY_FILTER),
+			),
+		};
+	});
 
 	const sluggedFilters = buildSluggedFilters(filterSources);
 	const {
@@ -87,10 +133,15 @@ export default async function Page({ params, searchParams }: PageProps) {
 				previousTotal={detail.previousTotal}
 				percentageChange={detail.percentageChange}
 				transactionCount={detail.transactions.length}
+				subcategoryRows={subcategoryRows}
 			/>
 			<TransactionsPage
 				currentUserId={userId}
-				transactions={detail.transactions}
+				transactions={filterTransactionsBySubcategory(
+					detail.transactions,
+					subcategoryFilter,
+					subcategories,
+				)}
 				payerOptions={payerOptions}
 				splitPayerOptions={splitPayerOptions}
 				defaultPayerId={defaultPayerId}

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import type { SubcategoryBreakdownRow } from "@/features/categories/lib/subcategory-breakdown";
 import { PercentageChangeIndicator } from "@/features/dashboard/components/percentage-change-indicator";
 import { CategoryIconBadge } from "@/shared/components/entity-avatar";
 import { TransactionTypeBadge } from "@/shared/components/transaction-type-badge";
@@ -22,6 +24,9 @@ type CategoryDetailHeaderProps = {
 	previousTotal: number;
 	percentageChange: number | null;
 	transactionCount: number;
+	subcategoryRows?: Array<
+		SubcategoryBreakdownRow & { href: string; active: boolean }
+	>;
 };
 
 export function CategoryDetailHeader({
@@ -32,6 +37,7 @@ export function CategoryDetailHeader({
 	previousTotal,
 	percentageChange,
 	transactionCount,
+	subcategoryRows,
 }: CategoryDetailHeaderProps) {
 	const absoluteChange = currentTotal - previousTotal;
 	const variationLabel =
@@ -136,6 +142,50 @@ export function CategoryDetailHeader({
 						</div>
 					</div>
 				</div>
+
+				{subcategoryRows && subcategoryRows.length > 0 && (
+					<div>
+						<p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+							Por subcategoria
+						</p>
+						<div className="flex flex-col gap-1">
+							{subcategoryRows.map((row) => {
+								const isNone = row.subcategoryId === null;
+								return (
+									<Link
+										key={row.subcategoryId ?? "sem-subcategoria"}
+										href={row.href}
+										className={cn(
+											"grid grid-cols-[8rem_1fr_6rem_3.5rem] items-center gap-3 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/50 sm:grid-cols-[10rem_1fr_7rem_4rem]",
+											row.active && "bg-muted ring-1 ring-primary/40",
+											isNone && "italic text-muted-foreground",
+										)}
+									>
+										<span className="truncate">{row.name}</span>
+										<span className="h-2 overflow-hidden rounded-full bg-muted">
+											<span
+												className={cn(
+													"block h-full rounded-full",
+													isNone ? "bg-primary/40" : "bg-primary",
+												)}
+												style={{ width: `${row.percent}%` }}
+											/>
+										</span>
+										<span className="text-right">
+											{currencyFormatter.format(row.amount)}
+										</span>
+										<span className="text-right text-muted-foreground">
+											{formatPercentage(row.percent, {
+												minimumFractionDigits: 1,
+												maximumFractionDigits: 1,
+											})}
+										</span>
+									</Link>
+								);
+							})}
+						</div>
+					</div>
+				)}
 			</div>
 		</Card>
 	);
