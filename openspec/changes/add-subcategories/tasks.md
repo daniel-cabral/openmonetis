@@ -444,7 +444,7 @@ git commit -m "feat(lancamentos): seletor de subcategoria no dialogo de lancamen
 
 Test declaration: `Test: new, because distinct contract (breakdown math the spec pins with literal values)`. `fetchSubcategoriesForCategory`: `none, because single filtered select with no logic`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("Moradia em outubro/2026: cinco linhas em ordem somando R$ 4.432,30", () => {
@@ -477,11 +477,11 @@ it.each([
 }); // [S: Filtrar por subcategoria] [S: Filtrar sem subcategoria]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/categories/lib/subcategory-breakdown.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/categories/lib/subcategory-breakdown.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/categories/lib/subcategory-breakdown.ts src/features/categories/lib/subcategory-breakdown.test.ts src/features/categories/queries.ts

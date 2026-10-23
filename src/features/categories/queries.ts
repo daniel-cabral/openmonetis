@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
-import { type Category, categories } from "@/db/schema";
+import { and, asc, eq } from "drizzle-orm";
+import { type Category, categories, subcategories } from "@/db/schema";
 import type { CategoryType } from "@/shared/lib/categories/constants";
 import { db } from "@/shared/lib/db";
+import type { SubcategoryOption } from "@/shared/lib/subcategories/types";
 
 type CategoryData = {
 	id: string;
@@ -23,4 +24,20 @@ export async function fetchCategoriesForUser(
 		type: category.type as CategoryType,
 		icon: category.icon,
 	}));
+}
+
+export async function fetchSubcategoriesForCategory(
+	userId: string,
+	categoryId: string,
+): Promise<SubcategoryOption[]> {
+	return db
+		.select({ id: subcategories.id, name: subcategories.name })
+		.from(subcategories)
+		.where(
+			and(
+				eq(subcategories.userId, userId),
+				eq(subcategories.categoryId, categoryId),
+			),
+		)
+		.orderBy(asc(subcategories.name));
 }
