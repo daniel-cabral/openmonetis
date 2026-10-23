@@ -147,6 +147,12 @@ export async function fetchTransactionFilterSources(userId: string) {
 		}),
 		db.query.categories.findMany({
 			where: eq(categories.userId, userId),
+			with: {
+				subcategories: {
+					columns: { id: true, name: true },
+					orderBy: (subcategory, { asc }) => [asc(subcategory.name)],
+				},
+			},
 		}),
 	]);
 

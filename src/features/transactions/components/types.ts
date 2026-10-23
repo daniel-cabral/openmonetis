@@ -1,3 +1,5 @@
+import type { SubcategoryOption } from "@/shared/lib/subcategories/types";
+
 export type TransactionItem = {
 	id: string;
 	userId: string;
@@ -36,6 +38,7 @@ export type TransactionItem = {
 	splitGroupId: string | null;
 	hasAttachments: boolean;
 	tripId?: string | null;
+	subcategoryId?: string | null;
 	readonly?: boolean;
 };
 
@@ -51,6 +54,7 @@ export type SelectOption = {
 	accountType?: string | null;
 	closingDay?: string | null;
 	dueDay?: string | null;
+	subcategories?: SubcategoryOption[];
 };
 
 export type TransactionFilterOption = {

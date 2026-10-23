@@ -20,6 +20,7 @@ import {
 	transactions,
 } from "@/db/schema";
 import type { SelectOption } from "@/features/transactions/components/types";
+import type { SubcategoryOption } from "@/shared/lib/subcategories/types";
 import {
 	AMOUNT_MAX_PARAM,
 	AMOUNT_MIN_PARAM,
@@ -87,6 +88,7 @@ type PayerSluggedOption = BaseSluggedOption & {
 type CategorySluggedOption = BaseSluggedOption & {
 	type: string | null;
 	icon: string | null;
+	subcategories: SubcategoryOption[];
 };
 
 type AccountSluggedOption = BaseSluggedOption & {
@@ -281,7 +283,7 @@ export const buildSluggedFilters = ({
 	cardRows,
 }: {
 	payerRows: PayerRow[];
-	categoryRows: CategoryRow[];
+	categoryRows: Array<CategoryRow & { subcategories?: SubcategoryOption[] }>;
 	accountRows: AccountRow[];
 	cardRows: CardRow[];
 }): SluggedFilters => {
@@ -308,6 +310,7 @@ export const buildSluggedFilters = ({
 			slug: categorySlugger(label),
 			type: category.type ?? null,
 			icon: category.icon ?? null,
+			subcategories: category.subcategories ?? [],
 		};
 	});
 
@@ -603,6 +606,7 @@ export const mapTransactionsData = (rows: TransactionRowWithRelations[]) =>
 		splitGroupId: item.splitGroupId ?? null,
 		hasAttachments: item.hasAttachments ?? false,
 		tripId: item.tripId ?? null,
+		subcategoryId: item.subcategoryId ?? null,
 		readonly:
 			isLockedInvoicePaymentNote(item.note) ||
 			(item.note === INITIAL_BALANCE_NOTE &&
@@ -693,9 +697,10 @@ export const buildOptionSets = ({
 	);
 
 	const categoryOptions = sortByLabel(
-		categoryFiltersRaw.map(({ id, label, type, slug, icon }) =>
-			toOption(id, label, undefined, type, slug, undefined, undefined, icon),
-		),
+		categoryFiltersRaw.map(({ id, label, type, slug, icon, subcategories }) => ({
+			...toOption(id, label, undefined, type, slug, undefined, undefined, icon),
+			subcategories,
+		})),
 	);
 
 	const categoryFilterOptions = sortByLabel(
