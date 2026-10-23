@@ -77,7 +77,10 @@ export function filterTransactionsBySubcategory<
 	if (filter === NO_SUBCATEGORY_FILTER) {
 		return transactions.filter((transaction) => !transaction.subcategoryId);
 	}
-	if (!filter || !subcategories.some((subcategory) => subcategory.id === filter)) {
+	if (
+		!filter ||
+		!subcategories.some((subcategory) => subcategory.id === filter)
+	) {
 		return transactions;
 	}
 	return transactions.filter(

@@ -26,7 +26,10 @@ describe("resolveSubcategoryId", () => {
 			TRANSPORTE,
 			parents,
 			null,
-			{ ok: false, error: "A subcategoria não pertence à categoria escolhida." },
+			{
+				ok: false,
+				error: "A subcategoria não pertence à categoria escolhida.",
+			},
 		],
 		[
 			"id desconhecido",

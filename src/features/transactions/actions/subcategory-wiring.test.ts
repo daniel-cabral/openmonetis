@@ -16,9 +16,7 @@ const mocks = vi.hoisted(() => {
 				insertWrites.push(values);
 				return {
 					returning: () =>
-						Promise.resolve(
-							values.map((_, index) => ({ id: `new-${index}` })),
-						),
+						Promise.resolve(values.map((_, index) => ({ id: `new-${index}` }))),
 				};
 			},
 		}),

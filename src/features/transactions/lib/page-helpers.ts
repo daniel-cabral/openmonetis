@@ -697,10 +697,21 @@ export const buildOptionSets = ({
 	);
 
 	const categoryOptions = sortByLabel(
-		categoryFiltersRaw.map(({ id, label, type, slug, icon, subcategories }) => ({
-			...toOption(id, label, undefined, type, slug, undefined, undefined, icon),
-			subcategories,
-		})),
+		categoryFiltersRaw.map(
+			({ id, label, type, slug, icon, subcategories }) => ({
+				...toOption(
+					id,
+					label,
+					undefined,
+					type,
+					slug,
+					undefined,
+					undefined,
+					icon,
+				),
+				subcategories,
+			}),
+		),
 	);
 
 	const categoryFilterOptions = sortByLabel(

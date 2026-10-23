@@ -333,7 +333,11 @@ const baseFields = z.object({
 	accountId: uuidSchema("FinancialAccount").nullable().optional(),
 	cardId: uuidSchema("Cartão").nullable().optional(),
 	categoryId: uuidSchema("Category").nullable().optional(),
-	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
+	subcategoryId: z
+		.string()
+		.uuid("Subcategoria inválida.")
+		.nullable()
+		.optional(),
 	tripId: tripIdSchema,
 	note: noteSchema,
 	installmentCount: z.coerce
@@ -918,7 +922,11 @@ export const updateBulkSchema = z.object({
 		.trim()
 		.min(1, "Informe o estabelecimento."),
 	categoryId: uuidSchema("Category").nullable().optional(),
-	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
+	subcategoryId: z
+		.string()
+		.uuid("Subcategoria inválida.")
+		.nullable()
+		.optional(),
 	tripId: tripIdSchema,
 	note: noteSchema,
 	payerId: uuidSchema("Payer").nullable().optional(),

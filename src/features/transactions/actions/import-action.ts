@@ -48,7 +48,11 @@ const duplicateCheckSchema = z.object({
 const importRowSchema = ofxIdentityRowSchema.extend({
 	description: z.string().min(1, "Descrição obrigatória."),
 	categoryId: uuidSchema("Category").nullable().optional(),
-	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
+	subcategoryId: z
+		.string()
+		.uuid("Subcategoria inválida.")
+		.nullable()
+		.optional(),
 	payerId: uuidSchema("Payer").nullable().optional(),
 });
 

@@ -29,10 +29,7 @@ export async function fetchSubcategoryParents(
 
 export async function resolveSubcategoryForWrite(
 	userId: string,
-	input: Omit<
-		Parameters<typeof resolveSubcategoryId>[0],
-		"parents"
-	>,
+	input: Omit<Parameters<typeof resolveSubcategoryId>[0], "parents">,
 ): Promise<SubcategoryResolution> {
 	const parents = await fetchSubcategoryParents(userId, [input.requested]);
 	return resolveSubcategoryId({ ...input, parents });

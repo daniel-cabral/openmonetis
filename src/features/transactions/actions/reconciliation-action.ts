@@ -41,7 +41,11 @@ const creationSchema = z.object({
 	descriptor: z.string(),
 	name: z.string().min(1, "Nome obrigatório."),
 	categoryId: uuidSchema("Categoria").nullable().optional(),
-	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
+	subcategoryId: z
+		.string()
+		.uuid("Subcategoria inválida.")
+		.nullable()
+		.optional(),
 	payerId: uuidSchema("Pessoa").nullable().optional(),
 	// Linha de crédito da fatura: o lançamento criado recebe nota própria para
 	// ficar fora de renda e despesa nos relatórios.

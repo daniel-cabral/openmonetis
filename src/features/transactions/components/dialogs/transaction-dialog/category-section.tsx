@@ -127,13 +127,13 @@ export function CategorySection({
 								</SelectValue>
 							</SelectTrigger>
 							<SelectContent>
-								{TRANSACTION_TYPES.filter((type) => type !== "Transferência").map(
-									(type) => (
-										<SelectItem key={type} value={type}>
-											<TransactionTypeSelectContent label={type} />
-										</SelectItem>
-									),
-								)}
+								{TRANSACTION_TYPES.filter(
+									(type) => type !== "Transferência",
+								).map((type) => (
+									<SelectItem key={type} value={type}>
+										<TransactionTypeSelectContent label={type} />
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>

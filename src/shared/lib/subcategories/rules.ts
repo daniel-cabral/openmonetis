@@ -24,7 +24,8 @@ export function resolveSubcategoryId({
 	}
 
 	if (requested === undefined) {
-		const keep = existing?.categoryId === categoryId ? existing.subcategoryId : null;
+		const keep =
+			existing?.categoryId === categoryId ? existing.subcategoryId : null;
 		return { ok: true, subcategoryId: keep };
 	}
 
