@@ -72,6 +72,7 @@ vi.mock("@/shared/lib/actions/helpers", () => ({
 }));
 
 import { subcategories } from "@/db/schema";
+import { revalidateForEntity } from "@/shared/lib/actions/helpers";
 import { createCategoryAction, updateCategoryAction } from "./actions";
 
 const USER_ID = "user-1";
@@ -125,6 +126,7 @@ describe("updateCategoryAction", () => {
 			],
 		]);
 		expect(subcategoryWrites("delete")).toHaveLength(1);
+		expect(revalidateForEntity).toHaveBeenCalledWith("transactions", USER_ID);
 	});
 
 	it("nome repetido sem diferenciar maiusculas nem espacos falha e nada e gravado", async () => {
@@ -181,5 +183,6 @@ describe("createCategoryAction", () => {
 		expect(subcategoryWrites("insert")).toEqual([
 			[{ name: "Faxina", categoryId: MORADIA, userId: USER_ID }],
 		]);
+		expect(revalidateForEntity).toHaveBeenCalledWith("transactions", USER_ID);
 	});
 });

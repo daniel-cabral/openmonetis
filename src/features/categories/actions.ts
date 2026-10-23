@@ -150,6 +150,7 @@ export async function createCategoryAction(
 		});
 
 		revalidateForEntity("categories", user.id);
+		revalidateForEntity("transactions", user.id);
 
 		return { success: true, message: "Category criada com sucesso." };
 	} catch (error) {
@@ -215,6 +216,7 @@ export async function updateCategoryAction(
 		}
 
 		revalidateForEntity("categories", user.id);
+		revalidateForEntity("transactions", user.id);
 
 		return { success: true, message: "Categoria atualizada com sucesso." };
 	} catch (error) {
