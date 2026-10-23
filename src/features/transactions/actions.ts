@@ -2,6 +2,7 @@ export {
 	createMassTransactionsAction,
 	deleteMultipleTransactionsAction,
 	deleteTransactionBulkAction,
+	setTransactionsSubcategoryAction,
 	updateTransactionBulkAction,
 } from "./actions/bulk-actions";
 export { exportTransactionsDataAction } from "./actions/export-actions";

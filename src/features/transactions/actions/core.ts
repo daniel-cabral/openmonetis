@@ -996,3 +996,12 @@ export const deleteMultipleSchema = z.object({
 });
 
 export type DeleteMultipleInput = z.infer<typeof deleteMultipleSchema>;
+
+export const setSubcategoryBulkSchema = z.object({
+	ids: z
+		.array(uuidSchema("Lançamento"))
+		.min(1, "Selecione pelo menos um lançamento."),
+	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable(),
+});
+
+export type SetSubcategoryBulkInput = z.infer<typeof setSubcategoryBulkSchema>;

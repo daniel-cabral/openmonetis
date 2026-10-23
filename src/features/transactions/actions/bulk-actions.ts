@@ -15,7 +15,11 @@ import {
 	buildEntriesByPayer,
 	sendPayerAutoEmails,
 } from "@/shared/lib/payers/notifications";
-import { resolveSubcategoryForWrite } from "@/shared/lib/subcategories/queries";
+import {
+	fetchSubcategoryWithCategory,
+	resolveSubcategoryForWrite,
+} from "@/shared/lib/subcategories/queries";
+import { SUBCATEGORY_NOT_FOUND_MESSAGE } from "@/shared/lib/subcategories/rules";
 import { setTripForTransactions } from "@/shared/lib/trips/link";
 import { validateTripOwnership } from "@/shared/lib/trips/queries";
 import type { ActionResult } from "@/shared/lib/types/actions";
@@ -40,6 +44,8 @@ import {
 	resolvePeriod,
 	resolveUserLabel,
 	revalidate,
+	type SetSubcategoryBulkInput,
+	setSubcategoryBulkSchema,
 	type TransactionInsert,
 	type UpdateBulkInput,
 	updateBulkSchema,
@@ -882,5 +888,113 @@ export async function deleteMultipleTransactionsAction(
 		};
 	} catch (error) {
 		return handleActionError(error);
+	}
+}
+
+export async function setTransactionsSubcategoryAction(
+	input: SetSubcategoryBulkInput,
+): Promise<ActionResult<{ updated: number; skipped: number }>> {
+	try {
+		const user = await getUser();
+		const data = setSubcategoryBulkSchema.parse(input);
+
+		const existing = await db.query.transactions.findMany({
+			columns: {
+				id: true,
+				categoryId: true,
+				note: true,
+				transactionType: true,
+				condition: true,
+				paymentMethod: true,
+			},
+			where: and(
+				inArray(transactions.id, data.ids),
+				eq(transactions.userId, user.id),
+			),
+		});
+
+		if (existing.length === 0) {
+			return { success: false, error: "Nenhum lançamento encontrado." };
+		}
+
+		if (existing.some(isProtectedTransaction)) {
+			return {
+				success: false,
+				error: "Lançamentos protegidos não podem ser atualizados em massa.",
+			};
+		}
+
+		if (data.subcategoryId === null) {
+			const ids = existing.map((item) => item.id);
+			await db
+				.update(transactions)
+				.set({ subcategoryId: null })
+				.where(
+					and(inArray(transactions.id, ids), eq(transactions.userId, user.id)),
+				);
+
+			revalidate(user.id);
+			const count = ids.length;
+			return {
+				success: true,
+				message:
+					count === 1
+						? "1 lançamento ficou sem subcategoria."
+						: `${count} lançamentos ficaram sem subcategoria.`,
+				data: { updated: count, skipped: 0 },
+			};
+		}
+
+		const subcategory = await fetchSubcategoryWithCategory(
+			user.id,
+			data.subcategoryId,
+		);
+		if (!subcategory) {
+			return { success: false, error: SUBCATEGORY_NOT_FOUND_MESSAGE };
+		}
+
+		const targetIds = existing
+			.filter((item) => item.categoryId === subcategory.categoryId)
+			.map((item) => item.id);
+		if (targetIds.length === 0) {
+			return {
+				success: false,
+				error: `Nenhum lançamento selecionado é da categoria ${subcategory.categoryName}.`,
+			};
+		}
+
+		const skipped = existing.length - targetIds.length;
+		await db
+			.update(transactions)
+			.set({ subcategoryId: subcategory.id })
+			.where(
+				and(
+					inArray(transactions.id, targetIds),
+					eq(transactions.userId, user.id),
+				),
+			);
+
+		revalidate(user.id);
+		const updatedPart =
+			targetIds.length === 1
+				? `1 lançamento atualizado para ${subcategory.name}`
+				: `${targetIds.length} lançamentos atualizados para ${subcategory.name}`;
+		const skippedPart =
+			skipped === 0
+				? "."
+				: skipped === 1
+					? `. 1 ignorado: não é da categoria ${subcategory.categoryName}.`
+					: `. ${skipped} ignorados: não são da categoria ${subcategory.categoryName}.`;
+		return {
+			success: true,
+			message: `${updatedPart}${skippedPart}`,
+			data: { updated: targetIds.length, skipped },
+		};
+	} catch (error) {
+		const result = handleActionError(error);
+		return {
+			success: false,
+			error: result.success ? "Ocorreu um erro inesperado." : result.error,
+		};
 	}
 }
