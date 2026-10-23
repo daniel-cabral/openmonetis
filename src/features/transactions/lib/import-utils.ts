@@ -54,3 +54,12 @@ export type CategoryMapping = {
 	categoryId: string;
 	subcategoryId: string | null;
 };
+
+/** Subcategoria lembrada só vale enquanto a categoria final ainda é a do de-para. */
+export function pickRememberedSubcategory(
+	mapping: CategoryMapping | null | undefined,
+	finalCategoryId: string | null,
+): string | null {
+	if (!mapping || mapping.categoryId !== finalCategoryId) return null;
+	return mapping.subcategoryId;
+}

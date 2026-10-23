@@ -19,6 +19,8 @@ import {
 	type OfxImportDestination,
 } from "@/shared/lib/import/ofx-identity";
 import { uuidSchema } from "@/shared/lib/schemas/common";
+import { fetchSubcategoryParents } from "@/shared/lib/subcategories/queries";
+import { validateSubcategoryPairs } from "@/shared/lib/subcategories/rules";
 import { formatDecimalForDbRequired } from "@/shared/utils/currency";
 import { parseLocalDateString, toDateOnlyString } from "@/shared/utils/date";
 
@@ -46,6 +48,7 @@ const duplicateCheckSchema = z.object({
 const importRowSchema = ofxIdentityRowSchema.extend({
 	description: z.string().min(1, "Descrição obrigatória."),
 	categoryId: uuidSchema("Category").nullable().optional(),
+	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
 	payerId: uuidSchema("Payer").nullable().optional(),
 });
 
@@ -324,6 +327,19 @@ export async function importTransactionsAction(
 		return { success: false, error: "Categoria não encontrada." };
 	}
 
+	const subcategoryParents = await fetchSubcategoryParents(
+		userId,
+		rows.map((row) => row.subcategoryId),
+	);
+	const subcategoryError = validateSubcategoryPairs(
+		rows.map((row) => ({
+			categoryId: row.categoryId ?? null,
+			subcategoryId: row.subcategoryId,
+		})),
+		subcategoryParents,
+	);
+	if (subcategoryError) return { success: false, error: subcategoryError };
+
 	if (!accountOk) return { success: false, error: "Conta não encontrada." };
 	if (!cardOk) return { success: false, error: "Cartão não encontrado." };
 
@@ -384,6 +400,7 @@ export async function importTransactionsAction(
 			accountId: accountId ?? null,
 			cardId: cardId ?? null,
 			categoryId: row.categoryId ?? null,
+			subcategoryId: row.subcategoryId ?? null,
 			ofxFitId: row.externalId,
 			ofxImportFingerprint: fingerprint,
 			importBatchId,

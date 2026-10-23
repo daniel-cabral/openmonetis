@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { normalizeDescriptionKey } from "./import-utils";
+import {
+	normalizeDescriptionKey,
+	pickRememberedSubcategory,
+} from "./import-utils";
+
+const MORADIA = "11111111-1111-4111-8111-111111111111";
+const TRANSPORTE = "22222222-2222-4222-8222-222222222222";
+const FAXINA = "33333333-3333-4333-8333-333333333333";
 
 describe("normalizeDescriptionKey", () => {
 	it("derruba prefixo de adquirente PG * e o sufixo de praça", () => {
@@ -47,5 +54,14 @@ describe("normalizeDescriptionKey", () => {
 
 	it("derruba prefixo numérico de adquirente e sufixo numérico separado", () => {
 		expect(normalizeDescriptionKey("223 LIV CTBA 23439130")).toBe("liv ctba");
+	});
+});
+
+describe("pickRememberedSubcategory", () => {
+	it("reaplica a subcategoria lembrada só quando a categoria final é a mesma", () => {
+		const mapping = { categoryId: MORADIA, subcategoryId: FAXINA };
+		expect(pickRememberedSubcategory(mapping, MORADIA)).toBe(FAXINA);
+		expect(pickRememberedSubcategory(mapping, TRANSPORTE)).toBeNull();
+		expect(pickRememberedSubcategory(undefined, MORADIA)).toBeNull();
 	});
 });
