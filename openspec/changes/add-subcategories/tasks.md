@@ -54,7 +54,7 @@
 
 Test declaration: `Test: new, because distinct contract (FK delete behaviour of a new table; only lock on "excluir subcategoria preserva lançamentos")`, same style as `src/db/schema.trips.test.ts`.
 
-- [ ] **Step 1: Write the failing test** `src/db/schema.subcategories.test.ts`
+- [x] **Step 1: Write the failing test** `src/db/schema.subcategories.test.ts`
 
 ```ts
 it("subcategorias pertence a categoria e ao usuario, com cascade", () => {
@@ -71,12 +71,12 @@ it.each([
 }); // [S: Excluir subcategoria preserva lançamentos]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/db/schema.subcategories.test.ts`. Expected: FAIL (`subcategories` not exported).
-- [ ] **Step 3: Implement the schema changes listed in Interfaces.**
-- [ ] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Generate the migration** `pnpm run db:generate`. Expected: one new `drizzle/0038_*.sql` with `CREATE TABLE "subcategorias"`, two `ALTER TABLE ... ADD COLUMN` (`lancamentos.subcategoria_id`, `import_category_mappings.subcategory_id`), FKs with `ON DELETE set null`, and no other table touched. These are pure additions, so drizzle-kit should not prompt; if it does, stop and report.
-- [ ] **Step 6: Typecheck** `pnpm exec tsc --noEmit`. Expected: no errors.
-- [ ] **Step 7: Commit**
+- [x] **Step 2: Run** `pnpm exec vitest run src/db/schema.subcategories.test.ts`. Expected: FAIL (`subcategories` not exported).
+- [x] **Step 3: Implement the schema changes listed in Interfaces.**
+- [x] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 5: Generate the migration** `pnpm run db:generate`. Expected: one new `drizzle/0038_*.sql` with `CREATE TABLE "subcategorias"`, two `ALTER TABLE ... ADD COLUMN` (`lancamentos.subcategoria_id`, `import_category_mappings.subcategory_id`), FKs with `ON DELETE set null`, and no other table touched. These are pure additions, so drizzle-kit should not prompt; if it does, stop and report.
+- [x] **Step 6: Typecheck** `pnpm exec tsc --noEmit`. Expected: no errors.
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/db/schema.ts src/db/schema.subcategories.test.ts drizzle/0038_*.sql drizzle/meta/0038_snapshot.json drizzle/meta/_journal.json

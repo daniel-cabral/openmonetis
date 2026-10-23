@@ -234,6 +234,32 @@ export const categories = pgTable(
 	}),
 );
 
+export const subcategories = pgTable(
+	"subcategorias",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		name: text("nome").notNull(),
+		categoryId: uuid("categoria_id")
+			.notNull()
+			.references(() => categories.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+	},
+	(table) => ({
+		userIdCategoryIdIdx: index("subcategorias_user_id_categoria_id_idx").on(
+			table.userId,
+			table.categoryId,
+		),
+	}),
+);
+
 export const payers = pgTable(
 	"pagadores",
 	{
@@ -702,6 +728,9 @@ export const transactions = pgTable(
 			onDelete: "cascade",
 			onUpdate: "cascade",
 		}),
+		subcategoryId: uuid("subcategoria_id").references(() => subcategories.id, {
+			onDelete: "set null",
+		}),
 		payerId: uuid("pagador_id").references(() => payers.id, {
 			onDelete: "cascade",
 			onUpdate: "cascade",
@@ -769,6 +798,9 @@ export const transactions = pgTable(
 		// FK indexes: evitam seq scan em deletes/updates nas tabelas pai
 		accountIdIdx: index("lancamentos_conta_id_idx").on(table.accountId),
 		categoryIdIdx: index("lancamentos_categoria_id_idx").on(table.categoryId),
+		subcategoryIdIdx: index("lancamentos_subcategoria_id_idx").on(
+			table.subcategoryId,
+		),
 		anticipationIdIdx: index("lancamentos_antecipacao_id_idx").on(
 			table.anticipationId,
 		),
@@ -832,6 +864,18 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
 	}),
 	transactions: many(transactions),
 	budgets: many(budgets),
+	subcategories: many(subcategories),
+}));
+
+export const subcategoriesRelations = relations(subcategories, ({ one }) => ({
+	category: one(categories, {
+		fields: [subcategories.categoryId],
+		references: [categories.id],
+	}),
+	user: one(user, {
+		fields: [subcategories.userId],
+		references: [user.id],
+	}),
 }));
 
 export const payersRelations = relations(payers, ({ one, many }) => ({
@@ -944,6 +988,10 @@ export const transactionsRelations = relations(
 		category: one(categories, {
 			fields: [transactions.categoryId],
 			references: [categories.id],
+		}),
+		subcategory: one(subcategories, {
+			fields: [transactions.subcategoryId],
+			references: [subcategories.id],
 		}),
 		payer: one(payers, {
 			fields: [transactions.payerId],
@@ -1059,6 +1107,9 @@ export const importCategoryMappings = pgTable(
 		categoryId: uuid("category_id")
 			.notNull()
 			.references(() => categories.id, { onDelete: "cascade" }),
+		subcategoryId: uuid("subcategory_id").references(() => subcategories.id, {
+			onDelete: "set null",
+		}),
 		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
 			.notNull()
 			.defaultNow(),
@@ -1100,6 +1151,7 @@ export type NewUserPreferences = typeof userPreferences.$inferInsert;
 export type PayerShare = typeof payerShares.$inferSelect;
 export type FinancialAccount = typeof financialAccounts.$inferSelect;
 export type Category = typeof categories.$inferSelect;
+export type Subcategory = typeof subcategories.$inferSelect;
 export type Payer = typeof payers.$inferSelect;
 export type Card = typeof cards.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
