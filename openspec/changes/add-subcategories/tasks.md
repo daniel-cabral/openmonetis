@@ -291,7 +291,7 @@ git commit -m "feat(lancamentos): gravar e validar subcategoria ao criar e edita
 
 Test declaration: `Test: extends subcategory-wiring.test.ts with "edicao em serie grava a subcategoria" (new it in the same file, same harness)`. Conversions and anticipation: `none, because they apply the "undefined keeps when category unchanged" rule locked by rules.test.ts::"ausente e mesma categoria mantem"; the wiring is one field`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it("edicao em serie grava a subcategoria", async () => {
@@ -305,11 +305,11 @@ it("edicao em serie grava a subcategoria", async () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts`. Expected: the new test FAILS.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts src/features/transactions/actions/trip-link-wiring.test.ts`. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts`. Expected: the new test FAILS.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts src/features/transactions/actions/trip-link-wiring.test.ts`. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the four modified files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/core.ts src/features/transactions/actions/bulk-actions.ts src/features/transactions/actions/single-actions.ts src/features/transactions/actions/anticipation.ts src/features/transactions/actions/subcategory-wiring.test.ts

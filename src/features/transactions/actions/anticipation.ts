@@ -24,6 +24,7 @@ import type {
 	EligibleInstallment,
 } from "@/shared/lib/installments/anticipation-types";
 import { uuidSchema } from "@/shared/lib/schemas/common";
+import { resolveSubcategoryId } from "@/shared/lib/subcategories/rules";
 import type { ActionResult } from "@/shared/lib/types/actions";
 import { formatDecimalForDbRequired } from "@/shared/utils/currency";
 import { comparePeriods } from "@/shared/utils/period";
@@ -244,6 +245,17 @@ export async function createInstallmentAnticipationAction(
 		// 3. Pegar dados da primeira parcela para referência
 		const firstInstallment = installments[0];
 
+		// Keeps the first installment's subcategory only while the category is unchanged
+		const subcategory = resolveSubcategoryId({
+			requested: undefined,
+			categoryId: data.categoryId ?? firstInstallment.categoryId,
+			parents: new Map(),
+			existing: {
+				categoryId: firstInstallment.categoryId,
+				subcategoryId: firstInstallment.subcategoryId,
+			},
+		});
+
 		// 4. Criar lançamento e antecipação em transação
 		await db.transaction(async (tx: typeof db) => {
 			// 4.1. Criar o lançamento de antecipação (com desconto aplicado)
@@ -264,6 +276,7 @@ export async function createInstallmentAnticipationAction(
 					isSettled: false,
 					payerId: data.payerId ?? firstInstallment.payerId,
 					categoryId: data.categoryId ?? firstInstallment.categoryId,
+					subcategoryId: subcategory.ok ? subcategory.subcategoryId : null,
 					cardId: firstInstallment.cardId,
 					accountId: firstInstallment.accountId,
 					note:

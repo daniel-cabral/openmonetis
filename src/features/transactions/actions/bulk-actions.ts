@@ -15,6 +15,7 @@ import {
 	buildEntriesByPayer,
 	sendPayerAutoEmails,
 } from "@/shared/lib/payers/notifications";
+import { resolveSubcategoryForWrite } from "@/shared/lib/subcategories/queries";
 import { setTripForTransactions } from "@/shared/lib/trips/link";
 import { validateTripOwnership } from "@/shared/lib/trips/queries";
 import type { ActionResult } from "@/shared/lib/types/actions";
@@ -203,6 +204,8 @@ export async function updateTransactionBulkAction(
 				purchaseDate: true,
 				payerId: true,
 				cardId: true,
+				categoryId: true,
+				subcategoryId: true,
 				note: true,
 				tripId: true,
 			},
@@ -230,9 +233,22 @@ export async function updateTransactionBulkAction(
 			};
 		}
 
+		const subcategory = await resolveSubcategoryForWrite(user.id, {
+			requested: data.subcategoryId,
+			categoryId: data.categoryId ?? null,
+			existing: {
+				categoryId: existing.categoryId,
+				subcategoryId: existing.subcategoryId,
+			},
+		});
+		if (!subcategory.ok) {
+			return { success: false, error: subcategory.error };
+		}
+
 		const baseUpdatePayload: Record<string, unknown> = {
 			name: data.name,
 			categoryId: data.categoryId ?? null,
+			subcategoryId: subcategory.subcategoryId,
 			note: data.note ?? null,
 			// "period" atualiza todos os pagadores do mês — preserva o payerId de cada linha
 			...(data.scope !== "period" && { payerId: data.payerId ?? null }),

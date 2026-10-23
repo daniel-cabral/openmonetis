@@ -72,6 +72,7 @@ vi.mock("./core", async (importOriginal) => ({
 	getPaidInvoicePeriods: vi.fn().mockResolvedValue([]),
 }));
 
+import { updateTransactionBulkAction } from "./bulk-actions";
 import {
 	createTransactionAction,
 	updateTransactionAction,
@@ -84,6 +85,7 @@ const ACCOUNT_ID = "22222222-2222-4222-8222-222222222222";
 const MORADIA = "99999999-9999-4999-8999-999999999999";
 const TRANSPORTE = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const FAXINA = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const IPTU = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 
 const fields = {
 	purchaseDate: "2026-05-14",
@@ -183,6 +185,31 @@ describe("updateTransactionAction", () => {
 				categoryId: TRANSPORTE,
 				subcategoryId: null,
 			}),
+		);
+	});
+});
+
+describe("updateTransactionBulkAction", () => {
+	it("edicao em serie grava a subcategoria", async () => {
+		mocks.dbMock.query.transactions.findFirst.mockResolvedValue({
+			...existing,
+			condition: "Parcelado",
+			seriesId: "serie-iptu",
+			categoryId: MORADIA,
+			subcategoryId: null,
+		});
+		mocks.selectQueue.push([{ id: IPTU, categoryId: MORADIA }]);
+		const result = await updateTransactionBulkAction({
+			id: TX_ID,
+			scope: "current",
+			name: "IPTU",
+			note: null,
+			categoryId: MORADIA,
+			subcategoryId: IPTU,
+		});
+		expect(result.success).toBe(true);
+		expect(mocks.updateWrites[0]).toEqual(
+			expect.objectContaining({ subcategoryId: IPTU }),
 		);
 	});
 });

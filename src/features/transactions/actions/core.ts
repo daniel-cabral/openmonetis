@@ -918,6 +918,7 @@ export const updateBulkSchema = z.object({
 		.trim()
 		.min(1, "Informe o estabelecimento."),
 	categoryId: uuidSchema("Category").nullable().optional(),
+	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
 	tripId: tripIdSchema,
 	note: noteSchema,
 	payerId: uuidSchema("Payer").nullable().optional(),
