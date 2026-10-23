@@ -107,7 +107,7 @@ git commit -m "feat(categorias): tabela de subcategorias e coluna opcional em la
 
 Test declaration: `Test: new, because distinct contract (the single write rule every path relies on)`. Queries: `none, because exercised through the action wiring tests in Tasks 5, 6 and 12 with the real module over a faked db`.
 
-- [ ] **Step 1: Write the failing test** `rules.test.ts` with ids `MORADIA`, `TRANSPORTE`, `FAXINA` (uuid literals) and `parents = new Map([[FAXINA, MORADIA]])`:
+- [x] **Step 1: Write the failing test** `rules.test.ts` with ids `MORADIA`, `TRANSPORTE`, `FAXINA` (uuid literals) and `parents = new Map([[FAXINA, MORADIA]])`:
 
 ```ts
 it.each([
@@ -128,11 +128,11 @@ it("validateSubcategoryPairs devolve o primeiro erro do lote", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/shared/lib/subcategories/rules.test.ts`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement** `types.ts`, `rules.ts`, `queries.ts` per Interfaces.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/shared/lib/subcategories/rules.test.ts`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement** `types.ts`, `rules.ts`, `queries.ts` per Interfaces.
+- [x] **Step 4: Run** the same test. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/shared/lib/subcategories`.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/shared/lib/subcategories/types.ts src/shared/lib/subcategories/rules.ts src/shared/lib/subcategories/queries.ts src/shared/lib/subcategories/rules.test.ts
