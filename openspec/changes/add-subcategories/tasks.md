@@ -770,14 +770,14 @@ git commit -m "feat(conciliacao): seletor de subcategoria na revisao da concilia
 
 Test declaration: `Test: none, because no behaviour change`. Requirement "Totais por categoria não mudam": `none, because no aggregation query changes`, checked by Step 2.
 
-- [ ] **Step 1: Write the release notes.** CHANGELOG entry with a PT-BR intro paragraph in prose (what subcategories are and that category totals stay the same), then `### Adicionado`: subcategorias no diálogo da categoria; subcategoria opcional no lançamento; bloco "Por subcategoria" com filtro na página da categoria; "Definir subcategoria" em massa; importação e conciliação lembram a subcategoria. README L68: add "categorias com subcategorias opcionais" to the categorization clause.
-- [ ] **Step 2: Check the anti-goal.** Run `git diff --name-only e1ad635..HEAD -- src/features/dashboard src/features/budgets src/features/insights src/features/reports`. Expected: empty output.
+- [x] **Step 1: Write the release notes.** CHANGELOG entry with a PT-BR intro paragraph in prose (what subcategories are and that category totals stay the same), then `### Adicionado`: subcategorias no diálogo da categoria; subcategoria opcional no lançamento; bloco "Por subcategoria" com filtro na página da categoria; "Definir subcategoria" em massa; importação e conciliação lembram a subcategoria. README L68: add "categorias com subcategorias opcionais" to the categorization clause.
+- [x] **Step 2: Check the anti-goal.** Run `git diff --name-only e1ad635..HEAD -- src/features/dashboard src/features/budgets src/features/insights src/features/reports`. Expected: empty output.
 - [ ] **Step 3: Typecheck** `pnpm exec tsc --noEmit`. Expected: no errors.
 - [ ] **Step 4: Lint** `pnpm exec biome check` on every file changed in the branch (`git diff --name-only e1ad635..HEAD -- src`). Expected: no diagnostics besides line-ending noise.
 - [ ] **Step 5: Full suite, once** `pnpm exec vitest run`. Expected: all tests pass.
-- [ ] **Step 5b: Remove the temporary preview.** `rm -rf src/app/preview-subcategorias` (untracked, never committed). Expected: `git status --short` shows nothing under `src/app/preview-subcategorias`.
-- [ ] **Step 6: Version consistency.** `package.json`, `CHANGELOG.md` header and README badge all read `2.14.0`. Do not create or push a tag.
-- [ ] **Step 7: Commit**
+- [x] **Step 5b: Remove the temporary preview.** `rm -rf src/app/preview-subcategorias` (untracked, never committed). Expected: `git status --short` shows nothing under `src/app/preview-subcategorias`.
+- [x] **Step 6: Version consistency.** `package.json`, `CHANGELOG.md` header and README badge all read `2.14.0`. Do not create or push a tag.
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json CHANGELOG.md README.md
