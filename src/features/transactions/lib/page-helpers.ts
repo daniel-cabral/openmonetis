@@ -20,7 +20,6 @@ import {
 	transactions,
 } from "@/db/schema";
 import type { SelectOption } from "@/features/transactions/components/types";
-import type { SubcategoryOption } from "@/shared/lib/subcategories/types";
 import {
 	AMOUNT_MAX_PARAM,
 	AMOUNT_MIN_PARAM,
@@ -42,6 +41,7 @@ import {
 	PAYER_ROLE_ADMIN,
 	PAYER_ROLE_THIRD_PARTY,
 } from "@/shared/lib/payers/constants";
+import type { SubcategoryOption } from "@/shared/lib/subcategories/types";
 import { parseLocalDateString, toDateOnlyString } from "@/shared/utils/date";
 import { slugify } from "@/shared/utils/string";
 

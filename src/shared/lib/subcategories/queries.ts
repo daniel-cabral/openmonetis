@@ -2,8 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import { categories, subcategories } from "@/db/schema";
 import { db } from "@/shared/lib/db";
 import {
-	type SubcategoryResolution,
 	resolveSubcategoryId,
+	type SubcategoryResolution,
 } from "@/shared/lib/subcategories/rules";
 
 export async function fetchSubcategoryParents(
