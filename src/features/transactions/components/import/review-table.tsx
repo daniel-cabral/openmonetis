@@ -6,7 +6,9 @@ import {
 	CategorySelectContent,
 	PayerSelectContent,
 } from "@/features/transactions/components/select-items";
+import { SubcategorySelect } from "@/features/transactions/components/subcategory-select";
 import type { SelectOption } from "@/features/transactions/components/types";
+import { getSubcategoryOptions } from "@/features/transactions/lib/subcategory-options";
 import MoneyValues from "@/shared/components/money-values";
 import { TransactionTypeBadge } from "@/shared/components/transaction-type-badge";
 import { Checkbox } from "@/shared/components/ui/checkbox";
@@ -48,6 +50,7 @@ export type ReviewRow = ImportedTransaction & {
 	isDuplicate: boolean;
 	existingTransactionId: string | null;
 	categoryId: string | null;
+	subcategoryId: string | null;
 	payerId: string | null;
 };
 
@@ -59,6 +62,7 @@ interface ReviewTableProps {
 	onToggleAll: (selected: boolean) => void;
 	onPayerChange: (index: number, payerId: string | null) => void;
 	onCategoryChange: (index: number, categoryId: string | null) => void;
+	onSubcategoryChange: (index: number, subcategoryId: string | null) => void;
 	onDescriptionChange: (index: number, description: string) => void;
 	onUndoDuplicate: (index: number) => void;
 }
@@ -71,6 +75,7 @@ export function ReviewTable({
 	onToggleAll,
 	onPayerChange,
 	onCategoryChange,
+	onSubcategoryChange,
 	onDescriptionChange,
 	onUndoDuplicate,
 }: ReviewTableProps) {
@@ -241,6 +246,17 @@ export function ReviewTable({
 												))}
 											</SelectContent>
 										</Select>
+										<SubcategorySelect
+											className="h-8 text-xs"
+											options={getSubcategoryOptions(
+												categoryOptions,
+												row.categoryId,
+											)}
+											value={row.subcategoryId}
+											onChange={(subcategoryId) =>
+												onSubcategoryChange(index, subcategoryId)
+											}
+										/>
 									</TableCell>
 									<TableCell>
 										<TransactionTypeBadge

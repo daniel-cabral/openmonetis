@@ -696,9 +696,9 @@ git commit -m "feat(importacao): importar lancamentos com subcategoria"
 
 Test declaration: `Test: none, because UI-only; remember/drop rule locked by import-utils.test.ts and memory write by category-memory-action.test.ts`.
 
-- [ ] **Step 1: Implement** per Interfaces.
+- [x] **Step 1: Implement** per Interfaces.
 - [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/components/import/review-table.tsx src/features/transactions/components/import/import-page.tsx`.
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/transactions/components/import/review-table.tsx src/features/transactions/components/import/import-page.tsx

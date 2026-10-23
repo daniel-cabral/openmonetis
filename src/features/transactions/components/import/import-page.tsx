@@ -26,7 +26,10 @@ import {
 } from "@/features/transactions/components/import/review-table";
 import { UploadZone } from "@/features/transactions/components/import/upload-zone";
 import type { SelectOption } from "@/features/transactions/components/types";
-import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
+import {
+	normalizeDescriptionKey,
+	pickRememberedSubcategory,
+} from "@/features/transactions/lib/import-utils";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Card,
@@ -125,9 +128,9 @@ export function ImportPage({
 
 				setRows(
 					stmt.transactions.map((t, index) => {
-						let mappedCategoryId =
-							categoryMappings[normalizeDescriptionKey(t.description)]
-								?.categoryId ?? null;
+						const mapping =
+							categoryMappings[normalizeDescriptionKey(t.description)];
+						let mappedCategoryId = mapping?.categoryId ?? null;
 						const existingTransactionId = duplicateResult.success
 							? (duplicateResult.rows[index]?.existingTransactionId ?? null)
 							: null;
@@ -142,6 +145,13 @@ export function ImportPage({
 							}
 						}
 
+						const categoryId = isCategoryCompatible(
+							mappedCategoryId,
+							t.transactionType,
+						)
+							? mappedCategoryId
+							: null;
+
 						return {
 							...t,
 							reviewId: createClientSafeId(),
@@ -149,12 +159,8 @@ export function ImportPage({
 							isDuplicate: existingTransactionId !== null,
 							selected: existingTransactionId === null,
 							payerId,
-							categoryId: isCategoryCompatible(
-								mappedCategoryId,
-								t.transactionType,
-							)
-								? mappedCategoryId
-								: null,
+							categoryId,
+							subcategoryId: pickRememberedSubcategory(mapping, categoryId),
 						};
 					}),
 				);
@@ -232,9 +238,18 @@ export function ImportPage({
 		setRows((prev) =>
 			prev.map((r, i) =>
 				i === index && isCategoryCompatible(categoryId, r.transactionType)
-					? { ...r, categoryId }
+					? { ...r, categoryId, subcategoryId: null }
 					: r,
 			),
+		);
+	};
+
+	const handleSubcategoryChange = (
+		index: number,
+		subcategoryId: string | null,
+	) => {
+		setRows((prev) =>
+			prev.map((r, i) => (i === index ? { ...r, subcategoryId } : r)),
 		);
 	};
 
@@ -279,7 +294,7 @@ export function ImportPage({
 		setRows((prev) =>
 			prev.map((r) =>
 				r.selected && isCategoryCompatible(categoryId, r.transactionType)
-					? { ...r, categoryId }
+					? { ...r, categoryId, subcategoryId: null }
 					: r,
 			),
 		);
@@ -341,6 +356,7 @@ export function ImportPage({
 					sourceDescription: r.sourceDescription,
 					transactionType: r.transactionType,
 					categoryId: r.categoryId,
+					subcategoryId: r.subcategoryId,
 					payerId: r.payerId,
 				})),
 				payerId,
@@ -360,7 +376,7 @@ export function ImportPage({
 				selectedRows.map((r) => ({
 					description: r.description,
 					categoryId: r.categoryId,
-					subcategoryId: null,
+					subcategoryId: r.subcategoryId,
 				})),
 			);
 
@@ -457,6 +473,7 @@ export function ImportPage({
 								onToggleAll={toggleAll}
 								onPayerChange={handlePayerChange}
 								onCategoryChange={handleCategoryChange}
+								onSubcategoryChange={handleSubcategoryChange}
 								onDescriptionChange={handleDescriptionChange}
 								onUndoDuplicate={handleUndoDuplicate}
 							/>
