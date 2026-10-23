@@ -750,9 +750,9 @@ git commit -m "feat(conciliacao): lancamentos criados na conciliacao com subcate
 
 Test declaration: `Test: none, because UI-only; rules locked by import-utils.test.ts and reconciliation-review.test.ts`.
 
-- [ ] **Step 1: Implement** per Interfaces.
+- [x] **Step 1: Implement** per Interfaces.
 - [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the two files.
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/transactions/components/reconciliation/reconciliation-page.tsx src/features/transactions/components/reconciliation/reconciliation-review.tsx
