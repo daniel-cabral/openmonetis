@@ -155,7 +155,7 @@ git commit -m "feat(categorias): regra unica de validacao de subcategoria"
 
 Test declaration: `Test: new, because no test exists for categories actions (distinct setup: categories actions with faked db)`. Fake `@/shared/lib/auth/server` (`getUser`), `@/shared/lib/db` (record `insert`/`update`/`delete` calls; `transaction: (cb) => cb(tx)`), `@/shared/lib/actions/helpers` (`revalidateForEntity: vi.fn()`, real-looking `handleActionError` that maps `ZodError` to `issues[0].message`, as in `trip-link-wiring.test.ts`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("grava Faxina e IPTU em Moradia junto com a categoria, numa transacao", async () => {
@@ -181,11 +181,11 @@ it("id de subcategoria de outra categoria falha sem gravar", async () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/categories/actions.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** schema, `syncSubcategories`, transaction wrapping in both actions. `handleActionError` must surface the thrown `"Subcategoria não encontrada."`: return it explicitly (catch that error inside the action and map to `{ success: false, error }`) since the shared handler hides non-Zod messages.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/actions.ts src/features/categories/actions.test.ts`.
-- [ ] **Step 6: Commit**
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/categories/actions.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** schema, `syncSubcategories`, transaction wrapping in both actions. `handleActionError` must surface the thrown `"Subcategoria não encontrada."`: return it explicitly (catch that error inside the action and map to `{ success: false, error }`) since the shared handler hides non-Zod messages.
+- [x] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/actions.ts src/features/categories/actions.test.ts`.
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/categories/actions.ts src/features/categories/actions.test.ts
