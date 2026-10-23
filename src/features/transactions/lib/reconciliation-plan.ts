@@ -11,6 +11,7 @@ export type ReconciliationConfirmation = {
 	transactionId: string;
 	descriptor: string;
 	categoryId: string | null;
+	subcategoryId: string | null;
 };
 
 /** Linha do arquivo que vira lançamento novo. */
@@ -100,6 +101,7 @@ export type ReconciliationPlan = {
 		userId: string;
 		descriptionKey: string;
 		categoryId: string;
+		subcategoryId: string | null;
 	}[];
 	nameMappings: {
 		userId: string;
@@ -169,7 +171,12 @@ export function buildReconciliationPlan(
 	// linha duas vezes no mesmo comando.
 	const categoryMappingByKey = new Map<
 		string,
-		{ userId: string; descriptionKey: string; categoryId: string }
+		{
+			userId: string;
+			descriptionKey: string;
+			categoryId: string;
+			subcategoryId: string | null;
+		}
 	>();
 
 	for (const confirmation of input.confirmations) {
@@ -182,6 +189,7 @@ export function buildReconciliationPlan(
 			userId: input.userId,
 			descriptionKey,
 			categoryId: confirmation.categoryId,
+			subcategoryId: confirmation.subcategoryId,
 		});
 	}
 

@@ -201,7 +201,7 @@ export function ReconciliationPage({
 		const learnedCategoryByFingerprint = new Map<string, string>();
 		for (const { fingerprint, row } of rows) {
 			const categoryId =
-				categoryMappings[normalizeDescriptionKey(row.description)];
+				categoryMappings[normalizeDescriptionKey(row.description)]?.categoryId;
 			if (categoryId) learnedCategoryByFingerprint.set(fingerprint, categoryId);
 		}
 

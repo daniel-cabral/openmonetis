@@ -2,14 +2,17 @@
 
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { importCategoryMappings } from "@/db/schema";
-import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
+import {
+	type CategoryMapping,
+	normalizeDescriptionKey,
+} from "@/features/transactions/lib/import-utils";
 import { getUserId } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
 
-// Retorna um map de descriptionKey → categoryId para as descrições fornecidas
+// Retorna um map de descriptionKey → categoria e subcategoria para as descrições fornecidas
 export async function fetchCategoryMappings(
 	descriptions: string[],
-): Promise<Record<string, string>> {
+): Promise<Record<string, CategoryMapping>> {
 	const userId = await getUserId();
 	const keys = descriptions.map(normalizeDescriptionKey).filter(Boolean);
 	if (keys.length === 0) return {};
@@ -18,6 +21,7 @@ export async function fetchCategoryMappings(
 		.select({
 			descriptionKey: importCategoryMappings.descriptionKey,
 			categoryId: importCategoryMappings.categoryId,
+			subcategoryId: importCategoryMappings.subcategoryId,
 		})
 		.from(importCategoryMappings)
 		.where(
@@ -27,12 +31,21 @@ export async function fetchCategoryMappings(
 			),
 		);
 
-	return Object.fromEntries(rows.map((r) => [r.descriptionKey, r.categoryId]));
+	return Object.fromEntries(
+		rows.map((r) => [
+			r.descriptionKey,
+			{ categoryId: r.categoryId, subcategoryId: r.subcategoryId },
+		]),
+	);
 }
 
-// Salva/atualiza mapeamentos description → category após uma importação
+// Salva/atualiza mapeamentos description → category e subcategory após uma importação
 export async function saveCategoryMappings(
-	rows: { description: string; categoryId: string | null }[],
+	rows: {
+		description: string;
+		categoryId: string | null;
+		subcategoryId: string | null;
+	}[],
 ): Promise<void> {
 	const userId = await getUserId();
 
@@ -42,6 +55,7 @@ export async function saveCategoryMappings(
 			userId,
 			descriptionKey: normalizeDescriptionKey(r.description),
 			categoryId: r.categoryId as string,
+			subcategoryId: r.subcategoryId,
 			updatedAt: new Date(),
 		}))
 		.filter((r) => r.descriptionKey.length > 0);
@@ -58,6 +72,7 @@ export async function saveCategoryMappings(
 			],
 			set: {
 				categoryId: sql`excluded.category_id`,
+				subcategoryId: sql`excluded.subcategory_id`,
 				updatedAt: sql`excluded.updated_at`,
 			},
 		});

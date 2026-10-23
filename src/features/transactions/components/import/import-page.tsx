@@ -126,7 +126,8 @@ export function ImportPage({
 				setRows(
 					stmt.transactions.map((t, index) => {
 						let mappedCategoryId =
-							categoryMappings[normalizeDescriptionKey(t.description)] ?? null;
+							categoryMappings[normalizeDescriptionKey(t.description)]
+								?.categoryId ?? null;
 						const existingTransactionId = duplicateResult.success
 							? (duplicateResult.rows[index]?.existingTransactionId ?? null)
 							: null;
@@ -359,6 +360,7 @@ export function ImportPage({
 				selectedRows.map((r) => ({
 					description: r.description,
 					categoryId: r.categoryId,
+					subcategoryId: null,
 				})),
 			);
 

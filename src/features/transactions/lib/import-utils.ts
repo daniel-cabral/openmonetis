@@ -48,3 +48,9 @@ export function normalizeDescriptionKey(description: string): string {
 	key = key.replace(/\s+\d+$/, "");
 	return key.replace(/\s+/g, " ").trim();
 }
+
+/** Categoria e subcategoria lembradas para uma descrição do extrato. */
+export type CategoryMapping = {
+	categoryId: string;
+	subcategoryId: string | null;
+};

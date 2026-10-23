@@ -15,7 +15,12 @@ const {
 	const selectQueue: unknown[][] = [];
 	// Linhas que o índice único de fingerprint recusa no insert.
 	const insertState = { conflicts: 0 };
-	const writes: { kind: string; table: unknown; payload: unknown }[] = [];
+	const writes: {
+		kind: string;
+		table: unknown;
+		payload: unknown;
+		config?: unknown;
+	}[] = [];
 
 	// Os builders do drizzle são aguardáveis e ainda expõem métodos: uma
 	// Promise resolvida com propriedades extras reproduz isso sem `then` solto.
@@ -42,8 +47,8 @@ const {
 							),
 					});
 				},
-				onConflictDoUpdate: () => {
-					writes.push({ kind: "upsert", table, payload: values });
+				onConflictDoUpdate: (config: unknown) => {
+					writes.push({ kind: "upsert", table, payload: values, config });
 					return awaitable({});
 				},
 			}),
@@ -99,7 +104,11 @@ vi.mock("@/features/transactions/actions/core", () => ({
 	validateCartaoOwnership: validateCartaoMock,
 }));
 
-import { importNameMappings, transactions } from "@/db/schema";
+import {
+	importCategoryMappings,
+	importNameMappings,
+	transactions,
+} from "@/db/schema";
 import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
 import {
 	applyReconciliationAction,
@@ -111,6 +120,8 @@ const PAYER_ID = "11111111-1111-4111-8111-111111111111";
 const ACCOUNT_ID = "22222222-2222-4222-8222-222222222222";
 const TX_ID = "33333333-3333-4333-8333-333333333333";
 const DESCRIPTOR = "CASA NOVA LOCADORA LTDA - EPP - Boleto";
+const CATEGORY_ID = "44444444-4444-4444-8444-444444444444";
+const SUBCATEGORY_ID = "55555555-5555-4555-8555-555555555555";
 
 const baseInput = {
 	destination: { type: "account" as const, id: ACCOUNT_ID },
@@ -263,7 +274,9 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 	});
 
 	it("marca como pago o lançamento casado quando o destino é conta", async () => {
-		selectQueue.push([{ id: TX_ID, categoryId: null }]);
+		selectQueue.push([
+			{ id: TX_ID, categoryId: CATEGORY_ID, subcategoryId: SUBCATEGORY_ID },
+		]);
 
 		const result = await applyReconciliationAction({
 			...baseInput,
@@ -276,6 +289,22 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 		expect(settledWrites().map((write) => write.payload)).toEqual([
 			{ ofxImportFingerprint: "fp-1", isSettled: true },
 		]);
+
+		// O de-para de categoria sai do lançamento casado, com a subcategoria dele,
+		// e o conflito troca as duas colunas juntas.
+		const categoryUpsert = writes.find(
+			(write) =>
+				write.kind === "upsert" && write.table === importCategoryMappings,
+		);
+		expect(categoryUpsert?.payload).toEqual([
+			expect.objectContaining({
+				categoryId: CATEGORY_ID,
+				subcategoryId: SUBCATEGORY_ID,
+			}),
+		]);
+		expect(
+			Object.keys((categoryUpsert?.config as { set: object }).set),
+		).toEqual(expect.arrayContaining(["categoryId", "subcategoryId"]));
 	});
 
 	it("não mexe em isSettled quando o destino é cartão", async () => {

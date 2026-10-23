@@ -76,6 +76,7 @@ describe("buildReconciliationPlan", () => {
 					transactionId: "transaction-1",
 					descriptor: "PG *ABC SUPERMERCADOS CONTAGEM BRA",
 					categoryId: null,
+					subcategoryId: null,
 				},
 			],
 		});
@@ -96,6 +97,7 @@ describe("buildReconciliationPlan", () => {
 					transactionId: "transaction-1",
 					descriptor: "PG *ABC SUPERMERCADOS CONTAGEM BRA",
 					categoryId: "category-9",
+					subcategoryId: "subcategory-9",
 				},
 			],
 		});
@@ -105,6 +107,7 @@ describe("buildReconciliationPlan", () => {
 				userId: "user-1",
 				descriptionKey: "abc supermercados",
 				categoryId: "category-9",
+				subcategoryId: "subcategory-9",
 			},
 		]);
 	});
@@ -118,12 +121,14 @@ describe("buildReconciliationPlan", () => {
 					transactionId: "transaction-1",
 					descriptor: "DROGASIL2919",
 					categoryId: "category-1",
+					subcategoryId: null,
 				},
 				{
 					fingerprint: "fp-2",
 					transactionId: "transaction-2",
 					descriptor: "DROGASIL 4471",
 					categoryId: "category-2",
+					subcategoryId: null,
 				},
 			],
 		});
@@ -133,6 +138,7 @@ describe("buildReconciliationPlan", () => {
 				userId: "user-1",
 				descriptionKey: "drogasil",
 				categoryId: "category-2",
+				subcategoryId: null,
 			},
 		]);
 		expect(plan.fingerprintUpdates).toHaveLength(2);
@@ -147,6 +153,7 @@ describe("buildReconciliationPlan", () => {
 					transactionId: "transaction-1",
 					descriptor: "   ",
 					categoryId: "category-9",
+					subcategoryId: null,
 				},
 			],
 		});
@@ -290,6 +297,7 @@ describe("buildReconciliationPlan — descriptor, nome e de-para de nome", () =>
 					transactionId: "transaction-1",
 					descriptor: "CASA NOVA LOCADORA LTDA - EPP - Boleto",
 					categoryId: "category-9",
+					subcategoryId: null,
 				},
 			],
 		});

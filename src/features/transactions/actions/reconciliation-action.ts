@@ -195,6 +195,7 @@ export async function applyReconciliationAction(
 					.select({
 						id: transactions.id,
 						categoryId: transactions.categoryId,
+						subcategoryId: transactions.subcategoryId,
 					})
 					.from(transactions)
 					.where(
@@ -211,6 +212,9 @@ export async function applyReconciliationAction(
 
 	const categoryIdByTransaction = new Map(
 		matchedTransactions.map((row) => [row.id, row.categoryId]),
+	);
+	const subcategoryIdByTransaction = new Map(
+		matchedTransactions.map((row) => [row.id, row.subcategoryId]),
 	);
 
 	// Valor anterior e `dividido` saem do banco, no mesmo select que serve de
@@ -255,6 +259,8 @@ export async function applyReconciliationAction(
 			...confirmation,
 			categoryId:
 				categoryIdByTransaction.get(confirmation.transactionId) ?? null,
+			subcategoryId:
+				subcategoryIdByTransaction.get(confirmation.transactionId) ?? null,
 		})),
 		creations: creations.map((creation, index) => ({
 			fingerprint: creation.fingerprint,
@@ -344,6 +350,7 @@ export async function applyReconciliationAction(
 						],
 						set: {
 							categoryId: sql`excluded.category_id`,
+							subcategoryId: sql`excluded.subcategory_id`,
 							updatedAt: sql`excluded.updated_at`,
 						},
 					});
