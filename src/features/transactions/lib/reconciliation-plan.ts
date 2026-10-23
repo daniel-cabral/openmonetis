@@ -25,6 +25,7 @@ export type ReconciliationCreation = {
 	/** Nome do lançamento, editável pelo usuário na revisão. */
 	name: string;
 	categoryId: string | null;
+	subcategoryId: string | null;
 	payerId: string;
 	/**
 	 * Linha de crédito da fatura (adiantamento, estorno). Recebe nota própria
@@ -90,6 +91,7 @@ export type ReconciliationPlan = {
 		accountId: string | null;
 		cardId: string | null;
 		categoryId: string | null;
+		subcategoryId: string | null;
 		ofxImportFingerprint: string;
 		importBatchId: string;
 		/** Só para crédito de fatura; ver `buildInvoiceCreditNote`. */
@@ -144,6 +146,7 @@ export function buildReconciliationPlan(
 		accountId: isCard ? null : input.destination.id,
 		cardId: isCard ? input.destination.id : null,
 		categoryId: creation.categoryId,
+		subcategoryId: creation.subcategoryId,
 		note:
 			creation.isInvoiceCredit && isCard && input.invoicePeriod
 				? buildInvoiceCreditNote(

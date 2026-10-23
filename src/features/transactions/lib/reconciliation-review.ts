@@ -60,6 +60,8 @@ export type ReconciliationRowDecision =
 			/** Nome do lançamento, editável na revisão. */
 			name: string;
 			categoryId: string | null;
+			/** Ausente equivale a sem subcategoria. */
+			subcategoryId?: string | null;
 			payerId: string | null;
 			/** Linha de crédito da fatura; ver `buildInvoiceCreditNote`. */
 			isInvoiceCredit?: boolean;
@@ -95,6 +97,7 @@ export type ReconciliationApplyPayload = {
 		descriptor: string;
 		name: string;
 		categoryId: string | null;
+		subcategoryId: string | null;
 		payerId: string;
 		isInvoiceCredit?: boolean;
 	}[];
@@ -154,6 +157,7 @@ export function buildReconciliationApplyPayload(
 				descriptor: decision.descriptor,
 				name: decision.name,
 				categoryId: decision.categoryId,
+				subcategoryId: decision.subcategoryId ?? null,
 				payerId: decision.payerId ?? defaultPayerId,
 				isInvoiceCredit: decision.isInvoiceCredit,
 			});

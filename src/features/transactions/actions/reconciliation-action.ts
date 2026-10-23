@@ -19,6 +19,8 @@ import { revalidateForEntity } from "@/shared/lib/actions/helpers";
 import { getUserId } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
 import { uuidSchema } from "@/shared/lib/schemas/common";
+import { fetchSubcategoryParents } from "@/shared/lib/subcategories/queries";
+import { validateSubcategoryPairs } from "@/shared/lib/subcategories/rules";
 
 const destinationSchema = z.discriminatedUnion("type", [
 	z.object({ type: z.literal("account"), id: uuidSchema("Conta") }),
@@ -39,6 +41,7 @@ const creationSchema = z.object({
 	descriptor: z.string(),
 	name: z.string().min(1, "Nome obrigatório."),
 	categoryId: uuidSchema("Categoria").nullable().optional(),
+	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
 	payerId: uuidSchema("Pessoa").nullable().optional(),
 	// Linha de crédito da fatura: o lançamento criado recebe nota própria para
 	// ficar fora de renda e despesa nos relatórios.
@@ -181,6 +184,19 @@ export async function applyReconciliationAction(
 		return { success: false, error: "Categoria não encontrada." };
 	}
 
+	const subcategoryParents = await fetchSubcategoryParents(
+		userId,
+		creations.map((creation) => creation.subcategoryId),
+	);
+	const subcategoryError = validateSubcategoryPairs(
+		creations.map((creation) => ({
+			categoryId: creation.categoryId ?? null,
+			subcategoryId: creation.subcategoryId,
+		})),
+		subcategoryParents,
+	);
+	if (subcategoryError) return { success: false, error: subcategoryError };
+
 	// A categoria do de-para sai do lançamento casado, no banco, e não do
 	// cliente: o mesmo select já serve de guard de ownership.
 	const confirmationIds = [
@@ -270,6 +286,7 @@ export async function applyReconciliationAction(
 			descriptor: creation.descriptor,
 			name: creation.name,
 			categoryId: creation.categoryId ?? null,
+			subcategoryId: creation.subcategoryId ?? null,
 			payerId: payerIdsByCreation[index],
 			isInvoiceCredit: creation.isInvoiceCredit,
 		})),

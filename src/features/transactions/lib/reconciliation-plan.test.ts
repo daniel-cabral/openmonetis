@@ -17,6 +17,8 @@ const BASE: ReconciliationPlanInput = {
 	ignores: [],
 };
 
+const SUBCATEGORY_FAXINA = "subcategory-faxina";
+
 const CREATION = {
 	fingerprint: "fp-create",
 	date: "2026-08-14",
@@ -25,12 +27,16 @@ const CREATION = {
 	descriptor: "ABC SUPERMERCADOS CONTAGEM BRA",
 	name: "Mercado",
 	categoryId: "category-1",
+	subcategoryId: null,
 	payerId: "payer-1",
 };
 
 describe("buildReconciliationPlan", () => {
 	it("transforma linha a criar em lançamento do lote com valor assinado", () => {
-		const plan = buildReconciliationPlan({ ...BASE, creations: [CREATION] });
+		const plan = buildReconciliationPlan({
+			...BASE,
+			creations: [{ ...CREATION, subcategoryId: SUBCATEGORY_FAXINA }],
+		});
 
 		expect(plan.inserts).toHaveLength(1);
 		expect(plan.inserts[0]).toMatchObject({
@@ -41,6 +47,7 @@ describe("buildReconciliationPlan", () => {
 			userId: "user-1",
 			payerId: "payer-1",
 			categoryId: "category-1",
+			subcategoryId: SUBCATEGORY_FAXINA,
 			accountId: "account-1",
 			cardId: null,
 			ofxImportFingerprint: "fp-create",
@@ -390,6 +397,7 @@ describe("buildReconciliationPlan — atualização de valor", () => {
 					descriptor: "Inclusao de Pagamento",
 					name: "Adiantamento da fatura",
 					categoryId: null,
+					subcategoryId: null,
 					payerId: "payer-1",
 					isInvoiceCredit: true,
 				},
@@ -414,6 +422,7 @@ describe("buildReconciliationPlan — atualização de valor", () => {
 					descriptor: "LOJA TESTE",
 					name: "Loja",
 					categoryId: null,
+					subcategoryId: null,
 					payerId: "payer-1",
 				},
 			],
