@@ -5,6 +5,18 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.14.0] - 2026-10-23
+
+Esta versão traz subcategorias opcionais dentro de cada categoria, para detalhar para onde vai o dinheiro sem criar uma segunda hierarquia. Cada lançamento aceita no máximo uma subcategoria, e os totais por categoria continuam iguais aos de antes.
+
+### Adicionado
+
+- Subcategorias no diálogo da categoria, criadas e editadas junto com ela
+- Subcategoria opcional no lançamento
+- Bloco "Por subcategoria" com filtro na página da categoria, somando o mesmo total do mês
+- Ação "Definir subcategoria" em massa na lista de lançamentos
+- Importação e conciliação lembram a subcategoria escolhida para cada categoria
+
 ## [2.13.5] - 2026-10-15
 
 O card Previsto do dashboard passa a responder quanto sobra no fim do mês. Antes ele somava o balanço de 24 meses e não tinha relação com o saldo das contas, o que fazia o número parecer contraditório com o saldo atual e as contas pendentes.

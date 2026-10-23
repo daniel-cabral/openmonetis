@@ -10,7 +10,7 @@
 
 > **Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
 
-[![Version](https://img.shields.io/badge/version-2.13.5-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.14.0-blue?style=flat-square)](CHANGELOG.md)
 [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -65,7 +65,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 ### Funcionalidades
 
-💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas, rendimentos e transferências. Categorização, divisão de lançamentos entre várias pessoas, filtros combináveis com intervalo de datas, extratos detalhados com identificação visual clara da conta e importação de extratos OFX e XLS/XLSX com detecção automática de categoria e deduplicação resiliente a identificadores bancários repetidos.
+💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas, rendimentos e transferências. Categorização com subcategorias opcionais, divisão de lançamentos entre várias pessoas, filtros combináveis com intervalo de datas, extratos detalhados com identificação visual clara da conta e importação de extratos OFX e XLS/XLSX com detecção automática de categoria e deduplicação resiliente a identificadores bancários repetidos.
 
 📊 **Dashboard e relatórios** — Widgets personalizáveis com listas consistentes, métricas com atalhos para lançamentos, gráficos de evolução, comparativos por categoria, tendências, uso de cartões, top estabelecimentos e navegação direta entre meses pelo seletor de período. Exportação em PDF e Excel.
 
