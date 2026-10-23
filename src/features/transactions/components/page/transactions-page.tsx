@@ -10,6 +10,7 @@ import {
 	deleteMultipleTransactionsAction,
 	deleteTransactionAction,
 	deleteTransactionBulkAction,
+	setTransactionsSubcategoryAction,
 	toggleTransactionSettlementAction,
 	updateTransactionAction,
 	updateTransactionBulkAction,
@@ -451,6 +452,24 @@ export function TransactionsPage({
 		setPendingMultipleDeleteData([]);
 	};
 
+	const handleBulkSetSubcategory = async (
+		items: TransactionItem[],
+		subcategoryId: string | null,
+	) => {
+		const result = await setTransactionsSubcategoryAction({
+			ids: items.map((item) => item.id),
+			subcategoryId,
+		});
+
+		if (!result.success) {
+			toast.error(result.error);
+			return false;
+		}
+
+		toast.success(result.message);
+		return true;
+	};
+
 	const handleMassAdd = () => {
 		setMassAddOpen(true);
 	};
@@ -760,6 +779,7 @@ export function TransactionsPage({
 				groupTransactionsByDate={groupTransactionsByDate}
 				payerFilterOptions={payerFilterOptions}
 				categoryFilterOptions={categoryFilterOptions}
+				categoryOptions={categoryOptions}
 				accountCardFilterOptions={accountCardFilterOptions}
 				selectedPeriod={selectedPeriod}
 				pagination={pagination}
@@ -772,6 +792,7 @@ export function TransactionsPage({
 				onConfirmDelete={handleConfirmDelete}
 				onBulkDelete={handleMultipleBulkDelete}
 				onBulkImport={handleBulkImport}
+				onBulkSetSubcategory={handleBulkSetSubcategory}
 				onViewDetails={handleViewDetails}
 				onRefund={handleRefund}
 				onConvertToInstallment={handleConvertToInstallment}

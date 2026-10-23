@@ -1,12 +1,32 @@
-import { RiDeleteBin5Line, RiFileCopyLine } from "@remixicon/react";
+import {
+	RiDeleteBin5Line,
+	RiFileCopyLine,
+	RiPriceTag3Line,
+} from "@remixicon/react";
+import { Fragment } from "react";
 import MoneyValues from "@/shared/components/money-values";
 import { Button } from "@/shared/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import type { SubcategoryOption } from "@/shared/lib/subcategories/types";
 
 type TransactionsBulkBarProps = {
 	selectedCount: number;
 	selectedTotal: number;
 	mode: "delete" | "import";
 	onAction: () => void;
+	subcategoryGroups?: Array<{
+		categoryId: string;
+		categoryName: string;
+		subcategories: SubcategoryOption[];
+	}>;
+	onSetSubcategory?: (subcategoryId: string | null) => void;
 };
 
 export function TransactionsBulkBar({
@@ -14,6 +34,8 @@ export function TransactionsBulkBar({
 	selectedTotal,
 	mode,
 	onAction,
+	subcategoryGroups,
+	onSetSubcategory,
 }: TransactionsBulkBarProps) {
 	return (
 		<div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2">
@@ -34,15 +56,41 @@ export function TransactionsBulkBar({
 				</span>
 			</div>
 			{mode === "delete" ? (
-				<Button
-					onClick={onAction}
-					variant="destructive"
-					size="sm"
-					className="ml-auto"
-				>
-					<RiDeleteBin5Line className="size-4" />
-					Remover selecionados
-				</Button>
+				<div className="ml-auto flex items-center gap-2">
+					{onSetSubcategory && subcategoryGroups?.length ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" size="sm">
+									<RiPriceTag3Line className="size-4" />
+									Definir subcategoria
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								{subcategoryGroups.map((group) => (
+									<Fragment key={group.categoryId}>
+										<DropdownMenuLabel>{group.categoryName}</DropdownMenuLabel>
+										{group.subcategories.map((subcategory) => (
+											<DropdownMenuItem
+												key={subcategory.id}
+												onClick={() => onSetSubcategory(subcategory.id)}
+											>
+												{subcategory.name}
+											</DropdownMenuItem>
+										))}
+									</Fragment>
+								))}
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={() => onSetSubcategory(null)}>
+									Remover subcategoria
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
+					<Button onClick={onAction} variant="destructive" size="sm">
+						<RiDeleteBin5Line className="size-4" />
+						Remover selecionados
+					</Button>
+				</div>
 			) : (
 				<Button
 					onClick={onAction}

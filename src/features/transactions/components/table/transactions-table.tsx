@@ -44,6 +44,7 @@ import { cn } from "@/shared/utils/ui";
 import { TransactionsExport } from "../transactions-export";
 import type {
 	AccountCardFilterOption,
+	SelectOption,
 	TransactionFilterOption,
 	TransactionItem,
 } from "../types";
@@ -60,6 +61,7 @@ type TransactionsTableProps = {
 	columnOrder?: string[] | null;
 	payerFilterOptions?: TransactionFilterOption[];
 	categoryFilterOptions?: TransactionFilterOption[];
+	categoryOptions?: SelectOption[];
 	accountCardFilterOptions?: AccountCardFilterOption[];
 	selectedPeriod?: string;
 	pagination?: TransactionsPaginationState;
@@ -72,6 +74,10 @@ type TransactionsTableProps = {
 	onConfirmDelete?: (item: TransactionItem) => void;
 	onBulkDelete?: (items: TransactionItem[]) => void;
 	onBulkImport?: (items: TransactionItem[]) => void;
+	onBulkSetSubcategory?: (
+		items: TransactionItem[],
+		subcategoryId: string | null,
+	) => Promise<boolean>;
 	onViewDetails?: (item: TransactionItem) => void;
 	onRefund?: (item: TransactionItem) => void;
 	onConvertToInstallment?: (item: TransactionItem) => void;
@@ -92,6 +98,7 @@ export function TransactionsTable({
 	columnOrder: columnOrderPreference = null,
 	payerFilterOptions = [],
 	categoryFilterOptions = [],
+	categoryOptions = [],
 	accountCardFilterOptions = [],
 	selectedPeriod,
 	pagination: serverPagination,
@@ -104,6 +111,7 @@ export function TransactionsTable({
 	onConfirmDelete,
 	onBulkDelete,
 	onBulkImport,
+	onBulkSetSubcategory,
 	onViewDetails,
 	onRefund,
 	onConvertToInstallment,
@@ -235,6 +243,22 @@ export function TransactionsTable({
 		(total, row) => total + (row.original.amount ?? 0),
 		0,
 	);
+	const selectedSubcategoryGroups = Array.from(
+		new Set(selectedRows.map((row) => row.original.categoryId)),
+	).flatMap((categoryId) => {
+		const category = categoryOptions.find(
+			(option) => option.value === categoryId,
+		);
+		return category?.subcategories?.length
+			? [
+					{
+						categoryId: category.value,
+						categoryName: category.label,
+						subcategories: category.subcategories,
+					},
+				]
+			: [];
+	});
 	const currentPage = isServerPaginated
 		? (serverPagination?.page ?? 1)
 		: table.getState().pagination.pageIndex + 1;
@@ -260,6 +284,18 @@ export function TransactionsTable({
 		if (onBulkImport && selectedImportRows.length > 0) {
 			onBulkImport(selectedImportRows.map((row) => row.original));
 			setRowSelection({});
+		}
+	};
+
+	const handleBulkSetSubcategory = async (subcategoryId: string | null) => {
+		if (onBulkSetSubcategory && selectedCount > 0) {
+			const saved = await onBulkSetSubcategory(
+				selectedRows.map((row) => row.original),
+				subcategoryId,
+			);
+			if (saved) {
+				setRowSelection({});
+			}
 		}
 	};
 
@@ -413,6 +449,10 @@ export function TransactionsTable({
 					selectedTotal={selectedTotal}
 					mode="delete"
 					onAction={handleBulkDelete}
+					subcategoryGroups={selectedSubcategoryGroups}
+					onSetSubcategory={
+						onBulkSetSubcategory ? handleBulkSetSubcategory : undefined
+					}
 				/>
 			) : null}
 
