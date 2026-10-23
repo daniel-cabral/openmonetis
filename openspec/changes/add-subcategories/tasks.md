@@ -372,7 +372,7 @@ git commit -m "feat(lancamentos): opcoes de categoria carregam suas subcategoria
 
 Test declaration: `Test: new, because distinct contract (subcategory form rules); form-helpers-trip.test.ts is scoped to trips`. Reuse its `transaction` fixture shape and call `buildTransactionInitialState(transaction)` as it does.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it("edicao abre com a subcategoria gravada", () => {
@@ -385,11 +385,11 @@ it("trocar a categoria limpa a subcategoria escolhida", () => {
 }); // [S: Trocar categoria limpa subcategoria]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/form-helpers-subcategory.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test plus `src/features/transactions/lib/form-helpers-trip.test.ts`. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/form-helpers-subcategory.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test plus `src/features/transactions/lib/form-helpers-trip.test.ts`. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/lib/form-helpers.ts src/features/transactions/lib/form-helpers-subcategory.test.ts`.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/lib/form-helpers.ts src/features/transactions/lib/form-helpers-subcategory.test.ts
