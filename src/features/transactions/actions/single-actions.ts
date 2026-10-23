@@ -19,6 +19,7 @@ import {
 	buildEntriesByPayer,
 	sendPayerAutoEmails,
 } from "@/shared/lib/payers/notifications";
+import { resolveSubcategoryForWrite } from "@/shared/lib/subcategories/queries";
 import { setTripForTransactions } from "@/shared/lib/trips/link";
 import { validateTripOwnership } from "@/shared/lib/trips/queries";
 import type { ActionResult } from "@/shared/lib/types/actions";
@@ -78,6 +79,14 @@ export async function createTransactionAction(
 		const tripError = await validateTripOwnership(user.id, data.tripId);
 		if (tripError) {
 			return { success: false, error: tripError };
+		}
+
+		const subcategory = await resolveSubcategoryForWrite(user.id, {
+			requested: data.subcategoryId,
+			categoryId: data.categoryId ?? null,
+		});
+		if (!subcategory.ok) {
+			return { success: false, error: subcategory.error };
 		}
 
 		const period = resolvePeriod(data.purchaseDate, data.period);
@@ -249,6 +258,7 @@ export async function updateTransactionAction(
 				accountId: true,
 				cardId: true,
 				categoryId: true,
+				subcategoryId: true,
 				tripId: true,
 			},
 			where: and(
@@ -266,6 +276,7 @@ export async function updateTransactionAction(
 					accountId: string | null;
 					cardId: string | null;
 					categoryId: string | null;
+					subcategoryId: string | null;
 					tripId: string | null;
 			  }
 			| undefined;
@@ -286,6 +297,18 @@ export async function updateTransactionAction(
 				success: false,
 				error: "Lançamentos de saldo inicial não podem ser editados.",
 			};
+		}
+
+		const subcategory = await resolveSubcategoryForWrite(user.id, {
+			requested: data.subcategoryId,
+			categoryId: data.categoryId ?? null,
+			existing: {
+				categoryId: existing.categoryId,
+				subcategoryId: existing.subcategoryId,
+			},
+		});
+		if (!subcategory.ok) {
+			return { success: false, error: subcategory.error };
 		}
 
 		const period = resolvePeriod(data.purchaseDate, data.period);
@@ -352,6 +375,7 @@ export async function updateTransactionAction(
 				accountId: data.accountId ?? null,
 				cardId: data.cardId ?? null,
 				categoryId: data.categoryId ?? null,
+				subcategoryId: subcategory.subcategoryId,
 				note: data.note ?? null,
 				isSettled: normalizedSettled,
 				installmentCount: data.installmentCount ?? null,
@@ -883,6 +907,7 @@ export async function updateTransactionSplitPairAction(
 				accountId: true,
 				cardId: true,
 				categoryId: true,
+				subcategoryId: true,
 				splitGroupId: true,
 				tripId: true,
 			},
@@ -894,6 +919,18 @@ export async function updateTransactionSplitPairAction(
 
 		if (!existing) {
 			return { success: false, error: "Lançamento não encontrado." };
+		}
+
+		const subcategory = await resolveSubcategoryForWrite(user.id, {
+			requested: data.subcategoryId,
+			categoryId: data.categoryId ?? null,
+			existing: {
+				categoryId: existing.categoryId,
+				subcategoryId: existing.subcategoryId,
+			},
+		});
+		if (!subcategory.ok) {
+			return { success: false, error: subcategory.error };
 		}
 
 		const period = resolvePeriod(data.purchaseDate, data.period);
@@ -943,6 +980,7 @@ export async function updateTransactionSplitPairAction(
 			accountId: data.accountId ?? null,
 			cardId: data.cardId ?? null,
 			categoryId: data.categoryId ?? null,
+			subcategoryId: subcategory.subcategoryId,
 			note: data.note ?? null,
 			dueDate,
 			period,

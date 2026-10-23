@@ -236,7 +236,7 @@ git commit -m "feat(categorias): gerir subcategorias no dialogo da categoria"
 
 Test declaration: `Test: new, because distinct contract (subcategory validation in write actions) and a db fake with a select chain that trip-link-wiring.test.ts does not have`. Copy the harness of `trip-link-wiring.test.ts` (same `vi.mock` list for auth, actions/helpers, payers/notifications, `./attachments`, `../lib/attachment-copy`, trips modules, partial `./core`), and extend `dbMock` with `select: () => ({ from: () => ({ where: () => Promise.resolve(selectQueue.shift() ?? []) }) })` and `insert: () => ({ values: (v) => { insertWrites.push(v); return { returning: () => Promise.resolve(v.map((_, i) => ({ id: \`new-${i}\` }))) }; } })`. Do not mock `@/shared/lib/subcategories/*`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("cria Faxina Maria, R$ 120,00, Moradia/Faxina", async () => {
@@ -260,11 +260,11 @@ it("trocar Moradia/Faxina para Transporte sem enviar subcategoria limpa", async 
 }); // [S: Trocar categoria limpa subcategoria]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the new test and the neighbours that share `core.ts`: `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts src/features/transactions/actions/trip-link-wiring.test.ts src/features/transactions/actions/core-trip.test.ts`. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the new test and the neighbours that share `core.ts`: `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts src/features/transactions/actions/trip-link-wiring.test.ts src/features/transactions/actions/core-trip.test.ts`. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/actions/core.ts src/features/transactions/actions/single-actions.ts src/features/transactions/actions/subcategory-wiring.test.ts`.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/core.ts src/features/transactions/actions/single-actions.ts src/features/transactions/actions/subcategory-wiring.test.ts

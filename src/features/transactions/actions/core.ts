@@ -333,6 +333,7 @@ const baseFields = z.object({
 	accountId: uuidSchema("FinancialAccount").nullable().optional(),
 	cardId: uuidSchema("Cartão").nullable().optional(),
 	categoryId: uuidSchema("Category").nullable().optional(),
+	subcategoryId: z.string().uuid("Subcategoria inválida.").nullable().optional(),
 	tripId: tripIdSchema,
 	note: noteSchema,
 	installmentCount: z.coerce
@@ -719,6 +720,7 @@ export const buildTransactionRecords = ({
 		accountId: data.accountId ?? null,
 		cardId: data.cardId ?? null,
 		categoryId: data.categoryId ?? null,
+		subcategoryId: data.subcategoryId ?? null,
 		// Transfers never belong to a trip (D5).
 		tripId:
 			data.transactionType === "Transferência" ? null : (data.tripId ?? null),
