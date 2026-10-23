@@ -335,7 +335,7 @@ git commit -m "feat(lancamentos): series, conversoes e antecipacao mantem a subc
 
 Test declaration: `Test: new, because distinct contract (options builder carrying subcategories); no test covers buildOptionSets today`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it("Moradia oferece suas subcategorias e Transporte nenhuma", () => {
@@ -347,11 +347,11 @@ it("Moradia oferece suas subcategorias e Transporte nenhuma", () => {
 }); // [S: Seletor só aparece quando há subcategorias]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/subcategory-options.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test plus `src/features/transactions/lib/form-helpers-trip.test.ts`. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/subcategory-options.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test plus `src/features/transactions/lib/form-helpers-trip.test.ts`. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five touched files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/components/types.ts src/features/transactions/queries.ts src/features/transactions/lib/page-helpers.ts src/features/transactions/lib/subcategory-options.ts src/features/transactions/lib/subcategory-options.test.ts
