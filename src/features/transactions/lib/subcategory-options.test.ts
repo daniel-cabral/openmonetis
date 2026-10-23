@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildOptionSets, buildSluggedFilters } from "./page-helpers";
+import {
+	buildOptionSets,
+	buildSluggedFilters,
+	mapTransactionsData,
+} from "./page-helpers";
 import { getSubcategoryOptions } from "./subcategory-options";
 
 const MORADIA = "11111111-1111-4111-8111-111111111111";
@@ -38,12 +42,16 @@ const { categoryOptions } = buildOptionSets({
 });
 
 describe("getSubcategoryOptions", () => {
-	it("lista só as subcategorias da categoria escolhida e nada sem categoria ou sem subcategorias", () => {
+	it("lista só as subcategorias da categoria escolhida, nada sem categoria ou sem subcategorias, e o lançamento carrega a sua", () => {
 		expect(getSubcategoryOptions(categoryOptions, MORADIA)).toEqual([
 			{ id: ALUGUEL, name: "Aluguel" },
 			{ id: FAXINA, name: "Faxina" },
 		]);
 		expect(getSubcategoryOptions(categoryOptions, TRANSPORTE)).toEqual([]);
 		expect(getSubcategoryOptions(categoryOptions, null)).toEqual([]);
+		expect(
+			mapTransactionsData([{ id: "t1", subcategoryId: FAXINA }])[0]
+				?.subcategoryId,
+		).toBe(FAXINA);
 	});
 });

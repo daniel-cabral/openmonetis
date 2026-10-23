@@ -1,7 +1,10 @@
+import type { SQL } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
 	const updateWrites: unknown[] = [];
+	const updateConditions: unknown[] = [];
 	const selectQueue: unknown[][] = [];
 	const findManyMock = vi.fn();
 	const dbMock = {
@@ -16,12 +19,18 @@ const mocks = vi.hoisted(() => {
 		update: () => ({
 			set: (values: unknown) => {
 				updateWrites.push(values);
-				return { where: () => Promise.resolve(undefined) };
+				return {
+					where: (condition: unknown) => {
+						updateConditions.push(condition);
+						return Promise.resolve(undefined);
+					},
+				};
 			},
 		}),
 	};
 	return {
 		updateWrites,
+		updateConditions,
 		selectQueue,
 		findManyMock,
 		dbMock,
@@ -74,6 +83,7 @@ const moradiaRow = {
 
 beforeEach(() => {
 	mocks.updateWrites.length = 0;
+	mocks.updateConditions.length = 0;
 	mocks.selectQueue.length = 0;
 	vi.clearAllMocks();
 	mocks.getUserMock.mockResolvedValue({
@@ -93,7 +103,12 @@ describe("setTransactionsSubcategoryAction", () => {
 			{ id: TX_5, ...moradiaRow, categoryId: TRANSPORTE },
 		]);
 		mocks.selectQueue.push([
-			{ id: FAXINA, name: "Faxina", categoryId: MORADIA, categoryName: "Moradia" },
+			{
+				id: FAXINA,
+				name: "Faxina",
+				categoryId: MORADIA,
+				categoryName: "Moradia",
+			},
 		]);
 
 		const result = await setTransactionsSubcategoryAction({
@@ -108,6 +123,13 @@ describe("setTransactionsSubcategoryAction", () => {
 			data: { updated: 4, skipped: 1 },
 		});
 		expect(mocks.updateWrites).toEqual([{ subcategoryId: FAXINA }]);
+		const updatedIds = new PgDialect().sqlToQuery(
+			mocks.updateConditions[0] as SQL,
+		).params;
+		expect(updatedIds).toEqual(
+			expect.arrayContaining([TX_1, TX_2, TX_3, TX_4]),
+		);
+		expect(updatedIds).not.toContain(TX_5);
 	});
 
 	it("lancamento protegido na selecao recusa o lote inteiro", async () => {
@@ -123,7 +145,12 @@ describe("setTransactionsSubcategoryAction", () => {
 			},
 		]);
 		mocks.selectQueue.push([
-			{ id: FAXINA, name: "Faxina", categoryId: MORADIA, categoryName: "Moradia" },
+			{
+				id: FAXINA,
+				name: "Faxina",
+				categoryId: MORADIA,
+				categoryName: "Moradia",
+			},
 		]);
 
 		const result = await setTransactionsSubcategoryAction({
