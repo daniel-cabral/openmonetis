@@ -109,12 +109,8 @@
 					"name": "account_userId_user_id_fk",
 					"tableFrom": "account",
 					"tableTo": "user",
-					"columnsFrom": [
-						"userId"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["userId"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -214,12 +210,8 @@
 					"name": "tokens_api_user_id_user_id_fk",
 					"tableFrom": "tokens_api",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -301,12 +293,8 @@
 					"name": "anexos_user_id_user_id_fk",
 					"tableFrom": "anexos",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -316,9 +304,7 @@
 				"anexos_chave_arquivo_unique": {
 					"name": "anexos_chave_arquivo_unique",
 					"nullsNotDistinct": false,
-					"columns": [
-						"chave_arquivo"
-					]
+					"columns": ["chave_arquivo"]
 				}
 			},
 			"policies": {},
@@ -438,12 +424,8 @@
 					"name": "orcamentos_user_id_user_id_fk",
 					"tableFrom": "orcamentos",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -451,12 +433,8 @@
 					"name": "orcamentos_categoria_id_categorias_id_fk",
 					"tableFrom": "orcamentos",
 					"tableTo": "categorias",
-					"columnsFrom": [
-						"categoria_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["categoria_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				}
@@ -569,12 +547,8 @@
 					"name": "cartoes_user_id_user_id_fk",
 					"tableFrom": "cartoes",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -582,12 +556,8 @@
 					"name": "cartoes_conta_id_contas_id_fk",
 					"tableFrom": "cartoes",
 					"tableTo": "contas",
-					"columnsFrom": [
-						"conta_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["conta_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				}
@@ -669,12 +639,8 @@
 					"name": "categorias_user_id_user_id_fk",
 					"tableFrom": "categorias",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -769,12 +735,8 @@
 					"name": "dashboard_notification_states_user_id_user_id_fk",
 					"tableFrom": "dashboard_notification_states",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -821,12 +783,8 @@
 					"name": "establishment_logos_user_id_user_id_fk",
 					"tableFrom": "establishment_logos",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -834,10 +792,7 @@
 			"compositePrimaryKeys": {
 				"establishment_logos_user_id_name_key_pk": {
 					"name": "establishment_logos_user_id_name_key_pk",
-					"columns": [
-						"user_id",
-						"name_key"
-					]
+					"columns": ["user_id", "name_key"]
 				}
 			},
 			"uniqueConstraints": {},
@@ -927,12 +882,8 @@
 					"name": "contas_user_id_user_id_fk",
 					"tableFrom": "contas",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -1001,12 +952,8 @@
 					"name": "import_category_mappings_user_id_user_id_fk",
 					"tableFrom": "import_category_mappings",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1014,12 +961,8 @@
 					"name": "import_category_mappings_category_id_categorias_id_fk",
 					"tableFrom": "import_category_mappings",
 					"tableTo": "categorias",
-					"columnsFrom": [
-						"category_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["category_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1027,12 +970,8 @@
 					"name": "import_category_mappings_subcategory_id_subcategorias_id_fk",
 					"tableFrom": "import_category_mappings",
 					"tableTo": "subcategorias",
-					"columnsFrom": [
-						"subcategory_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["subcategory_id"],
+					"columnsTo": ["id"],
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
@@ -1040,10 +979,7 @@
 			"compositePrimaryKeys": {
 				"import_category_mappings_user_id_description_key_pk": {
 					"name": "import_category_mappings_user_id_description_key_pk",
-					"columns": [
-						"user_id",
-						"description_key"
-					]
+					"columns": ["user_id", "description_key"]
 				}
 			},
 			"uniqueConstraints": {},
@@ -1087,12 +1023,8 @@
 					"name": "import_name_mappings_user_id_user_id_fk",
 					"tableFrom": "import_name_mappings",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -1100,10 +1032,7 @@
 			"compositePrimaryKeys": {
 				"import_name_mappings_user_id_description_key_pk": {
 					"name": "import_name_mappings_user_id_description_key_pk",
-					"columns": [
-						"user_id",
-						"description_key"
-					]
+					"columns": ["user_id", "description_key"]
 				}
 			},
 			"uniqueConstraints": {},
@@ -1274,12 +1203,8 @@
 					"name": "pre_lancamentos_user_id_user_id_fk",
 					"tableFrom": "pre_lancamentos",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1287,12 +1212,8 @@
 					"name": "pre_lancamentos_lancamento_id_lancamentos_id_fk",
 					"tableFrom": "pre_lancamentos",
 					"tableTo": "lancamentos",
-					"columnsFrom": [
-						"lancamento_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["lancamento_id"],
+					"columnsTo": ["id"],
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
@@ -1462,12 +1383,8 @@
 					"name": "antecipacoes_parcelas_lancamento_id_lancamentos_id_fk",
 					"tableFrom": "antecipacoes_parcelas",
 					"tableTo": "lancamentos",
-					"columnsFrom": [
-						"lancamento_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["lancamento_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1475,12 +1392,8 @@
 					"name": "antecipacoes_parcelas_pagador_id_pagadores_id_fk",
 					"tableFrom": "antecipacoes_parcelas",
 					"tableTo": "pagadores",
-					"columnsFrom": [
-						"pagador_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["pagador_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1488,12 +1401,8 @@
 					"name": "antecipacoes_parcelas_categoria_id_categorias_id_fk",
 					"tableFrom": "antecipacoes_parcelas",
 					"tableTo": "categorias",
-					"columnsFrom": [
-						"categoria_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["categoria_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1501,12 +1410,8 @@
 					"name": "antecipacoes_parcelas_user_id_user_id_fk",
 					"tableFrom": "antecipacoes_parcelas",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -1636,12 +1541,8 @@
 					"name": "faturas_user_id_user_id_fk",
 					"tableFrom": "faturas",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1649,12 +1550,8 @@
 					"name": "faturas_cartao_id_cartoes_id_fk",
 					"tableFrom": "faturas",
 					"tableTo": "cartoes",
-					"columnsFrom": [
-						"cartao_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["cartao_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				}
@@ -1704,12 +1601,8 @@
 					"name": "anotacao_anexos_anotacao_id_anotacoes_id_fk",
 					"tableFrom": "anotacao_anexos",
 					"tableTo": "anotacoes",
-					"columnsFrom": [
-						"anotacao_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["anotacao_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -1717,12 +1610,8 @@
 					"name": "anotacao_anexos_anexo_id_anexos_id_fk",
 					"tableFrom": "anotacao_anexos",
 					"tableTo": "anexos",
-					"columnsFrom": [
-						"anexo_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["anexo_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -1730,10 +1619,7 @@
 			"compositePrimaryKeys": {
 				"anotacao_anexos_anotacao_id_anexo_id_pk": {
 					"name": "anotacao_anexos_anotacao_id_anexo_id_pk",
-					"columns": [
-						"anotacao_id",
-						"anexo_id"
-					]
+					"columns": ["anotacao_id", "anexo_id"]
 				}
 			},
 			"uniqueConstraints": {},
@@ -1820,12 +1706,8 @@
 					"name": "anotacoes_user_id_user_id_fk",
 					"tableFrom": "anotacoes",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -1929,12 +1811,8 @@
 					"name": "passkey_userId_user_id_fk",
 					"tableFrom": "passkey",
 					"tableTo": "user",
-					"columnsFrom": [
-						"userId"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["userId"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2047,12 +1925,8 @@
 					"name": "compartilhamentos_pagador_pagador_id_pagadores_id_fk",
 					"tableFrom": "compartilhamentos_pagador",
 					"tableTo": "pagadores",
-					"columnsFrom": [
-						"pagador_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["pagador_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -2060,12 +1934,8 @@
 					"name": "compartilhamentos_pagador_shared_with_user_id_user_id_fk",
 					"tableFrom": "compartilhamentos_pagador",
 					"tableTo": "user",
-					"columnsFrom": [
-						"shared_with_user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["shared_with_user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -2073,12 +1943,8 @@
 					"name": "compartilhamentos_pagador_created_by_user_id_user_id_fk",
 					"tableFrom": "compartilhamentos_pagador",
 					"tableTo": "user",
-					"columnsFrom": [
-						"created_by_user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["created_by_user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2191,12 +2057,8 @@
 					"name": "pagadores_user_id_user_id_fk",
 					"tableFrom": "pagadores",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2243,12 +2105,8 @@
 					"name": "reconciliation_ignores_user_id_user_id_fk",
 					"tableFrom": "reconciliation_ignores",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2256,10 +2114,7 @@
 			"compositePrimaryKeys": {
 				"reconciliation_ignores_user_id_fingerprint_pk": {
 					"name": "reconciliation_ignores_user_id_fingerprint_pk",
-					"columns": [
-						"user_id",
-						"fingerprint"
-					]
+					"columns": ["user_id", "fingerprint"]
 				}
 			},
 			"uniqueConstraints": {},
@@ -2345,12 +2200,8 @@
 					"name": "insights_salvos_user_id_user_id_fk",
 					"tableFrom": "insights_salvos",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2436,12 +2287,8 @@
 					"name": "session_userId_user_id_fk",
 					"tableFrom": "session",
 					"tableTo": "user",
-					"columnsFrom": [
-						"userId"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["userId"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2451,9 +2298,7 @@
 				"session_token_unique": {
 					"name": "session_token_unique",
 					"nullsNotDistinct": false,
-					"columns": [
-						"token"
-					]
+					"columns": ["token"]
 				}
 			},
 			"policies": {},
@@ -2525,12 +2370,8 @@
 					"name": "subcategorias_categoria_id_categorias_id_fk",
 					"tableFrom": "subcategorias",
 					"tableTo": "categorias",
-					"columnsFrom": [
-						"categoria_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["categoria_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -2538,12 +2379,8 @@
 					"name": "subcategorias_user_id_user_id_fk",
 					"tableFrom": "subcategorias",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2593,12 +2430,8 @@
 					"name": "lancamento_anexos_lancamento_id_lancamentos_id_fk",
 					"tableFrom": "lancamento_anexos",
 					"tableTo": "lancamentos",
-					"columnsFrom": [
-						"lancamento_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["lancamento_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -2606,12 +2439,8 @@
 					"name": "lancamento_anexos_anexo_id_anexos_id_fk",
 					"tableFrom": "lancamento_anexos",
 					"tableTo": "anexos",
-					"columnsFrom": [
-						"anexo_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["anexo_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -2619,10 +2448,7 @@
 			"compositePrimaryKeys": {
 				"lancamento_anexos_lancamento_id_anexo_id_pk": {
 					"name": "lancamento_anexos_lancamento_id_anexo_id_pk",
-					"columns": [
-						"lancamento_id",
-						"anexo_id"
-					]
+					"columns": ["lancamento_id", "anexo_id"]
 				}
 			},
 			"uniqueConstraints": {},
@@ -3152,12 +2978,8 @@
 					"name": "lancamentos_antecipacao_id_antecipacoes_parcelas_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "antecipacoes_parcelas",
-					"columnsFrom": [
-						"antecipacao_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["antecipacao_id"],
+					"columnsTo": ["id"],
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
@@ -3165,12 +2987,8 @@
 					"name": "lancamentos_user_id_user_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
@@ -3178,12 +2996,8 @@
 					"name": "lancamentos_cartao_id_cartoes_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "cartoes",
-					"columnsFrom": [
-						"cartao_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["cartao_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				},
@@ -3191,12 +3005,8 @@
 					"name": "lancamentos_conta_id_contas_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "contas",
-					"columnsFrom": [
-						"conta_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["conta_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				},
@@ -3204,12 +3014,8 @@
 					"name": "lancamentos_categoria_id_categorias_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "categorias",
-					"columnsFrom": [
-						"categoria_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["categoria_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				},
@@ -3217,12 +3023,8 @@
 					"name": "lancamentos_subcategoria_id_subcategorias_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "subcategorias",
-					"columnsFrom": [
-						"subcategoria_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["subcategoria_id"],
+					"columnsTo": ["id"],
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
@@ -3230,12 +3032,8 @@
 					"name": "lancamentos_pagador_id_pagadores_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "pagadores",
-					"columnsFrom": [
-						"pagador_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["pagador_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				},
@@ -3243,12 +3041,8 @@
 					"name": "lancamentos_viagem_id_viagens_id_fk",
 					"tableFrom": "lancamentos",
 					"tableTo": "viagens",
-					"columnsFrom": [
-						"viagem_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["viagem_id"],
+					"columnsTo": ["id"],
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
@@ -3336,12 +3130,8 @@
 					"name": "viagens_user_id_user_id_fk",
 					"tableFrom": "viagens",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -3406,9 +3196,7 @@
 				"user_email_unique": {
 					"name": "user_email_unique",
 					"nullsNotDistinct": false,
-					"columns": [
-						"email"
-					]
+					"columns": ["email"]
 				}
 			},
 			"policies": {},
@@ -3500,12 +3288,8 @@
 					"name": "preferencias_usuario_user_id_user_id_fk",
 					"tableFrom": "preferencias_usuario",
 					"tableTo": "user",
-					"columnsFrom": [
-						"user_id"
-					],
-					"columnsTo": [
-						"id"
-					],
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
@@ -3515,9 +3299,7 @@
 				"preferencias_usuario_user_id_unique": {
 					"name": "preferencias_usuario_user_id_unique",
 					"nullsNotDistinct": false,
-					"columns": [
-						"user_id"
-					]
+					"columns": ["user_id"]
 				}
 			},
 			"policies": {},
