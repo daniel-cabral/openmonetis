@@ -131,7 +131,7 @@ it("validateSubcategoryPairs devolve o primeiro erro do lote", () => {
 - [x] **Step 2: Run** `pnpm exec vitest run src/shared/lib/subcategories/rules.test.ts`. Expected: FAIL (module missing).
 - [x] **Step 3: Implement** `types.ts`, `rules.ts`, `queries.ts` per Interfaces.
 - [x] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/shared/lib/subcategories`.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/shared/lib/subcategories`.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -211,7 +211,7 @@ git commit -m "feat(categorias): salvar subcategorias junto com a categoria"
 Test declaration: `Test: none, because UI-only wiring; the save contract is locked by src/features/categories/actions.test.ts and the count is a single grouped select checked manually below`.
 
 - [x] **Step 1: Implement** query, types, field component, dialog wiring (payload sends `subcategories: formState.subcategories.map(({ id, name }) => ({ id, name: name.trim() }))`).
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/queries.ts src/features/categories/components/types.ts src/features/categories/components/category-subcategories-field.tsx src/features/categories/components/category-dialog.tsx`. Expected: no errors.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/queries.ts src/features/categories/components/types.ts src/features/categories/components/category-subcategories-field.tsx src/features/categories/components/category-dialog.tsx`. Expected: no errors.
 - [x] **Step 3: Commit**
 
 ```bash
@@ -263,7 +263,7 @@ it("trocar Moradia/Faxina para Transporte sem enviar subcategoria limpa", async 
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the new test and the neighbours that share `core.ts`: `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts src/features/transactions/actions/trip-link-wiring.test.ts src/features/transactions/actions/core-trip.test.ts`. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/actions/core.ts src/features/transactions/actions/single-actions.ts src/features/transactions/actions/subcategory-wiring.test.ts`.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/actions/core.ts src/features/transactions/actions/single-actions.ts src/features/transactions/actions/subcategory-wiring.test.ts`.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -308,7 +308,7 @@ it("edicao em serie grava a subcategoria", async () => {
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts`. Expected: the new test FAILS.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** `pnpm exec vitest run src/features/transactions/actions/subcategory-wiring.test.ts src/features/transactions/actions/trip-link-wiring.test.ts`. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the four modified files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the four modified files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -350,7 +350,7 @@ it("Moradia oferece suas subcategorias e Transporte nenhuma", () => {
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/subcategory-options.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the same test plus `src/features/transactions/lib/form-helpers-trip.test.ts`. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five touched files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five touched files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -388,7 +388,7 @@ it("trocar a categoria limpa a subcategoria escolhida", () => {
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/form-helpers-subcategory.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the same test plus `src/features/transactions/lib/form-helpers-trip.test.ts`. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/lib/form-helpers.ts src/features/transactions/lib/form-helpers-subcategory.test.ts`.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/lib/form-helpers.ts src/features/transactions/lib/form-helpers-subcategory.test.ts`.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -416,7 +416,7 @@ git commit -m "feat(lancamentos): formulario limpa subcategoria ao trocar catego
 Test declaration: `Test: none, because UI-only; the visibility rule is locked by subcategory-options.test.ts and the clear-on-change rule by form-helpers-subcategory.test.ts`.
 
 - [x] **Step 1: Implement** per Interfaces (layout per the approved mockup, second row).
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five files.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five files.
 - [x] **Step 3: Commit**
 
 ```bash
@@ -480,7 +480,7 @@ it.each([
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/categories/lib/subcategory-breakdown.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -504,7 +504,7 @@ git commit -m "feat(categorias): calculo do detalhamento por subcategoria"
 Test declaration: `Test: none, because UI-only; math and filter locked by subcategory-breakdown.test.ts`.
 
 - [x] **Step 1: Implement** per Interfaces (Option A layout from the mockup).
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/components/category-detail-header.tsx "src/app/(dashboard)/categories/[categoryId]/page.tsx"`.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/categories/components/category-detail-header.tsx "src/app/(dashboard)/categories/[categoryId]/page.tsx"`.
 - [x] **Step 3: Commit**
 
 ```bash
@@ -557,7 +557,7 @@ it("lancamento protegido na selecao recusa o lote inteiro", async () => {
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/bulk-subcategory-action.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the four files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the four files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -583,7 +583,7 @@ git commit -m "feat(lancamentos): definir subcategoria em massa"
 Test declaration: `Test: none, because UI-only; counts, skip rule and copy locked by bulk-subcategory-action.test.ts`.
 
 - [x] **Step 1: Implement** per Interfaces (as drawn in the mockup, second row).
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
 - [x] **Step 3: Commit**
 
 ```bash
@@ -635,7 +635,7 @@ expect(Object.keys(upsertConfigFor(importCategoryMappings).set)).toEqual(expect.
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/category-memory-action.test.ts src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/actions/reconciliation-action.test.ts`. Expected: the new assertions FAIL.
 - [x] **Step 3: Implement** per Interfaces; adapt the two page consumers to `mapping?.categoryId` (subcategory application comes in Tasks 16 and 18).
 - [x] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the touched files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the touched files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -673,7 +673,7 @@ it("FAXINA MARIA lembrada como Moradia/Faxina volta com Faxina, e categoria do b
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/import-utils.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the three files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -697,7 +697,7 @@ git commit -m "feat(importacao): importar lancamentos com subcategoria"
 Test declaration: `Test: none, because UI-only; remember/drop rule locked by import-utils.test.ts and memory write by category-memory-action.test.ts`.
 
 - [x] **Step 1: Implement** per Interfaces.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/components/import/review-table.tsx src/features/transactions/components/import/import-page.tsx`.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check src/features/transactions/components/import/review-table.tsx src/features/transactions/components/import/import-page.tsx`.
 - [x] **Step 3: Commit**
 
 ```bash
@@ -728,8 +728,8 @@ Test declaration:
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/lib/reconciliation-review.test.ts`. Expected: FAIL.
 - [x] **Step 3: Implement** per Interfaces.
 - [x] **Step 4: Run** the same command plus `src/features/transactions/actions/reconciliation-action.test.ts`. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five files.
-- [ ] **Step 6: Commit**
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the five files.
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/reconciliation-action.ts src/features/transactions/lib/reconciliation-plan.ts src/features/transactions/lib/reconciliation-plan.test.ts src/features/transactions/lib/reconciliation-review.ts src/features/transactions/lib/reconciliation-review.test.ts
@@ -751,7 +751,7 @@ git commit -m "feat(conciliacao): lancamentos criados na conciliacao com subcate
 Test declaration: `Test: none, because UI-only; rules locked by import-utils.test.ts and reconciliation-review.test.ts`.
 
 - [x] **Step 1: Implement** per Interfaces.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the two files.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check` on the two files.
 - [x] **Step 3: Commit**
 
 ```bash
@@ -772,9 +772,9 @@ Test declaration: `Test: none, because no behaviour change`. Requirement "Totais
 
 - [x] **Step 1: Write the release notes.** CHANGELOG entry with a PT-BR intro paragraph in prose (what subcategories are and that category totals stay the same), then `### Adicionado`: subcategorias no diálogo da categoria; subcategoria opcional no lançamento; bloco "Por subcategoria" com filtro na página da categoria; "Definir subcategoria" em massa; importação e conciliação lembram a subcategoria. README L68: add "categorias com subcategorias opcionais" to the categorization clause.
 - [x] **Step 2: Check the anti-goal.** Run `git diff --name-only e1ad635..HEAD -- src/features/dashboard src/features/budgets src/features/insights src/features/reports`. Expected: empty output.
-- [ ] **Step 3: Typecheck** `pnpm exec tsc --noEmit`. Expected: no errors.
-- [ ] **Step 4: Lint** `pnpm exec biome check` on every file changed in the branch (`git diff --name-only e1ad635..HEAD -- src`). Expected: no diagnostics besides line-ending noise.
-- [ ] **Step 5: Full suite, once** `pnpm exec vitest run`. Expected: all tests pass.
+- [x] **Step 3: Typecheck** `pnpm exec tsc --noEmit`. Expected: no errors.
+- [x] **Step 4: Lint** `pnpm exec biome check` on every file changed in the branch (`git diff --name-only e1ad635..HEAD -- src`). Expected: no diagnostics besides line-ending noise.
+- [x] **Step 5: Full suite, once** `pnpm exec vitest run`. Expected: all tests pass.
 - [x] **Step 5b: Remove the temporary preview.** `rm -rf src/app/preview-subcategorias` (untracked, never committed). Expected: `git status --short` shows nothing under `src/app/preview-subcategorias`.
 - [x] **Step 6: Version consistency.** `package.json`, `CHANGELOG.md` header and README badge all read `2.14.0`. Do not create or push a tag.
 - [x] **Step 7: Commit**
