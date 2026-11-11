@@ -1,4 +1,4 @@
-import { and, eq, lt, type SQL, sql } from "drizzle-orm";
+import { and, eq, isNotNull, lt, type SQL, sql } from "drizzle-orm";
 import { financialAccounts, transactions } from "@/db/schema";
 import {
 	fetchTransactionsPageWithRelations,
@@ -152,6 +152,26 @@ export async function fetchAccountSummary(
 		totalIncomes,
 		totalExpenses,
 	};
+}
+
+export async function fetchFirstReconciledDate(
+	userId: string,
+	accountId: string,
+): Promise<string | null> {
+	const [row] = await db
+		.select({
+			firstDate: sql<string | null>`min(${transactions.purchaseDate})::text`,
+		})
+		.from(transactions)
+		.where(
+			and(
+				eq(transactions.userId, userId),
+				eq(transactions.accountId, accountId),
+				isNotNull(transactions.ofxImportFingerprint),
+			),
+		);
+
+	return row?.firstDate ?? null;
 }
 
 export async function fetchAccountTransactions(

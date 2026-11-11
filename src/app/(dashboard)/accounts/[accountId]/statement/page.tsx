@@ -6,10 +6,12 @@ import { AccountStatementCard } from "@/features/accounts/components/account-sta
 import { AddYieldDialog } from "@/features/accounts/components/add-yield-dialog";
 import { AdjustBalanceDialog } from "@/features/accounts/components/adjust-balance-dialog";
 import type { Account } from "@/features/accounts/components/types";
+import { isUnreconciledSettled } from "@/features/accounts/lib/unreconciled";
 import {
 	fetchAccountData,
 	fetchAccountSummary,
 	fetchAccountTransactionsPage,
+	fetchFirstReconciledDate,
 } from "@/features/accounts/statement-queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
 import { TransactionsPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
@@ -93,12 +95,14 @@ export default async function Page({ params, searchParams }: PageProps) {
 		accountSummary,
 		estabelecimentos,
 		userPreferences,
+		firstReconciledDate,
 	] = await Promise.all([
 		fetchTransactionFilterSources(userId),
 		loadLogoOptions(),
 		fetchAccountSummary(userId, accountId, selectedPeriod),
 		fetchRecentEstablishments(userId),
 		fetchUserPreferences(userId),
+		fetchFirstReconciledDate(userId, accountId),
 	]);
 	const sluggedFilters = buildSluggedFilters(filterSources);
 	const slugMaps = buildSlugMaps(sluggedFilters);
@@ -118,7 +122,19 @@ export default async function Page({ params, searchParams }: PageProps) {
 		pagination,
 	);
 
-	const transactionData = mapTransactionsData(transactionsPage.rows);
+	const transactionData = mapTransactionsData(transactionsPage.rows).map(
+		(item, index) => ({
+			...item,
+			isUnreconciled: isUnreconciledSettled(
+				{
+					...item,
+					ofxImportFingerprint:
+						transactionsPage.rows[index]?.ofxImportFingerprint ?? null,
+				},
+				firstReconciledDate,
+			),
+		}),
+	);
 
 	const { openingBalance, currentBalance, totalIncomes, totalExpenses } =
 		accountSummary;

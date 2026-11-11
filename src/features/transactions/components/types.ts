@@ -40,6 +40,7 @@ export type TransactionItem = {
 	tripId?: string | null;
 	subcategoryId?: string | null;
 	readonly?: boolean;
+	isUnreconciled?: boolean;
 };
 
 export type SelectOption = {

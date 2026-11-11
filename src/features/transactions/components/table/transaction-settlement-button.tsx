@@ -4,6 +4,7 @@ import {
 	RiBankCard2Line,
 	RiCheckboxBlankCircleLine,
 	RiCheckboxCircleFill,
+	RiLinkUnlinkM,
 } from "@remixicon/react";
 import {
 	CREDIT_CARD_PAYMENT_METHOD,
@@ -82,35 +83,52 @@ export function TransactionSettlementButton({
 	const settled = Boolean(item.isSettled);
 
 	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<Button
-					variant="ghost"
-					size="icon-sm"
-					onClick={() => onToggle?.(item)}
-					disabled={isLoading || item.readonly}
-					className={cn(
-						"transition-colors",
-						settled
-							? "bg-success/10 text-success hover:bg-success/20 hover:text-success"
-							: "text-muted-foreground hover:text-foreground",
-					)}
-				>
-					{isLoading ? (
-						<Spinner className="size-4" />
-					) : settled ? (
-						<RiCheckboxCircleFill className="size-4" aria-hidden />
-					) : (
-						<RiCheckboxBlankCircleLine className="size-4" aria-hidden />
-					)}
-					<span className="sr-only">
-						{settled ? "Desfazer pagamento" : "Marcar como pago"}
-					</span>
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent side="top">
-				{settled ? "Desfazer pagamento" : "Marcar como pago"}
-			</TooltipContent>
-		</Tooltip>
+		<>
+			{item.isUnreconciled && (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span className="inline-flex">
+							<RiLinkUnlinkM className="size-4 text-warning" aria-hidden />
+							<span className="sr-only">
+								Pago, mas não conciliado com o extrato
+							</span>
+						</span>
+					</TooltipTrigger>
+					<TooltipContent side="top" className="max-w-48 text-center">
+						Pago, mas não conciliado com o extrato
+					</TooltipContent>
+				</Tooltip>
+			)}
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						onClick={() => onToggle?.(item)}
+						disabled={isLoading || item.readonly}
+						className={cn(
+							"transition-colors",
+							settled
+								? "bg-success/10 text-success hover:bg-success/20 hover:text-success"
+								: "text-muted-foreground hover:text-foreground",
+						)}
+					>
+						{isLoading ? (
+							<Spinner className="size-4" />
+						) : settled ? (
+							<RiCheckboxCircleFill className="size-4" aria-hidden />
+						) : (
+							<RiCheckboxBlankCircleLine className="size-4" aria-hidden />
+						)}
+						<span className="sr-only">
+							{settled ? "Desfazer pagamento" : "Marcar como pago"}
+						</span>
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent side="top">
+					{settled ? "Desfazer pagamento" : "Marcar como pago"}
+				</TooltipContent>
+			</Tooltip>
+		</>
 	);
 }
