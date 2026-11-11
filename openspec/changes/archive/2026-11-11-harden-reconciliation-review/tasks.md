@@ -178,7 +178,7 @@ it("projeta o total da fatura com criação e alinhamento", () => {
 - [x] **Step 2: Run** `pnpm exec vitest run src/shared/lib/reconciliation/closure.test.ts src/features/transactions/lib/reconciliation-projection.test.ts`. Expected: FAIL (missing exports / module).
 - [x] **Step 3: Implement** `statementFinalBalance` and `reconciliation-projection.ts` per Interfaces and the algorithm.
 - [x] **Step 4: Run** the same tests. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the four files. Expected: no errors.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the four files. Expected: no errors.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -244,7 +244,7 @@ it.each(["account", "card"] as const)("criação com categoria ensina o de-para 
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-review.test.ts src/features/transactions/lib/reconciliation-plan.test.ts`. Expected: FAIL (no `unmatches`; extra args ignored; one mapping missing).
 - [x] **Step 3: Implement** the Interfaces in both files.
 - [x] **Step 4: Run** the same tests. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit` (expect no errors: `unmatches`, `released` and `settledByApply` are optional on the inputs; do not edit Task 2's files); `pnpm exec biome check --formatter-enabled=false` on the touched files.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit` (expect no errors: `unmatches`, `released` and `settledByApply` are optional on the inputs; do not edit Task 2's files); `pnpm exec biome check --formatter-enabled=false` on the touched files.
 - [x] **Step 6: Commit**
 
 ```bash
@@ -367,7 +367,7 @@ it.each([
 - [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-candidates.test.ts`. Expected: FAIL (not exported).
 - [x] **Step 3: Implement** `toBalanceStatus`, then the action changes per Interfaces.
 - [x] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files. (Deferred to the final gate by the workflow; not run in this task.)
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files. (Deferred to the final gate by the workflow; not run in this task.)
 - [x] **Step 6: Commit**
 
 ```bash
@@ -404,7 +404,7 @@ Behavior (UI copy exact):
 Test declaration: `Test: none, because the rules are locked by Task 1 (suspicion), Task 3 (payload release, consumed set) and Task 4 (server); the rest is markup`.
 
 - [x] **Step 1: Implement** the behavior above.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/features/transactions/components/reconciliation/reconciliation-review.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx`. Expected: no errors. (tsc passed; biome deferred to the final gate by the workflow, not run in this task.)
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/features/transactions/components/reconciliation/reconciliation-review.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx`. Expected: no errors. (tsc passed; biome deferred to the final gate by the workflow, not run in this task.)
 - [x] **Step 3: Run** the reconciliation lib tests once: `pnpm exec vitest run src/features/transactions/lib/reconciliation-review.test.ts`. Expected: PASS.
 - [x] **Step 4: Commit**
 
@@ -463,7 +463,7 @@ Bar layout and copy (exact, from the preview):
 Test declaration: `Test: none, because the numbers are locked by Task 2 and this task is wiring and markup`.
 
 - [x] **Step 1: Implement** the bar, the review props and the page wiring.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files. (Deferred to the final gate by the workflow, not run in this task.)
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files. (Deferred to the final gate by the workflow, not run in this task.)
 - [x] **Step 3: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-projection.test.ts`. Expected: PASS. (10/10 PASS.)
 > Steps 4 and 5 are MANUAL (human, after the automated run, against the deployed app or a dev server with a real DB). The implementer does NOT run them and does NOT start any server; it marks them pending and moves on to Step 6.
 
@@ -555,7 +555,7 @@ git commit -m "docs(skills): auditar-conciliacao com aviso de suspeito, desfazer
 - Delete: `src/app/preview-conciliacao/` (untracked: plain delete, nothing to stage)
 
 - [x] **Step 1: Delete the preview route** `rm -r src/app/preview-conciliacao`. Expected: `git status --short` no longer lists it.
-- [ ] **Step 2: Full suite** `pnpm exec vitest run --maxWorkers=4`. Expected: all PASS. Then `pnpm exec tsc --noEmit`. Expected: no errors. (Deferred to the final gate by the workflow; not run in this task.)
+- [x] **Step 2: Full suite** `pnpm exec vitest run --maxWorkers=4`. Expected: all PASS. Then `pnpm exec tsc --noEmit`. Expected: no errors. (Deferred to the final gate by the workflow; not run in this task.)
 - [x] **Step 3: Version 2.15.0** in `package.json` and the README badge (`version-2.15.0-blue`).
 - [x] **Step 4: CHANGELOG** `## [2.15.0] - <date>`, a PT-BR intro paragraph (e.g. "Esta versão torna a conciliação confiável na virada do mês: a revisão avisa os casamentos duvidosos, deixa desfazer qualquer casamento sem SQL e mostra o saldo previsto do app contra o do extrato antes de aplicar."), then:
   - `### Adicionado`: balde "Precisa da sua decisão" com o motivo; "Desfazer casamento" em toda linha casada; barra fixa com saldo previsto (ou total da fatura) e lista de pagos depois do fim do arquivo; "Marcar todas como Criar"; categoria e subcategoria nas ambíguas criadas; indicador de pago não conciliado no extrato da conta.
