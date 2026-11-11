@@ -161,6 +161,7 @@ export function ReconciliationReview({
 				action: AmbiguousAction;
 				transactionId: string | null;
 				categoryId: string | null;
+				subcategoryId: string | null;
 				payerId: string | null;
 				reason: string;
 			}
@@ -211,14 +212,44 @@ export function ReconciliationReview({
 			...initialCreateFields(fingerprint, descriptor, categoryRaw),
 		};
 
-	const getAmbiguous = (fingerprint: string) =>
-		ambiguousState[fingerprint] ?? {
-			action: "skip" as AmbiguousAction,
-			transactionId: null,
-			categoryId: null,
-			payerId: null,
-			reason: "",
-		};
+	const getAmbiguous = (
+		fingerprint: string,
+		descriptor: string,
+		categoryRaw: string | null | undefined,
+	) => {
+		const { categoryId, subcategoryId } = initialCreateFields(
+			fingerprint,
+			descriptor,
+			categoryRaw,
+		);
+		return (
+			ambiguousState[fingerprint] ?? {
+				action: "skip" as AmbiguousAction,
+				transactionId: null,
+				categoryId,
+				subcategoryId,
+				payerId: null,
+				reason: "",
+			}
+		);
+	};
+
+	const bankOnlyStateOf = (row: (typeof bankOnlyRows)[number]) =>
+		getBankOnly(row.fingerprint, row.row.description, row.row.categoryRaw);
+
+	const hasBankOnlySkip = bankOnlyRows.some(
+		(row) => bankOnlyStateOf(row).action === "skip",
+	);
+
+	const markAllBankOnlyAsCreate = () => {
+		const next = { ...bankOnlyState };
+		for (const row of bankOnlyRows) {
+			const state = bankOnlyStateOf(row);
+			if (state.action === "skip")
+				next[row.fingerprint] = { ...state, action: "create" };
+		}
+		setBankOnlyState(next);
+	};
 
 	// Pool de vínculo manual: todos os candidatos trazidos do destino, filtrados
 	// por período na hora de listar.
@@ -423,7 +454,11 @@ export function ReconciliationReview({
 		}
 
 		for (const row of ambiguousRows) {
-			const state = getAmbiguous(row.fingerprint);
+			const state = getAmbiguous(
+				row.fingerprint,
+				row.row.description,
+				row.row.categoryRaw,
+			);
 			entries.push({
 				fingerprint: row.fingerprint,
 				decision:
@@ -442,6 +477,7 @@ export function ReconciliationReview({
 									descriptor: row.row.description,
 									name: row.row.description,
 									categoryId: state.categoryId,
+									subcategoryId: state.subcategoryId,
 									payerId: state.payerId,
 								}
 							: state.action === "ignore"
@@ -626,13 +662,21 @@ export function ReconciliationReview({
 				{regularMatchedRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
-			<BucketSection title={`Só no banco (${bankOnlyRows.length})`}>
+			<BucketSection
+				title={`Só no banco (${bankOnlyRows.length})`}
+				action={
+					<Button
+						variant="outline"
+						size="sm"
+						disabled={!hasBankOnlySkip}
+						onClick={markAllBankOnlyAsCreate}
+					>
+						Marcar todas como Criar
+					</Button>
+				}
+			>
 				{bankOnlyRows.map((row) => {
-					const state = getBankOnly(
-						row.fingerprint,
-						row.row.description,
-						row.row.categoryRaw,
-					);
+					const state = bankOnlyStateOf(row);
 					const linkCandidates = listLinkCandidates({
 						transactions: linkPool,
 						period: linkPeriodForRow({
@@ -761,7 +805,11 @@ export function ReconciliationReview({
 			<BucketSection title={`Ambíguas (${ambiguousRows.length})`}>
 				{ambiguousRows.map((row) => {
 					if (row.status !== "ambiguous") return null;
-					const state = getAmbiguous(row.fingerprint);
+					const state = getAmbiguous(
+						row.fingerprint,
+						row.row.description,
+						row.row.categoryRaw,
+					);
 					return (
 						<RowCard key={row.fingerprint}>
 							<div className="flex flex-col gap-2">
@@ -836,6 +884,19 @@ export function ReconciliationReview({
 										</SelectContent>
 									</Select>
 
+									{state.action === "create" && (
+										<CategoryFields
+											state={state}
+											categoryOptions={categoryOptions}
+											onChange={(patch) =>
+												setAmbiguousState((prev) => ({
+													...prev,
+													[row.fingerprint]: { ...state, ...patch },
+												}))
+											}
+										/>
+									)}
+
 									{state.action === "ignore" && (
 										<Input
 											className="w-56"
@@ -887,14 +948,19 @@ function matchCategoryByRawLabel(
 
 function BucketSection({
 	title,
+	action,
 	children,
 }: {
 	title: string;
+	action?: React.ReactNode;
 	children: React.ReactNode;
 }) {
 	return (
 		<section className="flex flex-col gap-2">
-			<h3 className="font-medium text-sm">{title}</h3>
+			<div className="flex items-center justify-between gap-2">
+				<h3 className="font-medium text-sm">{title}</h3>
+				{action}
+			</div>
 			<div className="flex flex-col gap-2">{children}</div>
 		</section>
 	);
@@ -938,6 +1004,49 @@ function suspicionCopy(suspicion: MatchSuspicion, app: AppTransaction): string {
 		return `Valor diferente: o lançamento “${app.name}” tem ${amount}. Ele é dividido, então manter grava só a conciliação, sem mexer no valor.`;
 	}
 	return `Valor diferente: o lançamento “${app.name}” tem ${amount}. Manter alinha o valor ao do arquivo.`;
+}
+
+function CategoryFields({
+	state,
+	categoryOptions,
+	onChange,
+}: {
+	state: Pick<CreateLinkFields, "categoryId" | "subcategoryId">;
+	categoryOptions: SelectOption[];
+	onChange: (
+		patch: Partial<Pick<CreateLinkFields, "categoryId" | "subcategoryId">>,
+	) => void;
+}) {
+	return (
+		<>
+			<Select
+				value={state.categoryId ?? ""}
+				onValueChange={(value) =>
+					onChange({ categoryId: value || null, subcategoryId: null })
+				}
+			>
+				<SelectTrigger className="w-52">
+					<SelectValue placeholder="Categoria…" />
+				</SelectTrigger>
+				<SelectContent>
+					{categoryOptions.map((option) => (
+						<SelectItem key={option.value} value={option.value}>
+							<CategorySelectContent
+								label={option.label}
+								icon={option.icon}
+							/>
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			<SubcategorySelect
+				className="w-52"
+				options={getSubcategoryOptions(categoryOptions, state.categoryId)}
+				value={state.subcategoryId}
+				onChange={(subcategoryId) => onChange({ subcategoryId })}
+			/>
+		</>
+	);
 }
 
 function CreateOrLinkFields({
@@ -998,31 +1107,10 @@ function CreateOrLinkFields({
 				value={state.name}
 				onChange={(e) => onChange({ name: e.target.value })}
 			/>
-			<Select
-				value={state.categoryId ?? ""}
-				onValueChange={(value) =>
-					onChange({ categoryId: value || null, subcategoryId: null })
-				}
-			>
-				<SelectTrigger className="w-52">
-					<SelectValue placeholder="Categoria…" />
-				</SelectTrigger>
-				<SelectContent>
-					{categoryOptions.map((option) => (
-						<SelectItem key={option.value} value={option.value}>
-							<CategorySelectContent
-								label={option.label}
-								icon={option.icon}
-							/>
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			<SubcategorySelect
-				className="w-52"
-				options={getSubcategoryOptions(categoryOptions, state.categoryId)}
-				value={state.subcategoryId}
-				onChange={(subcategoryId) => onChange({ subcategoryId })}
+			<CategoryFields
+				state={state}
+				categoryOptions={categoryOptions}
+				onChange={onChange}
 			/>
 			<Select
 				value={state.payerId ?? defaultPayerId}
