@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	importCategoryMappings,
@@ -85,6 +85,14 @@ const applySchema = z.object({
 	ignores: z.array(ignoreSchema),
 	manualLinks: z.array(manualLinkSchema).optional(),
 	amountUpdates: z.array(amountUpdateSchema).optional(),
+	unmatches: z
+		.array(
+			z.object({
+				fingerprint: z.string().min(1),
+				transactionId: uuidSchema("Lançamento"),
+			}),
+		)
+		.optional(),
 });
 
 const undoSchema = z.object({
@@ -95,6 +103,15 @@ const undoSchema = z.object({
 			fingerprint: z.string().min(1),
 		}),
 	),
+	released: z
+		.array(
+			z.object({
+				transactionId: uuidSchema("Lançamento"),
+				fingerprint: z.string().min(1),
+			}),
+		)
+		.optional(),
+	settledByApply: z.array(uuidSchema("Lançamento")).optional(),
 	amountUpdates: z
 		.array(
 			z.object({
@@ -119,6 +136,10 @@ export type ApplyReconciliationResult =
 			reconciled: { transactionId: string; fingerprint: string }[];
 			ignored: number;
 			amountUpdates: { transactionId: string; previousAmount: string }[];
+			// Fingerprints liberados pelos casamentos desfeitos, para o desfazer devolver.
+			released: { transactionId: string; fingerprint: string }[];
+			// Lançamentos que a confirmação marcou como pagos, para o desfazer reverter.
+			settledByApply: string[];
 	  }
 	| { success: false; error: string };
 
@@ -145,13 +166,15 @@ export async function applyReconciliationAction(
 	const { confirmations, creations, ignores } = parsed.data;
 	const manualLinks = parsed.data.manualLinks ?? [];
 	const amountUpdates = parsed.data.amountUpdates ?? [];
+	const unmatches = parsed.data.unmatches ?? [];
 
 	if (
 		confirmations.length === 0 &&
 		creations.length === 0 &&
 		ignores.length === 0 &&
 		manualLinks.length === 0 &&
-		amountUpdates.length === 0
+		amountUpdates.length === 0 &&
+		unmatches.length === 0
 	) {
 		return { success: false, error: "Nenhuma decisão para aplicar." };
 	}
@@ -216,6 +239,7 @@ export async function applyReconciliationAction(
 						id: transactions.id,
 						categoryId: transactions.categoryId,
 						subcategoryId: transactions.subcategoryId,
+						isSettled: transactions.isSettled,
 					})
 					.from(transactions)
 					.where(
@@ -235,6 +259,9 @@ export async function applyReconciliationAction(
 	);
 	const subcategoryIdByTransaction = new Map(
 		matchedTransactions.map((row) => [row.id, row.subcategoryId]),
+	);
+	const isSettledByTransaction = new Map(
+		matchedTransactions.map((row) => [row.id, row.isSettled]),
 	);
 
 	// Valor anterior e `dividido` saem do banco, no mesmo select que serve de
@@ -305,6 +332,30 @@ export async function applyReconciliationAction(
 
 	try {
 		const applied = await db.transaction(async (tx: typeof db) => {
+			// Libera antes de qualquer insert: o fingerprint do casamento desfeito ainda
+			// está no lançamento antigo e o índice único recusaria a criação.
+			const released: { transactionId: string; fingerprint: string }[] = [];
+			for (const unmatch of unmatches) {
+				const [releasedRow] = await tx
+					.update(transactions)
+					.set({ ofxImportFingerprint: null })
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							eq(transactions.id, unmatch.transactionId),
+							eq(transactions.ofxImportFingerprint, unmatch.fingerprint),
+						),
+					)
+					.returning({ id: transactions.id });
+
+				if (releasedRow) {
+					released.push({
+						transactionId: unmatch.transactionId,
+						fingerprint: unmatch.fingerprint,
+					});
+				}
+			}
+
 			// O índice único de fingerprint protege contra aplicar o mesmo lote duas vezes.
 			const inserted =
 				plan.inserts.length > 0
@@ -322,6 +373,7 @@ export async function applyReconciliationAction(
 					: [];
 
 			const reconciled: { transactionId: string; fingerprint: string }[] = [];
+			const settledByApply: string[] = [];
 
 			// Casou com uma linha do extrato: o dinheiro já saiu da conta, então o
 			// lançamento pendente vira pago. No cartão isSettled fica null.
@@ -341,6 +393,14 @@ export async function applyReconciliationAction(
 					.returning({ id: transactions.id });
 
 				if (updated) reconciled.push(update);
+				// Só o que estava pendente volta a pendente no desfazer.
+				if (
+					updated &&
+					destination.type === "account" &&
+					isSettledByTransaction.get(update.transactionId) !== true
+				) {
+					settledByApply.push(update.transactionId);
+				}
 			}
 
 			if (plan.ignores.length > 0) {
@@ -434,6 +494,8 @@ export async function applyReconciliationAction(
 				reconciled,
 				ignored: plan.ignores.length,
 				amountUpdates: appliedAmountUpdates,
+				released,
+				settledByApply,
 			};
 		});
 
@@ -450,6 +512,8 @@ export async function applyReconciliationAction(
  * Desfaz o lote: remove os lançamentos criados e limpa o fingerprint gravado
  * nos lançamentos que já existiam. Os ignorados permanecem — a decisão de não
  * lançar uma linha é do usuário, não do lote.
+ * Also reverts what the apply settled (back to pending) and restores the
+ * fingerprints it released from undone matches.
  */
 export async function undoReconciliationAction(
 	input: UndoReconciliationInput,
@@ -463,6 +527,8 @@ export async function undoReconciliationAction(
 
 	const { importBatchId, reconciled } = parsed.data;
 	const amountUpdates = parsed.data.amountUpdates ?? [];
+	const released = parsed.data.released ?? [];
+	const settledByApply = parsed.data.settledByApply ?? [];
 
 	try {
 		await db.transaction(async (tx: typeof db) => {
@@ -489,26 +555,54 @@ export async function undoReconciliationAction(
 					);
 			}
 
-			if (reconciled.length === 0) return;
-
 			// Limpa só os fingerprints deste lote: o par id + fingerprint evita
 			// apagar uma conciliação posterior do mesmo lançamento.
-			await tx
-				.update(transactions)
-				.set({ ofxImportFingerprint: null })
-				.where(
-					and(
-						eq(transactions.userId, userId),
-						inArray(
-							transactions.id,
-							reconciled.map((entry) => entry.transactionId),
+			if (reconciled.length > 0) {
+				await tx
+					.update(transactions)
+					.set({ ofxImportFingerprint: null })
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							inArray(
+								transactions.id,
+								reconciled.map((entry) => entry.transactionId),
+							),
+							inArray(
+								transactions.ofxImportFingerprint,
+								reconciled.map((entry) => entry.fingerprint),
+							),
 						),
-						inArray(
-							transactions.ofxImportFingerprint,
-							reconciled.map((entry) => entry.fingerprint),
+					);
+			}
+
+			// Runs after the batch fingerprints are cleared, so the released fingerprints
+			// below can take their place under the unique index.
+			if (settledByApply.length > 0) {
+				await tx
+					.update(transactions)
+					.set({ isSettled: false })
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							inArray(transactions.id, settledByApply),
 						),
-					),
-				);
+					);
+			}
+
+			// Restores only where the column is still free: a later match may own it.
+			for (const entry of released) {
+				await tx
+					.update(transactions)
+					.set({ ofxImportFingerprint: entry.fingerprint })
+					.where(
+						and(
+							eq(transactions.userId, userId),
+							eq(transactions.id, entry.transactionId),
+							isNull(transactions.ofxImportFingerprint),
+						),
+					);
+			}
 		});
 	} catch (error) {
 		console.error("[undoReconciliationAction]", error);

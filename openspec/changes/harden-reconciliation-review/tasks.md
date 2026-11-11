@@ -278,7 +278,7 @@ Test declarations:
 - `Test: extends reconciliation-action.test.ts::"marca como pago o lançamento casado quando o destino é conta"` (select row gets `isSettled: false`; assert `result.settledByApply` equals `[TX_ID]`).
 - `Test: new, because distinct contract (undo restores settled flag and released fingerprint, in order)` in `describe("undoReconciliationAction")`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("libera o fingerprint do casamento desfeito antes de criar a linha", async () => {
@@ -316,11 +316,11 @@ it("volta a pendente o que a aplicação pagou e devolve o fingerprint liberado"
 
 (`TX_ID_2`, `TX_ID_3`: new uuid literals next to `TX_ID`.)
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/reconciliation-action.test.ts`. Expected: FAIL (schema strips `unmatches`; "Nenhuma decisão para aplicar."; no `released`/`settledByApply`).
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test file. Expected: PASS, including the pre-existing tests.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on both files.
-- [ ] **Step 6: Commit**
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/actions/reconciliation-action.test.ts`. Expected: FAIL (schema strips `unmatches`; "Nenhuma decisão para aplicar."; no `released`/`settledByApply`).
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test file. Expected: PASS, including the pre-existing tests.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on both files.
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/actions/reconciliation-action.ts src/features/transactions/actions/reconciliation-action.test.ts

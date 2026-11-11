@@ -119,6 +119,8 @@ const USER_ID = "user-1";
 const PAYER_ID = "11111111-1111-4111-8111-111111111111";
 const ACCOUNT_ID = "22222222-2222-4222-8222-222222222222";
 const TX_ID = "33333333-3333-4333-8333-333333333333";
+const TX_ID_2 = "66666666-6666-4666-8666-666666666666";
+const TX_ID_3 = "77777777-7777-4777-8777-777777777777";
 const DESCRIPTOR = "CASA NOVA LOCADORA LTDA - EPP - Boleto";
 const CATEGORY_ID = "44444444-4444-4444-8444-444444444444";
 const SUBCATEGORY_ID = "55555555-5555-4555-8555-555555555555";
@@ -275,7 +277,12 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 
 	it("marca como pago o lançamento casado quando o destino é conta", async () => {
 		selectQueue.push([
-			{ id: TX_ID, categoryId: CATEGORY_ID, subcategoryId: SUBCATEGORY_ID },
+			{
+				id: TX_ID,
+				categoryId: CATEGORY_ID,
+				subcategoryId: SUBCATEGORY_ID,
+				isSettled: false,
+			},
 		]);
 
 		const result = await applyReconciliationAction({
@@ -285,7 +292,7 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 			],
 		});
 
-		expect(result.success).toBe(true);
+		expect(result).toMatchObject({ success: true, settledByApply: [TX_ID] });
 		expect(settledWrites().map((write) => write.payload)).toEqual([
 			{ ofxImportFingerprint: "fp-1", isSettled: true },
 		]);
@@ -325,6 +332,50 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 			{ ofxImportFingerprint: "fp-1" },
 		]);
 	});
+
+	it("libera o fingerprint do casamento desfeito antes de criar a linha", async () => {
+		const result = await applyReconciliationAction({
+			...baseInput,
+			unmatches: [{ fingerprint: "fp-colegio", transactionId: TX_ID }],
+			creations: [
+				{
+					fingerprint: "fp-colegio",
+					date: "2026-10-15",
+					amount: 1560.85,
+					transactionType: "expense",
+					descriptor: "COLEGIO SANTO AGOSTINHO DIVINO",
+					name: "Colégio",
+				},
+			],
+		});
+
+		expect(result).toMatchObject({
+			success: true,
+			created: 1,
+			released: [{ transactionId: TX_ID, fingerprint: "fp-colegio" }],
+		});
+		const releaseIndex = writes.findIndex(
+			(write) =>
+				write.kind === "update" &&
+				(write.payload as { ofxImportFingerprint?: unknown })
+					.ofxImportFingerprint === null,
+		);
+		const insertIndex = writes.findIndex((write) => write.kind === "insert");
+		expect(releaseIndex).toBeGreaterThanOrEqual(0);
+		expect(releaseIndex).toBeLessThan(insertIndex);
+	});
+
+	it("aceita aplicar só um casamento desfeito", async () => {
+		const result = await applyReconciliationAction({
+			...baseInput,
+			unmatches: [{ fingerprint: "fp-colegio", transactionId: TX_ID }],
+		});
+
+		expect(result).toMatchObject({
+			success: true,
+			released: [{ transactionId: TX_ID, fingerprint: "fp-colegio" }],
+		});
+	});
 });
 
 describe("undoReconciliationAction", () => {
@@ -342,5 +393,24 @@ describe("undoReconciliationAction", () => {
 				(write.payload as { amount?: string }).amount === "-2000.00",
 		);
 		expect(restore).toBeDefined();
+	});
+
+	it("volta a pendente o que a aplicação pagou e devolve o fingerprint liberado", async () => {
+		await undoReconciliationAction({
+			importBatchId: "batch-1",
+			reconciled: [{ transactionId: TX_ID_2, fingerprint: "fp-colegio" }],
+			settledByApply: [TX_ID_3],
+			released: [{ transactionId: TX_ID, fingerprint: "fp-colegio" }],
+		});
+
+		expect(
+			writes
+				.filter((write) => write.kind === "update")
+				.map((write) => write.payload),
+		).toEqual([
+			{ ofxImportFingerprint: null },
+			{ isSettled: false },
+			{ ofxImportFingerprint: "fp-colegio" },
+		]);
 	});
 });
