@@ -469,7 +469,7 @@ Test declaration: `Test: none, because the numbers are locked by Task 2 and this
 
 - [ ] **Step 4 (manual, pending human): Visual check** (one dev server, nothing else heavy in parallel): `pnpm run dev`, open `/transactions/reconciliation`, upload a C6 statement, confirm the bar stays visible while scrolling, turns green/amber as decisions change, and the suspicious counter matches the top bucket.
 - [ ] **Step 5 (manual, pending human): Baseline sanity check** (covers Task 5's SQL): in the same review, with no decision that writes (all bank-only in Pular, every match kept with equal amounts and already settled), projected + Σ `paidAfterEnd` amounts must equal the account card balance on `/accounts`. A mismatch means the baseline SQL drifted from `accounts/queries.ts:40-60`.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/components/reconciliation/reconciliation-apply-bar.tsx src/features/transactions/components/reconciliation/reconciliation-review.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx
