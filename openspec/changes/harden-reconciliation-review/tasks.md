@@ -350,7 +350,7 @@ Test declarations:
 - `Test: new, because distinct contract (DB row to balance status is a seam the projection depends on)` in `reconciliation-candidates.test.ts`.
 - SQL wiring: `Test: none, because it mirrors accounts/queries.ts:40-60 and is checked manually in Task 8 Step 5 against the account card`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it.each([
@@ -364,11 +364,11 @@ it.each([
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-candidates.test.ts`. Expected: FAIL (not exported).
-- [ ] **Step 3: Implement** `toBalanceStatus`, then the action changes per Interfaces.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files.
-- [ ] **Step 6: Commit**
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-candidates.test.ts`. Expected: FAIL (not exported).
+- [x] **Step 3: Implement** `toBalanceStatus`, then the action changes per Interfaces.
+- [x] **Step 4: Run** the same test. Expected: PASS.
+- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files. (Deferred to the final gate by the workflow; not run in this task.)
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/lib/reconciliation-candidates.ts src/features/transactions/lib/reconciliation-candidates.test.ts src/features/transactions/actions/reconciliation-candidates-action.ts
