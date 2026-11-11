@@ -450,6 +450,7 @@ export function ReconciliationPage({
 						learnedMappingByFingerprint={review.learnedMappingByFingerprint}
 						nameMappings={review.nameMappings}
 						destinationKind={destinationKind}
+						fileStartDate={extendedDateRange(review.statement).from}
 						invoicePeriod={invoicePeriodInput}
 						categoryOptions={categoryOptions}
 						payerOptions={payerOptions}
