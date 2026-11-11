@@ -130,6 +130,7 @@ describe("buildReconciliationApplyPayload", () => {
 			manualLinks: [],
 			amountUpdates: [],
 			ignores: [{ fingerprint: "fp-ignore", reason: "Pagamento de fatura" }],
+			unmatches: [],
 		});
 	});
 
@@ -263,6 +264,41 @@ describe("buildReconciliationApplyPayload", () => {
 		);
 
 		expect(payload.creations[0]?.payerId).toBe("payer-explicit");
+	});
+
+	it("desfazer casamento por fingerprint leva o fingerprint para unmatches e mantém a criação", () => {
+		const payload = buildReconciliationApplyPayload(
+			[
+				{
+					fingerprint: "fp-colegio",
+					decision: {
+						action: "create",
+						date: "2026-07-10",
+						amount: 1560.85,
+						transactionType: "expense",
+						descriptor: "COLEGIO SANTO AGOSTINHO",
+						name: "Colégio",
+						categoryId: null,
+						payerId: null,
+						releaseFingerprint: { transactionId: "tx-colegio" },
+					},
+				},
+				{
+					fingerprint: "fp-fernanda",
+					decision: {
+						action: "skip",
+						releaseFingerprint: { transactionId: "tx-terapia" },
+					},
+				},
+			],
+			"payer-default",
+		);
+
+		expect(payload.unmatches).toEqual([
+			{ fingerprint: "fp-colegio", transactionId: "tx-colegio" },
+			{ fingerprint: "fp-fernanda", transactionId: "tx-terapia" },
+		]);
+		expect(payload.creations).toHaveLength(1);
 	});
 });
 
@@ -505,6 +541,15 @@ describe("buildConsumedTransactionIds", () => {
 
 		expect(consumed.get("tx-1")).toBe("fp-1");
 		expect(consumed.get("tx-2")).toBe("fp-2");
+
+		const consumedAfterUndo = buildConsumedTransactionIds(
+			rows,
+			{ "fp-2": "tx-2" },
+			new Set(["fp-1"]),
+		);
+
+		expect(consumedAfterUndo.has("tx-1")).toBe(false);
+		expect(consumedAfterUndo.get("tx-2")).toBe("fp-2");
 	});
 });
 
@@ -590,12 +635,16 @@ describe("buildReconciliationUndoPayload", () => {
 			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
 			ignored: 0,
 			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+			released: [{ transactionId: "tx-colegio", fingerprint: "fp-colegio" }],
+			settledByApply: ["tx-danielle"],
 		};
 
 		expect(buildReconciliationUndoPayload(applyResult)).toEqual({
 			importBatchId: "batch-1",
 			reconciled: [{ transactionId: "tx-1", fingerprint: "fp-1" }],
 			amountUpdates: [{ transactionId: "tx-1", previousAmount: "-20.00" }],
+			released: [{ transactionId: "tx-colegio", fingerprint: "fp-colegio" }],
+			settledByApply: ["tx-danielle"],
 		});
 	});
 });

@@ -168,8 +168,8 @@ export function buildReconciliationPlan(
 		}),
 	);
 
-	// De-para aprendido a partir dos matches: só entra quando o lançamento
-	// casado já tem categoria escolhida à mão. Descriptors que normalizam para a
+	// De-para aprendido a partir dos matches e das criações: só entra quando a
+	// linha já tem categoria escolhida à mão. Descriptors que normalizam para a
 	// mesma chave colapsam num registro só — o upsert não pode tocar a mesma
 	// linha duas vezes no mesmo comando.
 	const categoryMappingByKey = new Map<
@@ -193,6 +193,21 @@ export function buildReconciliationPlan(
 			descriptionKey,
 			categoryId: confirmation.categoryId,
 			subcategoryId: confirmation.subcategoryId,
+		});
+	}
+
+	// Criação com categoria também ensina o de-para, nos dois destinos.
+	for (const creation of input.creations) {
+		if (!creation.categoryId) continue;
+
+		const descriptionKey = normalizeDescriptionKey(creation.descriptor);
+		if (!descriptionKey) continue;
+
+		categoryMappingByKey.set(descriptionKey, {
+			userId: input.userId,
+			descriptionKey,
+			categoryId: creation.categoryId,
+			subcategoryId: creation.subcategoryId,
 		});
 	}
 

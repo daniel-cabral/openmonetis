@@ -65,6 +65,7 @@ export type ReconciliationRowDecision =
 			payerId: string | null;
 			/** Linha de crédito da fatura; ver `buildInvoiceCreditNote`. */
 			isInvoiceCredit?: boolean;
+			releaseFingerprint?: { transactionId: string };
 	  }
 	| {
 			action: "link";
@@ -79,9 +80,11 @@ export type ReconciliationRowDecision =
 				transactionType: "income" | "expense";
 				isDivided: boolean;
 			};
+			/** Set when an undone fingerprint match releases the old transaction. */
+			releaseFingerprint?: { transactionId: string };
 	  }
 	| { action: "ignore"; reason: string }
-	| { action: "skip" };
+	| { action: "skip"; releaseFingerprint?: { transactionId: string } };
 
 export type ReconciliationApplyPayload = {
 	confirmations: {
@@ -114,6 +117,7 @@ export type ReconciliationApplyPayload = {
 		isDivided: boolean;
 	}[];
 	ignores: { fingerprint: string; reason: string }[];
+	unmatches?: { fingerprint: string; transactionId: string }[];
 };
 
 /**
@@ -125,15 +129,24 @@ export function buildReconciliationApplyPayload(
 	entries: { fingerprint: string; decision: ReconciliationRowDecision }[],
 	defaultPayerId: string,
 ): ReconciliationApplyPayload {
+	const unmatches: { fingerprint: string; transactionId: string }[] = [];
 	const payload: ReconciliationApplyPayload = {
 		confirmations: [],
 		creations: [],
 		manualLinks: [],
 		amountUpdates: [],
 		ignores: [],
+		unmatches,
 	};
 
 	for (const { fingerprint, decision } of entries) {
+		if ("releaseFingerprint" in decision && decision.releaseFingerprint) {
+			unmatches.push({
+				fingerprint,
+				transactionId: decision.releaseFingerprint.transactionId,
+			});
+		}
+
 		if (decision.action === "confirm") {
 			payload.confirmations.push({
 				fingerprint,
@@ -193,15 +206,21 @@ export function buildReconciliationUndoPayload(result: {
 	importBatchId: string;
 	reconciled: { transactionId: string; fingerprint: string }[];
 	amountUpdates: { transactionId: string; previousAmount: string }[];
+	released?: { transactionId: string; fingerprint: string }[];
+	settledByApply?: string[];
 }): {
 	importBatchId: string;
 	reconciled: { transactionId: string; fingerprint: string }[];
 	amountUpdates: { transactionId: string; previousAmount: string }[];
+	released: { transactionId: string; fingerprint: string }[];
+	settledByApply: string[];
 } {
 	return {
 		importBatchId: result.importBatchId,
 		reconciled: result.reconciled,
 		amountUpdates: result.amountUpdates,
+		released: result.released ?? [],
+		settledByApply: result.settledByApply ?? [],
 	};
 }
 
@@ -336,11 +355,15 @@ export function linkPeriodForRow(params: {
 export function buildConsumedTransactionIds(
 	rows: RowClassification[],
 	linkedByFingerprint: Record<string, string | null>,
+	releasedFingerprints: ReadonlySet<string> = new Set(),
 ): Map<string, string> {
 	const consumed = new Map<string, string>();
 
 	for (const row of rows) {
-		if (row.status === "matched")
+		if (
+			row.status === "matched" &&
+			!releasedFingerprints.has(row.fingerprint)
+		)
 			consumed.set(row.transactionId, row.fingerprint);
 	}
 	for (const [fingerprint, transactionId] of Object.entries(

@@ -210,7 +210,7 @@ Test declarations:
 - `Test: extends reconciliation-review.test.ts::buildReconciliationUndoPayload (existing test, add released and settledByApply)`.
 - `Test: new, because distinct contract (creations now feed the category memory)` in `describe("buildReconciliationPlan")`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("desfazer casamento por fingerprint leva o fingerprint para unmatches", () => {
@@ -241,11 +241,11 @@ it.each(["account", "card"] as const)("criação com categoria ensina o de-para 
 }); // [S: Criação com categoria alimenta o de-para] [S: Ambígua criada na conciliação reaplica Faxina]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-review.test.ts src/features/transactions/lib/reconciliation-plan.test.ts`. Expected: FAIL (no `unmatches`; extra args ignored; one mapping missing).
-- [ ] **Step 3: Implement** the Interfaces in both files.
-- [ ] **Step 4: Run** the same tests. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-review.test.ts src/features/transactions/lib/reconciliation-plan.test.ts`. Expected: FAIL (no `unmatches`; extra args ignored; one mapping missing).
+- [x] **Step 3: Implement** the Interfaces in both files.
+- [x] **Step 4: Run** the same tests. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit` (expect no errors: `unmatches`, `released` and `settledByApply` are optional on the inputs; do not edit Task 2's files); `pnpm exec biome check --formatter-enabled=false` on the touched files.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/transactions/lib/reconciliation-review.ts src/features/transactions/lib/reconciliation-review.test.ts src/features/transactions/lib/reconciliation-plan.ts src/features/transactions/lib/reconciliation-plan.test.ts

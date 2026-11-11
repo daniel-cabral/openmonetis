@@ -19,6 +19,22 @@ const BASE: ReconciliationPlanInput = {
 
 const SUBCATEGORY_FAXINA = "subcategory-faxina";
 
+const DESTINATIONS: Pick<
+	ReconciliationPlanInput,
+	"destination" | "paymentMethod" | "invoicePeriod"
+>[] = [
+	{
+		destination: { type: "account", id: "account-1" },
+		paymentMethod: "Débito",
+		invoicePeriod: null,
+	},
+	{
+		destination: { type: "card", id: "card-1" },
+		paymentMethod: "Cartão de crédito",
+		invoicePeriod: "2026-09",
+	},
+];
+
 const CREATION = {
 	fingerprint: "fp-create",
 	date: "2026-08-14",
@@ -118,6 +134,41 @@ describe("buildReconciliationPlan", () => {
 			},
 		]);
 	});
+
+	it.each(DESTINATIONS)(
+		"criação com categoria alimenta o de-para em $destination.type",
+		({ destination, paymentMethod, invoicePeriod }) => {
+			const plan = buildReconciliationPlan({
+				...BASE,
+				destination,
+				paymentMethod,
+				invoicePeriod,
+				creations: [
+					{
+						...CREATION,
+						descriptor: "PG *ABC SUPERMERCADOS CONTAGEM BRA",
+						categoryId: "category-doacoes",
+						subcategoryId: SUBCATEGORY_FAXINA,
+					},
+					{
+						...CREATION,
+						fingerprint: "fp-sem-categoria",
+						descriptor: "LOJA SEM CATEGORIA",
+						categoryId: null,
+					},
+				],
+			});
+
+			expect(plan.categoryMappings).toEqual([
+				{
+					userId: "user-1",
+					descriptionKey: "abc supermercados",
+					categoryId: "category-doacoes",
+					subcategoryId: SUBCATEGORY_FAXINA,
+				},
+			]);
+		},
+	);
 
 	it("colapsa confirmações que normalizam para o mesmo descriptor", () => {
 		const plan = buildReconciliationPlan({
