@@ -136,7 +136,7 @@ Test declarations:
 - `Test: new, because distinct contract (statementFinalBalance is a new pure function over the file)` in `closure.test.ts`.
 - `Test: new, because distinct contract (new module; the only lock on the projected balance rules)` in `reconciliation-projection.test.ts`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `closure.test.ts`, new `it.each` "saldo final do extrato":
 
@@ -175,11 +175,11 @@ it("projeta o total da fatura com criação e alinhamento", () => {
 }); // [S: Total da fatura previsto]
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/shared/lib/reconciliation/closure.test.ts src/features/transactions/lib/reconciliation-projection.test.ts`. Expected: FAIL (missing exports / module).
-- [ ] **Step 3: Implement** `statementFinalBalance` and `reconciliation-projection.ts` per Interfaces and the algorithm.
-- [ ] **Step 4: Run** the same tests. Expected: PASS.
+- [x] **Step 2: Run** `pnpm exec vitest run src/shared/lib/reconciliation/closure.test.ts src/features/transactions/lib/reconciliation-projection.test.ts`. Expected: FAIL (missing exports / module).
+- [x] **Step 3: Implement** `statementFinalBalance` and `reconciliation-projection.ts` per Interfaces and the algorithm.
+- [x] **Step 4: Run** the same tests. Expected: PASS.
 - [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the four files. Expected: no errors.
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/shared/lib/reconciliation/closure.ts src/shared/lib/reconciliation/closure.test.ts src/features/transactions/lib/reconciliation-projection.ts src/features/transactions/lib/reconciliation-projection.test.ts

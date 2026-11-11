@@ -104,6 +104,29 @@ export function checkStatementClosure(
 }
 
 /**
+ * Saldo final do arquivo: o Saldo do Dia do último dia contábil. Sem saldo
+ * naquele dia, retorna null em vez de recuar para um dia anterior.
+ */
+export function statementFinalBalance(
+	transactions: ImportedTransaction[],
+): { day: string; balance: number } | null {
+	const days = transactions.map(
+		(transaction) => transaction.postedDate ?? transaction.date,
+	);
+	if (days.length === 0) return null;
+
+	const lastDay = days.reduce((max, day) => (day > max ? day : max));
+	const row = transactions.find(
+		(transaction) =>
+			(transaction.postedDate ?? transaction.date) === lastDay &&
+			transaction.dayBalance !== undefined,
+	);
+	if (!row || row.dayBalance === undefined) return null;
+
+	return { day: lastDay, balance: row.dayBalance };
+}
+
+/**
  * Verificação aritmética da fatura: soma todas as linhas (compras e
  * créditos/estornos) exceto o pagamento da fatura, e compara contra o total
  * do período informado por fora — o CSV do C6 não o traz.

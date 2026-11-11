@@ -3,7 +3,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseC6StatementCsv } from "@/shared/lib/import/parsers/c6-statement-csv";
 import type { ImportedTransaction } from "@/shared/lib/import/types";
-import { checkInvoiceClosure, checkStatementClosure } from "./closure";
+import {
+	checkInvoiceClosure,
+	checkStatementClosure,
+	statementFinalBalance,
+} from "./closure";
 import { matchReconciliationRows } from "./matcher";
 
 function readFixture(name: string) {
@@ -191,5 +195,43 @@ describe("checkInvoiceClosure", () => {
 		// Se o pagamento entrasse na soma (13034.33 - 98.00 - 12164.10 = 772.23),
 		// o fechamento contra 772.23 daria certo — mas não deve.
 		expect(checkInvoiceClosure(transactions, 772.23).closes).toBe(false);
+	});
+});
+
+function balanceRow(
+	postedDate: string,
+	dayBalance?: number,
+): ImportedTransaction {
+	return {
+		externalId: null,
+		externalIdOccurrence: 0,
+		date: postedDate,
+		postedDate,
+		amount: 10,
+		description: "linha",
+		sourceDescription: "linha",
+		transactionType: "expense",
+		dayBalance,
+	};
+}
+
+describe("statementFinalBalance", () => {
+	it.each([
+		[
+			"usa o saldo do último dia contábil do arquivo",
+			[
+				balanceRow("2026-11-10", 1000),
+				balanceRow("2026-11-11", 843.44),
+				balanceRow("2026-11-11", 843.44),
+			],
+			{ day: "2026-11-11", balance: 843.44 },
+		],
+		[
+			"não recua para um dia anterior quando o último dia não tem saldo",
+			[balanceRow("2026-11-10", 1000), balanceRow("2026-11-11")],
+			null,
+		],
+	])("%s", (_, transactions, expected) => {
+		expect(statementFinalBalance(transactions)).toEqual(expected);
 	});
 });
