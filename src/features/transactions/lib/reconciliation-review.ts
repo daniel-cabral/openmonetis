@@ -9,6 +9,7 @@ import {
 import type {
 	AppTransaction,
 	DestinationKind,
+	MatchRule,
 	ReconciliationMatch,
 	RowClassification,
 } from "@/shared/lib/reconciliation/matcher";
@@ -373,6 +374,31 @@ export function buildConsumedTransactionIds(
 	}
 
 	return consumed;
+}
+
+/**
+ * Libera a impressão digital ao desfazer um casamento. Só o casamento por
+ * fingerprint a segura; nas demais regras o lançamento volta a ficar livre.
+ */
+export function releaseFingerprintFor(
+	rule: MatchRule,
+	transactionId: string,
+): { transactionId: string } | undefined {
+	return rule === "fingerprint" ? { transactionId } : undefined;
+}
+
+/**
+ * Desfazer um casamento por fingerprint conta como decisão aplicável mesmo
+ * com "Pular"; o "Aplicar" só fica habilitado com alguma decisão real.
+ */
+export function hasApplicableDecision(
+	entries: { decision: ReconciliationRowDecision }[],
+): boolean {
+	return entries.some(
+		({ decision }) =>
+			decision.action !== "skip" ||
+			("releaseFingerprint" in decision && Boolean(decision.releaseFingerprint)),
+	);
 }
 
 /** Resultado da avaliação do bloqueio do botão "Aplicar". */

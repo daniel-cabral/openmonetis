@@ -26,6 +26,7 @@ import {
 	buildConsumedTransactionIds,
 	buildReconciliationApplyPayload,
 	evaluateApplyBlock,
+	hasApplicableDecision,
 	initialRowName,
 	isCreditLine,
 	isInvoicePaymentLine,
@@ -33,6 +34,7 @@ import {
 	linkPeriodForRow,
 	listLinkCandidates,
 	type ReconciliationRowDecision,
+	releaseFingerprintFor,
 	resolveAmountUpdate,
 } from "@/features/transactions/lib/reconciliation-review";
 import { getSubcategoryOptions } from "@/features/transactions/lib/subcategory-options";
@@ -338,10 +340,10 @@ export function ReconciliationReview({
 			);
 			// Desfazer libera a impressao digital so de casamento por fingerprint;
 			// nas demais regras o lancamento volta a ficar livre para outra linha.
-			const releaseFingerprint =
-				row.rule === "fingerprint"
-					? { transactionId: row.transactionId }
-					: undefined;
+			const releaseFingerprint = releaseFingerprintFor(
+				row.rule,
+				row.transactionId,
+			);
 
 			if (state.action === "create") {
 				entries.push({
@@ -519,15 +521,8 @@ export function ReconciliationReview({
 
 	const applyBlock = evaluateApplyBlock({ emptyNameCreationCount });
 
-	// Desfazer um casamento por fingerprint conta como decisao mesmo com "Pular".
 	const canApply =
-		!isApplying &&
-		!applyBlock.blocked &&
-		decisions.some(
-			({ decision }) =>
-				decision.action !== "skip" ||
-				("releaseFingerprint" in decision && Boolean(decision.releaseFingerprint)),
-		);
+		!isApplying && !applyBlock.blocked && hasApplicableDecision(decisions);
 
 	// Recalcula a cada decisão: o payload é o mesmo que o aplicar grava.
 	const applyPayload = buildReconciliationApplyPayload(decisions, defaultPayerId);

@@ -12,12 +12,14 @@ import {
 	deriveReconciliationClosure,
 	evaluateApplyBlock,
 	filterAppOnlyByScope,
+	hasApplicableDecision,
 	initialRowName,
 	isCreditLine,
 	isInvoicePaymentLine,
 	linkPeriodForRow,
 	listLinkCandidates,
 	reclassifyPreviousInvoicePayments,
+	releaseFingerprintFor,
 	resolveAmountUpdate,
 	summarizeReconciliationMatch,
 } from "./reconciliation-review";
@@ -646,6 +648,24 @@ describe("buildReconciliationUndoPayload", () => {
 			released: [{ transactionId: "tx-colegio", fingerprint: "fp-colegio" }],
 			settledByApply: ["tx-danielle"],
 		});
+	});
+});
+
+describe("decisões de desfazer e de aplicar que a tela produz", () => {
+	it.each([
+		["casamento por fingerprint libera o lançamento", "fingerprint", { transactionId: "tx-1" }],
+		["casamento por nome e período não libera nada", "name-period", undefined],
+	] as const)("%s", (_, rule, expected) => {
+		expect(releaseFingerprintFor(rule, "tx-1")).toEqual(expected);
+	});
+
+	it("só um Pular com liberação torna a revisão aplicável", () => {
+		expect(hasApplicableDecision([{ decision: { action: "skip" } }])).toBe(false);
+		expect(
+			hasApplicableDecision([
+				{ decision: { action: "skip", releaseFingerprint: { transactionId: "tx-1" } } },
+			]),
+		).toBe(true);
 	});
 });
 
