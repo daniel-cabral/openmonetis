@@ -525,7 +525,10 @@ export function ReconciliationReview({
 		!isApplying && !applyBlock.blocked && hasApplicableDecision(decisions);
 
 	// Recalcula a cada decisão: o payload é o mesmo que o aplicar grava.
-	const applyPayload = buildReconciliationApplyPayload(decisions, defaultPayerId);
+	const applyPayload = buildReconciliationApplyPayload(
+		decisions,
+		defaultPayerId,
+	);
 	const applyProjection = ((): {
 		projection: ApplyProjection | null;
 		paidAfterEnd: PaidAfterEnd[];
@@ -646,29 +649,25 @@ export function ReconciliationReview({
 									</span>
 								))}
 						</div>
-						{state.action === "keep" &&
-							!isSuspicious &&
-							!state.expanded && (
-								<Button
-									variant="ghost"
-									size="sm"
-									className="text-muted-foreground"
-									onClick={() => updateMatched({ expanded: true })}
-								>
-									Desfazer casamento
-								</Button>
-							)}
+						{state.action === "keep" && !isSuspicious && !state.expanded && (
+							<Button
+								variant="ghost"
+								size="sm"
+								className="text-muted-foreground"
+								onClick={() => updateMatched({ expanded: true })}
+							>
+								Desfazer casamento
+							</Button>
+						)}
 					</div>
 
-					{state.action === "keep" &&
-						!isSuspicious &&
-						row.amountDivergence && (
-							<span className="text-muted-foreground text-xs">
-								{app?.isDivided
-									? "Lançamento dividido: o valor vive rateado entre as partes por pagador, então ele fica como está e só a conciliação é gravada."
-									: "O valor do lançamento será alinhado ao do arquivo ao aplicar. O desfazer restaura o anterior."}
-							</span>
-						)}
+					{state.action === "keep" && !isSuspicious && row.amountDivergence && (
+						<span className="text-muted-foreground text-xs">
+							{app?.isDivided
+								? "Lançamento dividido: o valor vive rateado entre as partes por pagador, então ele fica como está e só a conciliação é gravada."
+								: "O valor do lançamento será alinhado ao do arquivo ao aplicar. O desfazer restaura o anterior."}
+						</span>
+					)}
 
 					{showDecision && (
 						<div className="flex flex-wrap items-center gap-3">
@@ -1093,10 +1092,7 @@ function CategoryFields({
 				<SelectContent>
 					{categoryOptions.map((option) => (
 						<SelectItem key={option.value} value={option.value}>
-							<CategorySelectContent
-								label={option.label}
-								icon={option.icon}
-							/>
+							<CategorySelectContent label={option.label} icon={option.icon} />
 						</SelectItem>
 					))}
 				</SelectContent>

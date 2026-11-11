@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type {
-	ReconciliationApplyPayload,
-} from "@/features/transactions/lib/reconciliation-review";
+import type { ReconciliationApplyPayload } from "@/features/transactions/lib/reconciliation-review";
 import type { AppTransaction } from "@/shared/lib/reconciliation/matcher";
 import {
 	type AccountBalanceContext,

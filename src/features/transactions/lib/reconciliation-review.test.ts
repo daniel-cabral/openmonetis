@@ -653,17 +653,28 @@ describe("buildReconciliationUndoPayload", () => {
 
 describe("decisões de desfazer e de aplicar que a tela produz", () => {
 	it.each([
-		["casamento por fingerprint libera o lançamento", "fingerprint", { transactionId: "tx-1" }],
+		[
+			"casamento por fingerprint libera o lançamento",
+			"fingerprint",
+			{ transactionId: "tx-1" },
+		],
 		["casamento por nome e período não libera nada", "name-period", undefined],
 	] as const)("%s", (_, rule, expected) => {
 		expect(releaseFingerprintFor(rule, "tx-1")).toEqual(expected);
 	});
 
 	it("só um Pular com liberação torna a revisão aplicável", () => {
-		expect(hasApplicableDecision([{ decision: { action: "skip" } }])).toBe(false);
+		expect(hasApplicableDecision([{ decision: { action: "skip" } }])).toBe(
+			false,
+		);
 		expect(
 			hasApplicableDecision([
-				{ decision: { action: "skip", releaseFingerprint: { transactionId: "tx-1" } } },
+				{
+					decision: {
+						action: "skip",
+						releaseFingerprint: { transactionId: "tx-1" },
+					},
+				},
 			]),
 		).toBe(true);
 	});

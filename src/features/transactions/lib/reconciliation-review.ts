@@ -361,10 +361,7 @@ export function buildConsumedTransactionIds(
 	const consumed = new Map<string, string>();
 
 	for (const row of rows) {
-		if (
-			row.status === "matched" &&
-			!releasedFingerprints.has(row.fingerprint)
-		)
+		if (row.status === "matched" && !releasedFingerprints.has(row.fingerprint))
 			consumed.set(row.transactionId, row.fingerprint);
 	}
 	for (const [fingerprint, transactionId] of Object.entries(
@@ -397,7 +394,8 @@ export function hasApplicableDecision(
 	return entries.some(
 		({ decision }) =>
 			decision.action !== "skip" ||
-			("releaseFingerprint" in decision && Boolean(decision.releaseFingerprint)),
+			("releaseFingerprint" in decision &&
+				Boolean(decision.releaseFingerprint)),
 	);
 }
 

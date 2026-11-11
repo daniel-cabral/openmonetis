@@ -1,6 +1,4 @@
-import type {
-	ReconciliationApplyPayload,
-} from "@/features/transactions/lib/reconciliation-review";
+import type { ReconciliationApplyPayload } from "@/features/transactions/lib/reconciliation-review";
 import type { AppTransaction } from "@/shared/lib/reconciliation/matcher";
 
 /**

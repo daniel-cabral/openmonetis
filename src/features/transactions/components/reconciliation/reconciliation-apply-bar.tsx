@@ -65,8 +65,7 @@ export function ReconciliationApplyBar({
 								</Badge>
 							))}
 						<span>
-							{projection.label}:{" "}
-							<b>{formatCurrency(projection.projected)}</b>
+							{projection.label}: <b>{formatCurrency(projection.projected)}</b>
 							{" · "}
 							{projection.target !== null ? (
 								<>

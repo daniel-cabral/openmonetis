@@ -135,40 +135,43 @@ describe("buildReconciliationPlan", () => {
 		]);
 	});
 
-	it.each(DESTINATIONS)(
-		"criação com categoria alimenta o de-para em $destination.type",
-		({ destination, paymentMethod, invoicePeriod }) => {
-			const plan = buildReconciliationPlan({
-				...BASE,
-				destination,
-				paymentMethod,
-				invoicePeriod,
-				creations: [
-					{
-						...CREATION,
-						descriptor: "PG *ABC SUPERMERCADOS CONTAGEM BRA",
-						categoryId: "category-doacoes",
-						subcategoryId: SUBCATEGORY_FAXINA,
-					},
-					{
-						...CREATION,
-						fingerprint: "fp-sem-categoria",
-						descriptor: "LOJA SEM CATEGORIA",
-						categoryId: null,
-					},
-				],
-			});
-
-			expect(plan.categoryMappings).toEqual([
+	it.each(
+		DESTINATIONS,
+	)("criação com categoria alimenta o de-para em $destination.type", ({
+		destination,
+		paymentMethod,
+		invoicePeriod,
+	}) => {
+		const plan = buildReconciliationPlan({
+			...BASE,
+			destination,
+			paymentMethod,
+			invoicePeriod,
+			creations: [
 				{
-					userId: "user-1",
-					descriptionKey: "abc supermercados",
+					...CREATION,
+					descriptor: "PG *ABC SUPERMERCADOS CONTAGEM BRA",
 					categoryId: "category-doacoes",
 					subcategoryId: SUBCATEGORY_FAXINA,
 				},
-			]);
-		},
-	);
+				{
+					...CREATION,
+					fingerprint: "fp-sem-categoria",
+					descriptor: "LOJA SEM CATEGORIA",
+					categoryId: null,
+				},
+			],
+		});
+
+		expect(plan.categoryMappings).toEqual([
+			{
+				userId: "user-1",
+				descriptionKey: "abc supermercados",
+				categoryId: "category-doacoes",
+				subcategoryId: SUBCATEGORY_FAXINA,
+			},
+		]);
+	});
 
 	it("colapsa confirmações que normalizam para o mesmo descriptor", () => {
 		const plan = buildReconciliationPlan({

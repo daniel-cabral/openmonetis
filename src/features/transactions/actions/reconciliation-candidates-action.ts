@@ -123,48 +123,49 @@ export async function fetchReconciliationCandidatesAction(
 						lte(transactions.purchaseDate, rangeTo),
 					);
 
-	const [candidateRows, ignoredRows, cardRows, adminPayerId] = await Promise.all([
-		db
-			.select({
-				id: transactions.id,
-				name: transactions.name,
-				purchaseDate: transactions.purchaseDate,
-				amount: transactions.amount,
-				transactionType: transactions.transactionType,
-				installmentCount: transactions.installmentCount,
-				currentInstallment: transactions.currentInstallment,
-				ofxImportFingerprint: transactions.ofxImportFingerprint,
-				period: transactions.period,
-				isDivided: transactions.isDivided,
-				isSettled: transactions.isSettled,
-				payerId: transactions.payerId,
-			})
-			.from(transactions)
-			.where(
-				and(
-					eq(transactions.userId, userId),
-					destination.type === "card"
-						? eq(transactions.cardId, destination.id)
-						: eq(transactions.accountId, destination.id),
-					dateOrPeriod,
+	const [candidateRows, ignoredRows, cardRows, adminPayerId] =
+		await Promise.all([
+			db
+				.select({
+					id: transactions.id,
+					name: transactions.name,
+					purchaseDate: transactions.purchaseDate,
+					amount: transactions.amount,
+					transactionType: transactions.transactionType,
+					installmentCount: transactions.installmentCount,
+					currentInstallment: transactions.currentInstallment,
+					ofxImportFingerprint: transactions.ofxImportFingerprint,
+					period: transactions.period,
+					isDivided: transactions.isDivided,
+					isSettled: transactions.isSettled,
+					payerId: transactions.payerId,
+				})
+				.from(transactions)
+				.where(
+					and(
+						eq(transactions.userId, userId),
+						destination.type === "card"
+							? eq(transactions.cardId, destination.id)
+							: eq(transactions.accountId, destination.id),
+						dateOrPeriod,
+					),
 				),
-			),
-		fingerprints.length > 0
-			? db
-					.select({ fingerprint: reconciliationIgnores.fingerprint })
-					.from(reconciliationIgnores)
-					.where(eq(reconciliationIgnores.userId, userId))
-			: Promise.resolve([]),
-		destination.type === "card"
-			? db
-					.select({ dueDay: cards.dueDay })
-					.from(cards)
-					.where(and(eq(cards.id, destination.id), eq(cards.userId, userId)))
-			: Promise.resolve([]),
-		destination.type === "account"
-			? getAdminPayerId(userId)
-			: Promise.resolve(null),
-	]);
+			fingerprints.length > 0
+				? db
+						.select({ fingerprint: reconciliationIgnores.fingerprint })
+						.from(reconciliationIgnores)
+						.where(eq(reconciliationIgnores.userId, userId))
+				: Promise.resolve([]),
+			destination.type === "card"
+				? db
+						.select({ dueDay: cards.dueDay })
+						.from(cards)
+						.where(and(eq(cards.id, destination.id), eq(cards.userId, userId)))
+				: Promise.resolve([]),
+			destination.type === "account"
+				? getAdminPayerId(userId)
+				: Promise.resolve(null),
+		]);
 
 	const ignoredSet = new Set(ignoredRows.map((row) => row.fingerprint));
 
