@@ -51,14 +51,14 @@
 
 Test declaration: `Test: new, because distinct contract (new pure function; the only lock on the suspicion rule and its noise exclusions)`.
 
-- [ ] **Step 1: Commit the change docs** (they are untracked today)
+- [x] **Step 1: Commit the change docs** (they are untracked today)
 
 ```bash
 git add openspec/changes/harden-reconciliation-review/proposal.md openspec/changes/harden-reconciliation-review/design.md openspec/changes/harden-reconciliation-review/tasks.md openspec/changes/harden-reconciliation-review/.openspec.yaml openspec/changes/harden-reconciliation-review/specs/statement-reconciliation/spec.md openspec/changes/harden-reconciliation-review/specs/subcategories/spec.md
 git commit -m "docs(openspec): proposta e plano para endurecer a revisao da conciliacao"
 ```
 
-- [ ] **Step 2: Write the failing test** in `matcher.test.ts`, new `describe("detectMatchSuspicions")` with one `it.each`, using the file's `row()` and `transaction()` helpers:
+- [x] **Step 2: Write the failing test** in `matcher.test.ts`, new `describe("detectMatchSuspicions")` with one `it.each`, using the file's `row()` and `transaction()` helpers:
 
 ```ts
 it.each([
@@ -84,11 +84,11 @@ it.each([
 }); // [S: Fernanda casada com Terapia anterior ao arquivo] [S: Parcela antiga na fatura não é suspeita] [S: Casamento comum não gera aviso]
 ```
 
-- [ ] **Step 3: Run** `pnpm exec vitest run src/shared/lib/reconciliation/matcher.test.ts`. Expected: FAIL (`detectMatchSuspicions` is not exported).
-- [ ] **Step 4: Implement** `MatchSuspicion` and `detectMatchSuspicions` in `matcher.ts` per Interfaces (reuse the file's `toCents`).
-- [ ] **Step 5: Run** the same test. Expected: PASS.
-- [ ] **Step 6: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/shared/lib/reconciliation/matcher.ts src/shared/lib/reconciliation/matcher.test.ts`. Expected: no errors.
-- [ ] **Step 7: Commit**
+- [x] **Step 3: Run** `pnpm exec vitest run src/shared/lib/reconciliation/matcher.test.ts`. Expected: FAIL (`detectMatchSuspicions` is not exported).
+- [x] **Step 4: Implement** `MatchSuspicion` and `detectMatchSuspicions` in `matcher.ts` per Interfaces (reuse the file's `toCents`).
+- [x] **Step 5: Run** the same test. Expected: PASS.
+- [x] **Step 6: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/shared/lib/reconciliation/matcher.ts src/shared/lib/reconciliation/matcher.test.ts`. Expected: no errors.
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/shared/lib/reconciliation/matcher.ts src/shared/lib/reconciliation/matcher.test.ts
