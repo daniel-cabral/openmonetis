@@ -538,8 +538,8 @@ Changes (PT-BR, same table format):
 
 Test declaration: `Test: none, because documentation only`.
 
-- [ ] **Step 1: Edit** the table as above.
-- [ ] **Step 2: Commit**
+- [x] **Step 1: Edit** the table as above.
+- [x] **Step 2: Commit**
 
 ```bash
 git add .claude/skills/auditar-conciliacao/SKILL.md
