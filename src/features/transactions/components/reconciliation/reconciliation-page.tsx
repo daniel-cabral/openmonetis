@@ -40,13 +40,13 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { statementFinalBalance } from "@/shared/lib/reconciliation/closure";
 import {
 	type DetectResult,
 	detectParserProfile,
 } from "@/shared/lib/import/parsers/detect";
 import type { ParserProfile } from "@/shared/lib/import/parsers/registry";
 import type { ImportStatement } from "@/shared/lib/import/types";
+import { statementFinalBalance } from "@/shared/lib/reconciliation/closure";
 import { buildReconciliationFingerprintPayloads } from "@/shared/lib/reconciliation/fingerprint";
 import {
 	type AppTransaction,
@@ -325,6 +325,7 @@ export function ReconciliationPage({
 				ignores: payload.ignores,
 				manualLinks: payload.manualLinks,
 				amountUpdates: payload.amountUpdates,
+				unmatches: payload.unmatches,
 			});
 
 			if (!result.success) {
