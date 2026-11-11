@@ -497,7 +497,7 @@ git commit -m "feat(conciliacao): barra fixa com saldo previsto e casamentos sus
 
 Test declaration: `Test: new, because distinct contract (new pure rule from the builder's calls)`. Query: `Test: none, because a single min() select; covered by the visual check`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it.each([
@@ -511,11 +511,11 @@ it.each([
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/accounts/lib/unreconciled.test.ts`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement** per Interfaces.
-- [ ] **Step 4: Run** the same test. Expected: PASS.
-- [ ] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the six files.
-- [ ] **Step 6: Commit**
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/accounts/lib/unreconciled.test.ts`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement** per Interfaces.
+- [x] **Step 4: Run** the same test. Expected: PASS.
+- [x] **Step 5: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the six files.
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/accounts/lib/unreconciled.ts src/features/accounts/lib/unreconciled.test.ts src/features/accounts/statement-queries.ts src/features/transactions/components/types.ts src/features/transactions/components/table/transaction-settlement-button.tsx "src/app/(dashboard)/accounts/[accountId]/statement/page.tsx"
