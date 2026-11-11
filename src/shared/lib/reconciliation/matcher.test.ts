@@ -5,6 +5,7 @@ import { parseC6InvoiceCsv } from "../import/parsers/c6-invoice-csv";
 import type { ImportedTransaction } from "../import/types";
 import {
 	type AppTransaction,
+	detectMatchSuspicions,
 	findCentsCandidates,
 	findExactCandidates,
 	findFingerprintCandidates,
@@ -850,4 +851,104 @@ describe("matchReconciliationRows com de-para de nome", () => {
 		});
 		expect(comPoolAmpliado.appOnlyIds).toEqual(["tx-periodo"]);
 	});
+});
+
+describe("detectMatchSuspicions", () => {
+	it.each([
+		[
+			"Fernanda 26/10 casada com Terapia de 11/10, arquivo desde 12/10",
+			{ date: "2026-10-26", amount: 275 },
+			"name-period",
+			{ date: "2026-10-11", amount: 275 },
+			"2026-10-12",
+			"account",
+			[
+				{
+					reason: "before-file-start",
+					transactionDate: "2026-10-11",
+					fileStartDate: "2026-10-12",
+				},
+			],
+		],
+		[
+			"Colégio 1.560,85 casado por fingerprint com 1.643",
+			{ date: "2026-10-15", amount: 1560.85 },
+			"fingerprint",
+			{ date: "2026-10-22", amount: 1643 },
+			"2026-10-12",
+			"account",
+			[{ reason: "amount-divergence", appAmount: 1643, rowAmount: 1560.85 }],
+		],
+		[
+			"os dois motivos juntos, data primeiro",
+			{ date: "2026-10-16", amount: 210 },
+			"fingerprint",
+			{ date: "2026-10-09", amount: 200 },
+			"2026-10-12",
+			"account",
+			[
+				{
+					reason: "before-file-start",
+					transactionDate: "2026-10-09",
+					fileStartDate: "2026-10-12",
+				},
+				{ reason: "amount-divergence", appAmount: 200, rowAmount: 210 },
+			],
+		],
+		[
+			"conta estimada casada por nome e período não é suspeita (Cemig)",
+			{ date: "2026-10-16", amount: 106.28 },
+			"name-period",
+			{ date: "2026-10-16", amount: 110 },
+			"2026-10-12",
+			"account",
+			[],
+		],
+		[
+			"casamento comum",
+			{ date: "2026-10-15", amount: 106.28 },
+			"exact",
+			{ date: "2026-10-15", amount: 106.28 },
+			"2026-10-12",
+			"account",
+			[],
+		],
+		[
+			"lançamento no próprio dia de início",
+			{ date: "2026-10-13", amount: 50 },
+			"exact",
+			{ date: "2026-10-12", amount: 50 },
+			"2026-10-12",
+			"account",
+			[],
+		],
+		[
+			"parcela antiga na fatura",
+			{ date: "2025-01-14", amount: 1800 },
+			"installment",
+			{ date: "2025-01-14", amount: 1800 },
+			"2026-09-20",
+			"card",
+			[],
+		],
+		[
+			"arredondamento da regra de centavos",
+			{ date: "2026-10-10", amount: 86.59 },
+			"cents",
+			{ date: "2026-10-10", amount: 86.61 },
+			"2026-10-01",
+			"card",
+			[],
+		],
+	] as const)("%s", (_, rowOverrides, rule, txOverrides, fileStartDate, destinationKind, expected) => {
+		expect(
+			detectMatchSuspicions({
+				row: row(rowOverrides),
+				rule,
+				transaction: transaction(txOverrides),
+				fileStartDate,
+				destinationKind,
+			}),
+		).toEqual(expected);
+	}); // [S: Fernanda casada com Terapia anterior ao arquivo] [S: Parcela antiga na fatura não é suspeita] [S: Casamento comum não gera aviso]
 });

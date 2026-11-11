@@ -75,7 +75,7 @@ export type RowClassification = ClassifiedRow &
 				status: "matched";
 				rule: MatchRule;
 				transactionId: string;
-				// Só a regra name-period preenche, e só quando os valores diferem.
+				// Preenchido por qualquer regra, e só quando os valores diferem.
 				amountDivergence: { appAmount: number; rowAmount: number } | null;
 		  }
 		| { status: "ambiguous"; candidateIds: string[] }
@@ -226,6 +226,52 @@ const MATCH_RULES: {
 	{ rule: "cents", find: findCentsCandidates },
 	{ rule: "name-period", find: findNamePeriodCandidates },
 ];
+
+export type MatchSuspicion =
+	| {
+			reason: "before-file-start";
+			transactionDate: string;
+			fileStartDate: string;
+	  }
+	| { reason: "amount-divergence"; appAmount: number; rowAmount: number };
+
+/**
+ * Casamento que pede conferência antes do Aplicar. Data anterior ao início do
+ * arquivo só importa em conta: no cartão, parcela antiga é casamento legítimo.
+ * Divergência de valor só importa no fingerprint: as demais regras casam de
+ * propósito um valor diferente (estimativa de conta recorrente).
+ */
+export function detectMatchSuspicions(params: {
+	row: ImportedTransaction;
+	rule: MatchRule;
+	transaction: AppTransaction;
+	fileStartDate: string;
+	destinationKind: DestinationKind | null;
+}): MatchSuspicion[] {
+	const { row, rule, transaction, fileStartDate, destinationKind } = params;
+	const suspicions: MatchSuspicion[] = [];
+
+	if (destinationKind === "account" && transaction.date < fileStartDate) {
+		suspicions.push({
+			reason: "before-file-start",
+			transactionDate: transaction.date,
+			fileStartDate,
+		});
+	}
+
+	if (
+		rule === "fingerprint" &&
+		toCents(transaction.amount) !== toCents(row.amount)
+	) {
+		suspicions.push({
+			reason: "amount-divergence",
+			appAmount: transaction.amount,
+			rowAmount: row.amount,
+		});
+	}
+
+	return suspicions;
+}
 
 type Decision = { rule: MatchRule; transactionId: string };
 
