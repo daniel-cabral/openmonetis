@@ -5,6 +5,24 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.15.0] - 2026-11-11
+
+Esta versão torna a conciliação confiável na virada do mês: a revisão avisa os casamentos duvidosos, deixa desfazer qualquer casamento sem SQL e mostra o saldo previsto do app contra o do extrato antes de aplicar.
+
+### Adicionado
+
+- Balde "Precisa da sua decisão" no topo da revisão, com o motivo de cada casamento duvidoso
+- "Desfazer casamento" em toda linha casada
+- Barra fixa com o saldo previsto (ou o total da fatura) contra o arquivo, e lista de pagos depois do fim do arquivo
+- Ação "Marcar todas como Criar"
+- Categoria e subcategoria nas linhas ambíguas criadas
+- Indicador de pago não conciliado no extrato da conta
+
+### Alterado
+
+- Linhas criadas com categoria passam a alimentar a memória de categoria e subcategoria
+- Desfazer devolve os fingerprints liberados e volta a pendente o que a confirmação pagou
+
 ## [2.14.0] - 2026-10-23
 
 Esta versão traz subcategorias opcionais dentro de cada categoria, para detalhar para onde vai o dinheiro sem criar uma segunda hierarquia. Cada lançamento aceita no máximo uma subcategoria, e os totais por categoria continuam iguais aos de antes.
