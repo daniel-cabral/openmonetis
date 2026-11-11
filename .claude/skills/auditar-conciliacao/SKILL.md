@@ -97,7 +97,7 @@ Conferido num caso real: compras R$ 19.484,72 − estorno R$ 98,00 − adiantame
 
 | Sintoma | Causa | O que fazer |
 |---|---|---|
-| Saldo da conta nunca bate com o banco | O saldo soma **tudo que está com `isSettled = true`, sem filtro de data** (`accounts-queries.ts`). Não é projeção: é "o que está marcado como pago" Na revisão, ler a barra fixa (saldo previsto com corte no fim do arquivo) e a lista "pagos depois do fim do arquivo". No extrato da conta, o ícone `RiLinkUnlinkM` marca os lançamentos pagos e não conciliados |
+| Saldo da conta nunca bate com o banco | O saldo soma **tudo que está com `isSettled = true`, sem filtro de data** (`accounts-queries.ts`). Não é projeção: é "o que está marcado como pago." | Na revisão, ler a barra fixa (saldo previsto com corte no fim do arquivo) e a lista "pagos depois do fim do arquivo". No extrato da conta, o ícone `RiLinkUnlinkM` marca os lançamentos pagos e não conciliados |
 | Lançamento com "remover" cinza | Nota começa com `AUTO_FATURA:` — foi gerado pela quitação da fatura (`page-helpers.ts`, campo `readonly`) | Cartões → fatura → **período correto** → "Desfazer pagamento" |
 | Pagamento de fatura não aparece na tela do cartão | A tela abre no período atual | Navegar até o período em que o pagamento foi registrado |
 | Recorrente cai sempre em "só no banco" | Data fixa (dia 15) distante do débito real (dia 10) | Ensinar o de-para com **Vincular a lançamento existente**; casa por nome+período e ignora data |
