@@ -403,10 +403,10 @@ Behavior (UI copy exact):
 
 Test declaration: `Test: none, because the rules are locked by Task 1 (suspicion), Task 3 (payload release, consumed set) and Task 4 (server); the rest is markup`.
 
-- [ ] **Step 1: Implement** the behavior above.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/features/transactions/components/reconciliation/reconciliation-review.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx`. Expected: no errors.
-- [ ] **Step 3: Run** the reconciliation lib tests once: `pnpm exec vitest run src/features/transactions/lib/reconciliation-review.test.ts`. Expected: PASS.
-- [ ] **Step 4: Commit**
+- [x] **Step 1: Implement** the behavior above.
+- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/features/transactions/components/reconciliation/reconciliation-review.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx`. Expected: no errors. (tsc passed; biome deferred to the final gate by the workflow, not run in this task.)
+- [x] **Step 3: Run** the reconciliation lib tests once: `pnpm exec vitest run src/features/transactions/lib/reconciliation-review.test.ts`. Expected: PASS.
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/features/transactions/components/reconciliation/reconciliation-review.tsx src/features/transactions/components/reconciliation/reconciliation-page.tsx
