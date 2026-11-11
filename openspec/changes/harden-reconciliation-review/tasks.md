@@ -427,9 +427,9 @@ git commit -m "feat(conciliacao): balde de casamentos suspeitos e desfazer casam
 
 Test declaration: `Test: none, because the memory write is locked by Task 3 (plan learns from creations) and the payload already carries subcategoryId (reconciliation-review.test.ts::buildReconciliationApplyPayload); the rest is markup`.
 
-- [ ] **Step 1: Implement** the behavior above.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/features/transactions/components/reconciliation/reconciliation-review.tsx`.
-- [ ] **Step 3: Commit**
+- [x] **Step 1: Implement** the behavior above.
+- [x] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false src/features/transactions/components/reconciliation/reconciliation-review.tsx`. (tsc passed; biome deferred to the final gate by the workflow, not run in this task. No test file covers this tsx, so no scoped vitest run.)
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/transactions/components/reconciliation/reconciliation-review.tsx
