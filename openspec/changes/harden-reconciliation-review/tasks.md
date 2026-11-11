@@ -462,9 +462,9 @@ Bar layout and copy (exact, from the preview):
 
 Test declaration: `Test: none, because the numbers are locked by Task 2 and this task is wiring and markup`.
 
-- [ ] **Step 1: Implement** the bar, the review props and the page wiring.
-- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files.
-- [ ] **Step 3: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-projection.test.ts`. Expected: PASS.
+- [x] **Step 1: Implement** the bar, the review props and the page wiring.
+- [ ] **Step 2: Typecheck and lint** `pnpm exec tsc --noEmit`; `pnpm exec biome check --formatter-enabled=false` on the three files. (Deferred to the final gate by the workflow, not run in this task.)
+- [x] **Step 3: Run** `pnpm exec vitest run src/features/transactions/lib/reconciliation-projection.test.ts`. Expected: PASS. (10/10 PASS.)
 > Steps 4 and 5 are MANUAL (human, after the automated run, against the deployed app or a dev server with a real DB). The implementer does NOT run them and does NOT start any server; it marks them pending and moves on to Step 6.
 
 - [ ] **Step 4 (manual, pending human): Visual check** (one dev server, nothing else heavy in parallel): `pnpm run dev`, open `/transactions/reconciliation`, upload a C6 statement, confirm the bar stays visible while scrolling, turns green/amber as decisions change, and the suspicious counter matches the top bucket.
