@@ -283,18 +283,22 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 				subcategoryId: SUBCATEGORY_ID,
 				isSettled: false,
 			},
+			// Já estava pago pelo usuário: o casamento não pode reverter isso.
+			{ id: TX_ID_2, categoryId: null, subcategoryId: null, isSettled: true },
 		]);
 
 		const result = await applyReconciliationAction({
 			...baseInput,
 			confirmations: [
 				{ fingerprint: "fp-1", transactionId: TX_ID, descriptor: DESCRIPTOR },
+				{ fingerprint: "fp-2", transactionId: TX_ID_2, descriptor: DESCRIPTOR },
 			],
 		});
 
 		expect(result).toMatchObject({ success: true, settledByApply: [TX_ID] });
 		expect(settledWrites().map((write) => write.payload)).toEqual([
 			{ ofxImportFingerprint: "fp-1", isSettled: true },
+			{ ofxImportFingerprint: "fp-2", isSettled: true },
 		]);
 
 		// O de-para de categoria sai do lançamento casado, com a subcategoria dele,
@@ -315,7 +319,7 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 	});
 
 	it("não mexe em isSettled quando o destino é cartão", async () => {
-		selectQueue.push([{ id: TX_ID, categoryId: null }]);
+		selectQueue.push([{ id: TX_ID, categoryId: null, isSettled: null }]);
 
 		const result = await applyReconciliationAction({
 			...baseInput,
@@ -327,7 +331,7 @@ describe("applyReconciliationAction — liquidação do casado", () => {
 			],
 		});
 
-		expect(result.success).toBe(true);
+		expect(result).toMatchObject({ success: true, settledByApply: [] });
 		expect(settledWrites().map((write) => write.payload)).toEqual([
 			{ ofxImportFingerprint: "fp-1" },
 		]);
