@@ -3,6 +3,10 @@
 import { RiAlertLine } from "@remixicon/react";
 import { useMemo, useState } from "react";
 import {
+	type ApplyProjection,
+	ReconciliationApplyBar,
+} from "@/features/transactions/components/reconciliation/reconciliation-apply-bar";
+import {
 	CategorySelectContent,
 	PayerSelectContent,
 } from "@/features/transactions/components/select-items";
@@ -13,7 +17,14 @@ import {
 	pickRememberedSubcategory,
 } from "@/features/transactions/lib/import-utils";
 import {
+	type AccountBalanceContext,
+	type PaidAfterEnd,
+	projectAccountBalance,
+	projectInvoiceTotal,
+} from "@/features/transactions/lib/reconciliation-projection";
+import {
 	buildConsumedTransactionIds,
+	buildReconciliationApplyPayload,
 	evaluateApplyBlock,
 	initialRowName,
 	isCreditLine,
@@ -66,6 +77,14 @@ type MatchedState = CreateLinkFields & {
 	expanded: boolean;
 };
 
+type ReviewProjectionTarget =
+	| {
+			kind: "statement";
+			context: AccountBalanceContext;
+			finalBalance: { day: string; balance: number } | null;
+	  }
+	| { kind: "invoice"; invoicePeriod: string; expectedTotal: number | null };
+
 interface ReconciliationReviewProps {
 	rows: RowClassification[];
 	appOnlyTransactions: AppTransaction[];
@@ -75,6 +94,7 @@ interface ReconciliationReviewProps {
 	destinationKind: DestinationKind | null;
 	fileStartDate: string;
 	invoicePeriod: string;
+	projectionTarget: ReviewProjectionTarget | null;
 	categoryOptions: SelectOption[];
 	payerOptions: SelectOption[];
 	defaultPayerId: string;
@@ -96,6 +116,7 @@ export function ReconciliationReview({
 	destinationKind,
 	fileStartDate,
 	invoicePeriod,
+	projectionTarget,
 	categoryOptions,
 	payerOptions,
 	defaultPayerId,
@@ -507,6 +528,51 @@ export function ReconciliationReview({
 				decision.action !== "skip" ||
 				("releaseFingerprint" in decision && Boolean(decision.releaseFingerprint)),
 		);
+
+	// Recalcula a cada decisão: o payload é o mesmo que o aplicar grava.
+	const applyPayload = buildReconciliationApplyPayload(decisions, defaultPayerId);
+	const applyProjection = ((): {
+		projection: ApplyProjection | null;
+		paidAfterEnd: PaidAfterEnd[];
+	} => {
+		if (!projectionTarget) return { projection: null, paidAfterEnd: [] };
+
+		if (projectionTarget.kind === "statement") {
+			const { projected, paidAfterEnd } = projectAccountBalance({
+				payload: applyPayload,
+				context: projectionTarget.context,
+				appTransactionsById,
+			});
+			const final = projectionTarget.finalBalance;
+			return {
+				projection: {
+					label: "Saldo do app após aplicar",
+					projected,
+					targetLabel: final
+						? `Saldo final do extrato (${formatDateOnly(final.day, { year: undefined, month: "2-digit" }) ?? final.day})`
+						: "",
+					target: final?.balance ?? null,
+					unavailableText: "Saldo final do extrato indisponível",
+				},
+				paidAfterEnd,
+			};
+		}
+
+		return {
+			projection: {
+				label: "Total da fatura no app após aplicar",
+				projected: projectInvoiceTotal({
+					payload: applyPayload,
+					transactions: [...appTransactionsById.values()],
+					invoicePeriod: projectionTarget.invoicePeriod,
+				}),
+				targetLabel: "Total informado",
+				target: projectionTarget.expectedTotal,
+				unavailableText: "Informe o total da fatura para comparar",
+			},
+			paidAfterEnd: [],
+		};
+	})();
 
 	const renderMatchedRow = (row: MatchedRow) => {
 		const app = appTransactionsById.get(row.transactionId);
@@ -921,14 +987,15 @@ export function ReconciliationReview({
 				{ambiguousRows.length === 0 && <EmptyBucket />}
 			</BucketSection>
 
-			<div className="flex flex-col items-end gap-1">
-				{applyBlock.blocked && (
-					<span className="text-destructive text-xs">{applyBlock.reason}</span>
-				)}
-				<Button disabled={!canApply} onClick={() => onApply(decisions)}>
-					{isApplying ? "Aplicando…" : "Aplicar"}
-				</Button>
-			</div>
+			<ReconciliationApplyBar
+				projection={applyProjection.projection}
+				paidAfterEnd={applyProjection.paidAfterEnd}
+				suspiciousCount={suspiciousRows.length}
+				blockReason={applyBlock.blocked ? applyBlock.reason : null}
+				canApply={canApply}
+				isApplying={isApplying}
+				onApply={() => onApply(decisions)}
+			/>
 		</div>
 	);
 }

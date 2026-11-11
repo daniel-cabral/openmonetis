@@ -22,6 +22,7 @@ import {
 	destinationKindForProfile,
 	matchAccountOptionByNumber,
 } from "@/features/transactions/lib/reconciliation-origin";
+import type { AccountBalanceContext } from "@/features/transactions/lib/reconciliation-projection";
 import {
 	buildReconciliationApplyPayload,
 	buildReconciliationUndoPayload,
@@ -39,6 +40,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { statementFinalBalance } from "@/shared/lib/reconciliation/closure";
 import {
 	type DetectResult,
 	detectParserProfile,
@@ -68,6 +70,7 @@ type ReviewState = {
 	appTransactionsById: Map<string, AppTransaction>;
 	learnedMappingByFingerprint: Map<string, CategoryMapping>;
 	nameMappings: Record<string, string>;
+	accountBalance: AccountBalanceContext | null;
 };
 
 function extendedDateRange(statement: ImportStatement): {
@@ -232,6 +235,7 @@ export function ReconciliationPage({
 			appTransactionsById,
 			learnedMappingByFingerprint,
 			nameMappings,
+			accountBalance: candidates.accountBalance,
 		});
 	};
 
@@ -452,6 +456,26 @@ export function ReconciliationPage({
 						destinationKind={destinationKind}
 						fileStartDate={extendedDateRange(review.statement).from}
 						invoicePeriod={invoicePeriodInput}
+						projectionTarget={
+							review.accountBalance
+								? {
+										kind: "statement",
+										context: review.accountBalance,
+										finalBalance: statementFinalBalance(
+											review.statement.transactions,
+										),
+									}
+								: destinationKind === "card"
+									? {
+											kind: "invoice",
+											invoicePeriod: invoicePeriodInput,
+											expectedTotal:
+												closure?.kind === "invoice"
+													? closure.result.expectedTotal
+													: null,
+										}
+									: null
+						}
 						categoryOptions={categoryOptions}
 						payerOptions={payerOptions}
 						defaultPayerId={payerId}
