@@ -554,13 +554,13 @@ git commit -m "docs(skills): auditar-conciliacao com aviso de suspeito, desfazer
 - Modify: `CHANGELOG.md` (new section above `## [2.14.0]`), `package.json` (`"version"`), `README.md` (badge L13)
 - Delete: `src/app/preview-conciliacao/` (untracked: plain delete, nothing to stage)
 
-- [ ] **Step 1: Delete the preview route** `rm -r src/app/preview-conciliacao`. Expected: `git status --short` no longer lists it.
-- [ ] **Step 2: Full suite** `pnpm exec vitest run --maxWorkers=4`. Expected: all PASS. Then `pnpm exec tsc --noEmit`. Expected: no errors.
-- [ ] **Step 3: Version 2.15.0** in `package.json` and the README badge (`version-2.15.0-blue`).
-- [ ] **Step 4: CHANGELOG** `## [2.15.0] - <date>`, a PT-BR intro paragraph (e.g. "Esta versão torna a conciliação confiável na virada do mês: a revisão avisa os casamentos duvidosos, deixa desfazer qualquer casamento sem SQL e mostra o saldo previsto do app contra o do extrato antes de aplicar."), then:
+- [x] **Step 1: Delete the preview route** `rm -r src/app/preview-conciliacao`. Expected: `git status --short` no longer lists it.
+- [ ] **Step 2: Full suite** `pnpm exec vitest run --maxWorkers=4`. Expected: all PASS. Then `pnpm exec tsc --noEmit`. Expected: no errors. (Deferred to the final gate by the workflow; not run in this task.)
+- [x] **Step 3: Version 2.15.0** in `package.json` and the README badge (`version-2.15.0-blue`).
+- [x] **Step 4: CHANGELOG** `## [2.15.0] - <date>`, a PT-BR intro paragraph (e.g. "Esta versão torna a conciliação confiável na virada do mês: a revisão avisa os casamentos duvidosos, deixa desfazer qualquer casamento sem SQL e mostra o saldo previsto do app contra o do extrato antes de aplicar."), then:
   - `### Adicionado`: balde "Precisa da sua decisão" com o motivo; "Desfazer casamento" em toda linha casada; barra fixa com saldo previsto (ou total da fatura) e lista de pagos depois do fim do arquivo; "Marcar todas como Criar"; categoria e subcategoria nas ambíguas criadas; indicador de pago não conciliado no extrato da conta.
   - `### Alterado`: linhas criadas com categoria passam a alimentar a memória de categoria e subcategoria; o desfazer devolve fingerprints liberados e volta a pendente o que a confirmação pagou.
-- [ ] **Step 5: Commit** (no tag; tags only with the user's explicit authorization, AGENTS.md rule 6)
+- [x] **Step 5: Commit** (no tag; tags only with the user's explicit authorization, AGENTS.md rule 6)
 
 ```bash
 git add CHANGELOG.md package.json README.md
