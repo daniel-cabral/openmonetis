@@ -1,5 +1,6 @@
 import type { AppTransaction } from "@/shared/lib/reconciliation/matcher";
 import { toDateOnlyString } from "@/shared/utils/date";
+import type { BalanceStatus } from "./reconciliation-projection";
 
 /** Linha crua de `transactions` lida pela action de candidatos. */
 export type ReconciliationCandidateRow = {
@@ -36,4 +37,29 @@ export function toAppTransaction(
 		period: row.period,
 		isDivided: row.isDivided ?? false,
 	};
+}
+
+/**
+ * Situação do candidato no saldo base da conta. `null` quando o lançamento
+ * não é do admin (não entra no saldo da conta). Pendente vem antes da data:
+ * um lançamento não liquidado nunca conta, qualquer que seja a data.
+ */
+export function toBalanceStatus(
+	row: {
+		isSettled: boolean | null;
+		payerId: string | null;
+		purchaseDate: Date | string | null;
+	},
+	context: { adminPayerId: string | null; cutoff: string },
+): BalanceStatus | null {
+	if (!context.adminPayerId || row.payerId !== context.adminPayerId) {
+		return null;
+	}
+
+	if (!row.isSettled) {
+		return "unsettled";
+	}
+
+	const date = toDateOnlyString(row.purchaseDate) ?? "";
+	return date > context.cutoff ? "after-end" : "in-balance";
 }

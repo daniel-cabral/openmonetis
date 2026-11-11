@@ -3,6 +3,7 @@ import { matchReconciliationRows } from "@/shared/lib/reconciliation/matcher";
 import {
 	type ReconciliationCandidateRow,
 	toAppTransaction,
+	toBalanceStatus,
 } from "./reconciliation-candidates";
 
 function dbRow(
@@ -90,5 +91,17 @@ describe("toAppTransaction", () => {
 			rule: "exact",
 			transactionId: "tx-1",
 		});
+	});
+});
+
+describe("toBalanceStatus", () => {
+	it.each([
+		["pago do admin até o fim do arquivo", { isSettled: true, payerId: "admin", purchaseDate: "2026-11-11" }, "admin", "in-balance"],
+		["pago do admin depois do fim do arquivo", { isSettled: true, payerId: "admin", purchaseDate: "2026-11-22" }, "admin", "after-end"],
+		["pendente do admin", { isSettled: false, payerId: "admin", purchaseDate: "2026-10-16" }, "admin", "unsettled"],
+		["pago de outra pessoa", { isSettled: true, payerId: "outra", purchaseDate: "2026-10-16" }, "admin", null],
+		["sem pessoa administradora", { isSettled: true, payerId: "admin", purchaseDate: "2026-10-16" }, null, null],
+	])("%s", (_, row, adminPayerId, expected) => {
+		expect(toBalanceStatus(row, { adminPayerId, cutoff: "2026-11-11" })).toBe(expected);
 	});
 });
