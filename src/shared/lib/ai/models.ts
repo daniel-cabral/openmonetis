@@ -133,5 +133,19 @@ export const AVAILABLE_MODELS = [
 	{ id: "ollama:mistral", name: "Mistral", provider: "ollama" as const },
 ] as const;
 
+export type ChatGptModel = {
+	id: string;
+	name: string;
+	provider: "chatgpt";
+};
+
+/**
+ * Lista usada quando o backend do ChatGPT (assinatura) não responde
+ */
+export const CHATGPT_FALLBACK_MODELS: ChatGptModel[] = [
+	{ id: "chatgpt:gpt-5.5", name: "GPT-5.5", provider: "chatgpt" },
+	{ id: "chatgpt:gpt-5.4", name: "GPT-5.4", provider: "chatgpt" },
+];
+
 export const DEFAULT_MODEL = "gpt-5.5";
 export const DEFAULT_PROVIDER = "openai";

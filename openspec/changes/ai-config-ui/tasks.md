@@ -162,11 +162,11 @@ Test: new, because distinct contract (outgoing request shape and generate-over-s
 
 Test: new, because distinct contract (external HTTP boundary with timeout, cache and fallback), fake `fetch` and fake clock.
 
-- [ ] **Step 1: Failing tests:** `"maps the backend list and caches it per user for 5 minutes"` (fake fetch returns `{ models: [{ slug: "gpt-5.5", display_name: "GPT-5.5" }, { slug: "gpt-5.4-mini" }] }` -> ids `["chatgpt:gpt-5.5","chatgpt:gpt-5.4-mini"]`, names `["GPT-5.5","gpt-5.4-mini"]`; second call within 5 min -> fetch called once; another user -> called again; after 5 min + 1 s -> called again). `"falls back to the static list on failure without caching it"` (`it.each`: 500, a fetch that never resolves with `timeoutMs: 10`, body `{}`, token provider throwing `AiReconnectRequiredError` -> fallback ids `["chatgpt:gpt-5.5","chatgpt:gpt-5.4"]`; the next call hits fetch again).
-- [ ] **Step 2:** `pnpm exec vitest run src/shared/lib/ai/chatgpt/models-list.test.ts` -> FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Run -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `feat(ia): lista de modelos da assinatura do ChatGPT vinda do backend`
+- [x] **Step 1: Failing tests:** `"maps the backend list and caches it per user for 5 minutes"` (fake fetch returns `{ models: [{ slug: "gpt-5.5", display_name: "GPT-5.5" }, { slug: "gpt-5.4-mini" }] }` -> ids `["chatgpt:gpt-5.5","chatgpt:gpt-5.4-mini"]`, names `["GPT-5.5","gpt-5.4-mini"]`; second call within 5 min -> fetch called once; another user -> called again; after 5 min + 1 s -> called again). `"falls back to the static list on failure without caching it"` (`it.each`: 500, a fetch that never resolves with `timeoutMs: 10`, body `{}`, token provider throwing `AiReconnectRequiredError` -> fallback ids `["chatgpt:gpt-5.5","chatgpt:gpt-5.4"]`; the next call hits fetch again).
+- [x] **Step 2:** `pnpm exec vitest run src/shared/lib/ai/chatgpt/models-list.test.ts` -> FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Run -> PASS; lint touched files.
+- [x] **Step 5: Commit** `feat(ia): lista de modelos da assinatura do ChatGPT vinda do backend`
 
 ### Task 7: Per-user model resolution, no env vars
 
