@@ -128,11 +128,11 @@ Test: none, because CI's "Check migrations" step locks schema/migration parity.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: `toCents("1234.56") === 123_456`, `centsToDecimal(123_450) === "1234.50"`; one `it.each` of invalid plan inputs with the expected message: window `latest < earliest` → `"A janela termina antes de começar."`; `targetMonth` outside window → `"O mês alvo deve estar dentro da janela."`; `embeddedBid.pct 31` → `"O lance embutido vai até 30%."`; one `it.each` for `replacePositionsSchema`: `liquidity "maturity"` without month → `"Informe o mês de vencimento."`, `"daily"` with month → `"Vencimento só vale para liquidez no vencimento."`; one valid goal and one valid consórcio parse.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/schemas.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** both files.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): schemas de entrada e conversao de centavos"`.
+- [x] **Step 1: Write the failing test**: `toCents("1234.56") === 123_456`, `centsToDecimal(123_450) === "1234.50"`; one `it.each` of invalid plan inputs with the expected message: window `latest < earliest` → `"A janela termina antes de começar."`; `targetMonth` outside window → `"O mês alvo deve estar dentro da janela."`; `embeddedBid.pct 31` → `"O lance embutido vai até 30%."`; one `it.each` for `replacePositionsSchema`: `liquidity "maturity"` without month → `"Informe o mês de vencimento."`, `"daily"` with month → `"Vencimento só vale para liquidez no vencimento."`; one valid goal and one valid consórcio parse.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/schemas.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** both files.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): schemas de entrada e conversao de centavos"`.
 
 ### Task 6: Transaction classification and baselines
 
