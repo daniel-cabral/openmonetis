@@ -421,11 +421,11 @@ Test: extends the two existing test files, because the contract is split between
 
 Test: new, because the schema refinement is a new pure contract.
 
-- [ ] **Step 1: Failing test** `"model schema has only categories and requires four distinct ones"`: `Object.keys(InsightsModelSchema.shape)` equals `["categories"]`; four distinct categories parse; `behaviors` twice (still length 4) fails; `InsightsResponseSchema` still requires `month` and `generatedAt`.
-- [ ] **Step 2:** `pnpm exec vitest run src/shared/lib/schemas/insights.test.ts` -> FAIL.
-- [ ] **Step 3:** Implement and dedupe the prompts.
-- [ ] **Step 4:** Test -> PASS; `pnpm exec vitest run src/features/insights` -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `refactor(insights): mês e data definidos pelo servidor e regras só no prompt do sistema`
+- [x] **Step 1: Failing test** `"model schema has only categories and requires four distinct ones"`: `Object.keys(InsightsModelSchema.shape)` equals `["categories"]`; four distinct categories parse; `behaviors` twice (still length 4) fails; `InsightsResponseSchema` still requires `month` and `generatedAt`.
+- [x] **Step 2:** `pnpm exec vitest run src/shared/lib/schemas/insights.test.ts` -> FAIL.
+- [x] **Step 3:** Implement and dedupe the prompts.
+- [x] **Step 4:** Test -> PASS; `pnpm exec vitest run src/features/insights` -> PASS; lint touched files.
+- [x] **Step 5: Commit** `refactor(insights): mês e data definidos pelo servidor e regras só no prompt do sistema`
 
 ### Task 22: Insights: planning summary in the aggregate
 

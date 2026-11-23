@@ -34,32 +34,4 @@ export const INSIGHTS_SYSTEM_PROMPT = `Você é um especialista em comportamento
 Para cada categoria, forneça de 3 a 6 itens concisos e objetivos. Use linguagem clara e direta, com verbos de ação. Mantenha privacidade e não exponha dados pessoais sensíveis.
 
 IMPORTANTE: Utilize os novos dados disponíveis (threeMonthTrend, recurringExpenses, installments) para fornecer insights mais ricos e contextualizados.
-
-Responda EXCLUSIVAMENTE com um JSON válido seguindo o esquema:
-{
-  "month": "YYYY-MM",
-  "generatedAt": "ISO datetime",
-  "categories": [
-    {
-      "category": "behaviors",
-      "items": [
-        { "text": "Observação aqui" },
-        ...
-      ]
-    },
-    {
-      "category": "triggers",
-      "items": [...]
-    },
-    {
-      "category": "recommendations",
-      "items": [...]
-    },
-    {
-      "category": "improvements",
-      "items": [...]
-    }
-  ]
-}
-
 `;

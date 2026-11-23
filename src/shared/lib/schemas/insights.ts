@@ -53,12 +53,25 @@ const InsightCategorySchema = z.object({
 });
 
 /**
- * Schema for complete insights response from AI
+ * Schema the model fills in: only the four distinct categories
  */
-export const InsightsResponseSchema = z.object({
+export const InsightsModelSchema = z.object({
+	categories: z
+		.array(InsightCategorySchema)
+		.length(4)
+		.refine(
+			(categories) =>
+				new Set(categories.map((entry) => entry.category)).size === 4,
+			{ message: "As 4 categorias devem ser distintas" },
+		),
+});
+
+/**
+ * Schema for complete insights response (model output plus server-set fields)
+ */
+export const InsightsResponseSchema = InsightsModelSchema.extend({
 	month: z.string().regex(/^\d{4}-\d{2}$/), // YYYY-MM
 	generatedAt: z.string(), // ISO datetime
-	categories: z.array(InsightCategorySchema).length(4),
 });
 
 /**

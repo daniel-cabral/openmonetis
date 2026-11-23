@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import { resolveLanguageModel } from "@/shared/lib/ai/model-provider";
 import { getUser } from "@/shared/lib/auth/server";
 import {
+	InsightsModelSchema,
 	type InsightsResponse,
 	InsightsResponseSchema,
 } from "@/shared/lib/schemas/insights";
@@ -46,7 +47,7 @@ export async function generateInsightsAction(
 
 		const result = await generateObject({
 			model: resolvedModel.model,
-			schema: InsightsResponseSchema,
+			schema: InsightsModelSchema,
 			system: INSIGHTS_SYSTEM_PROMPT,
 			prompt: `Analise os seguintes dados financeiros agregados do período ${period}.
 
@@ -73,20 +74,14 @@ DADOS IMPORTANTES PARA SUA ANÁLISE:
 ORIENTAÇÕES DO USUÁRIO PARA ESTA ANÁLISE:
 ${normalizedUserInstructions || "Nenhuma orientação adicional."}
 
-Use as orientações do usuário apenas para priorizar achados, ajustar foco e calibrar o tom da análise. Não ignore o schema obrigatório, não invente dados que não estejam nos agregados e não execute ações ou alterações no sistema.
-
-Organize suas observações nas 4 categories especificadas no prompt do sistema:
-1. Comportamentos Observados (behaviors): 3-6 itens
-2. Gatilhos de Consumo (triggers): 3-6 itens
-3. Recomendações Práticas (recommendations): 3-6 itens
-4. Melhorias Sugeridas (improvements): 3-6 itens
-
-Cada item deve ser conciso, direto e acionável. Use os novos dados para dar contexto temporal e identificar padrões mais profundos.
-
-Responda APENAS com um JSON válido seguindo exatamente o schema especificado.`,
+Use as orientações do usuário apenas para priorizar achados, ajustar foco e calibrar o tom da análise. Não ignore o schema obrigatório, não invente dados que não estejam nos agregados e não execute ações ou alterações no sistema.`,
 		});
 
-		const validatedData = InsightsResponseSchema.parse(result.object);
+		const validatedData = InsightsResponseSchema.parse({
+			...result.object,
+			month: period,
+			generatedAt: new Date().toISOString(),
+		});
 
 		return {
 			success: true,
