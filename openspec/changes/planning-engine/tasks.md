@@ -387,11 +387,11 @@ it("ignores draft plans and reports the default horizon", () => {
 
 Test: new, because distinct contract (uses the Task 7 fixture values).
 
-- [ ] **Step 1: Write the failing test**: Task 7 fixture, `stressEffects(input, { contributionCap: 5_000, incomeLossMonths: 2 })` → `[{ toggle: "contributionCap", minSlackDelta: -15_000, ... }, { toggle: "incomeLossMonths", minSlackDelta: -100_000, ... }]`; `applyStress` does not mutate its argument (`input.stress` still `{}`).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/stress.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `stress.ts`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): cenarios de estresse"`.
+- [x] **Step 1: Write the failing test**: Task 7 fixture, `stressEffects(input, { contributionCap: 5_000, incomeLossMonths: 2 })` → `[{ toggle: "contributionCap", minSlackDelta: -15_000, ... }, { toggle: "incomeLossMonths", minSlackDelta: -100_000, ... }]`; `applyStress` does not mutate its argument (`input.stress` still `{}`).
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/stress.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `stress.ts`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): cenarios de estresse"`.
 
 ### Task 11: Funding levers
 
