@@ -118,7 +118,7 @@ export type Projection = {
 
 Test: new, because no planning code exists yet (distinct contract).
 
-- [ ] **Step 1: Write the failing test** `money.test.ts`
+- [x] **Step 1: Write the failing test** `money.test.ts`
 
 ```ts
 it.each([
@@ -137,10 +137,10 @@ it("scales a range with rounding", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/money.test.ts`. Expected: FAIL, module not found.
-- [ ] **Step 3: Implement** `types.ts` exactly as above and `money.ts`. `inflateToMonth` uses `amount * (1 + annualPct/100) ** (months/12)` with `months = max(0, diff)`.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/money.test.ts`. Expected: FAIL, module not found.
+- [x] **Step 3: Implement** `types.ts` exactly as above and `money.ts`. `inflateToMonth` uses `amount * (1 + annualPct/100) ** (months/12)` with `months = max(0, diff)`.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/planning/lib/engine/types.ts src/features/planning/lib/engine/money.ts src/features/planning/lib/engine/money.test.ts
