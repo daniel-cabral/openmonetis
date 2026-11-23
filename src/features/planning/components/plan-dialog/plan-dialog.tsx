@@ -28,6 +28,7 @@ import {
 	DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { CommonFields } from "./common-fields";
+import { ConsorcioFields } from "./consorcio-fields";
 import { GoalFields } from "./goal-fields";
 
 type PlanDialogProps = {
@@ -37,6 +38,7 @@ type PlanDialogProps = {
 	plan?: PlanView;
 	potAccounts: InvestmentAccountView[];
 	currentMonth: Period;
+	inccForecastPct: number;
 };
 
 export function PlanDialog({
@@ -46,6 +48,7 @@ export function PlanDialog({
 	plan,
 	potAccounts,
 	currentMonth,
+	inccForecastPct,
 }: PlanDialogProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
@@ -98,7 +101,15 @@ export function PlanDialog({
 					/>
 					{values.type === "goal" ? (
 						<GoalFields values={values} patch={patch} />
-					) : null}
+					) : (
+						<ConsorcioFields
+							values={values}
+							patch={patch}
+							bidHistory={plan?.bidHistory ?? []}
+							inccForecastPct={inccForecastPct}
+							startMonth={currentMonth}
+						/>
+					)}
 				</div>
 				<DialogFooter>
 					<Button

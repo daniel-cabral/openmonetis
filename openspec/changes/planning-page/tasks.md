@@ -156,11 +156,11 @@ Test: none, because form-to-input logic is locked by Task 5 and validation by `p
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: history and fields of engine Task 4/5 (INCC 10, start `2027-01`, target `2028-01`) → `letter { min: 352_000, base: 418_000, max: 418_000 }`, `outstanding { min: 256_000, base: 304_000, max: 304_000 }`; empty history → all `null`.
-- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/consorcio-preview.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** the helper and `ConsorcioFields` component (plug into `PlanDialog`).
+- [x] **Step 1: Write the failing test**: history and fields of engine Task 4/5 (INCC 10, start `2027-01`, target `2028-01`) → `letter { min: 352_000, base: 418_000, max: 418_000 }`, `outstanding { min: 256_000, base: 304_000, max: 304_000 }`; empty history → all `null`.
+- [x] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/consorcio-preview.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** the helper and `ConsorcioFields` component (plug into `PlanDialog`).
 - [ ] **Step 4: Run** the test. Expected: PASS. Then `pnpm exec tsc --noEmit`: exit 0.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): campos e previa de lance do consorcio"`.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): campos e previa de lance do consorcio"`.
 
 ### Task 8: Plan events editor and category mapping
 
