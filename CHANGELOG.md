@@ -5,7 +5,25 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [2.16.0] - 2026-11-23
+## [2.17.0] - 2026-11-23
+
+Esta versão estreia a página de Planejamento, que projeta a liquidez do patrimônio mês a mês contra as metas e os planos futuros. Ela mostra se cada plano cabe no caixa, registra o check-in mensal de aportes, saldos e lances de consórcio, e testa o plano em cenários de estresse. Quando a realidade foge da projeção, a página avisa.
+
+### Adicionado
+
+- Página `/planning` com indicadores de patrimônio, liquidez e primeiro mês descoberto, gráfico de liquidez e tabela de planos
+- Criação, edição, reordenação e exclusão de planos do tipo objetivo e consórcio, com prévia do lance do consórcio
+- Eventos do plano e mapeamento de categorias de despesa
+- Check-in mensal para atribuir aportes, atualizar saldos por conta e registrar o lance vencedor
+- Ajustes do planejamento com aporte planejado, meses de reserva, previsão de IPCA e INCC e cenários de estresse
+- Cenários de estresse ativáveis na página, com efeito na folga e no primeiro mês descoberto
+- Alerta de desvio quando um plano sai do eixo, a reserva fica abaixo do piso ou os aportes ficam abaixo do planejado
+- Registro de premissas e decisões com mês de revisão
+
+### Alterado
+
+- Item "Planejamento" no menu de relatórios, antes de Insights
+
 
 Esta versão troca a forma como o banco é atualizado no deploy: em vez de comparar o schema e alterar o banco direto, o container aplica as migrations versionadas e revisadas, e se recusa a subir se alguma falhar. Para chegar lá, o histórico de migrations herdado foi corrigido para rodar do zero, e um script de baseline registra esse histórico em bancos criados pelo modelo antigo, depois de conferir que o schema é idêntico.
 
