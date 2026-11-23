@@ -159,11 +159,11 @@ git commit -m "feat(planning): tipos do motor e helpers de valor"
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test** with one table: plans at `2028-06` and window latest `2029-03` → end `"2030-03"`; same plans with `horizonEnd: "2031-01"` → `"2031-01"`; no plans → `"2028-01"` (start `2027-01`); a `draft` plan at `2035-01` is ignored.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/horizon.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `resolveHorizon`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit** `git add` both files; `git commit -m "feat(planning): horizonte da projecao"`.
+- [x] **Step 1: Write the failing test** with one table: plans at `2028-06` and window latest `2029-03` → end `"2030-03"`; same plans with `horizonEnd: "2031-01"` → `"2031-01"`; no plans → `"2028-01"` (start `2027-01`); a `draft` plan at `2035-01` is ignored.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/horizon.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `resolveHorizon`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit** `git add` both files; `git commit -m "feat(planning): horizonte da projecao"`.
 
 ### Task 3: Generic goal events
 
