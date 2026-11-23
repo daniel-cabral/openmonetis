@@ -5,6 +5,12 @@ const mocks = vi.hoisted(() => ({
 	select: vi.fn(),
 	insert: vi.fn(),
 	transaction: vi.fn(),
+	fetchPlanningSnapshot: vi.fn(),
+	buildPlannerContext: vi.fn(),
+	resolveLanguageModel: vi.fn(),
+	getAdminPayerId: vi.fn(),
+	fetchCategoryTotals: vi.fn(),
+	createPlannerResponse: vi.fn(),
 }));
 
 vi.mock("@/shared/lib/auth/server", () => ({
@@ -19,6 +25,31 @@ vi.mock("@/shared/lib/db", () => ({
 	},
 }));
 
+vi.mock("@/features/planning/queries", () => ({
+	fetchPlanningSnapshot: mocks.fetchPlanningSnapshot,
+}));
+
+vi.mock("@/features/planning/lib/planner/context", () => ({
+	buildPlannerContext: mocks.buildPlannerContext,
+}));
+
+vi.mock("@/shared/lib/ai/model-provider", () => ({
+	resolveLanguageModel: mocks.resolveLanguageModel,
+}));
+
+vi.mock("@/shared/lib/payers/get-admin-id", () => ({
+	getAdminPayerId: mocks.getAdminPayerId,
+}));
+
+vi.mock("@/features/planning/lib/queries/category-totals", () => ({
+	fetchCategoryTotals: mocks.fetchCategoryTotals,
+}));
+
+vi.mock("@/features/planning/lib/planner/stream", () => ({
+	createPlannerResponse: mocks.createPlannerResponse,
+}));
+
+import { engineInput } from "@/features/planning/lib/engine/test-fixtures";
 import { POST } from "./route";
 
 const CONVERSATION_ID = "0b6f6c5e-3c1a-4f5e-9a1d-2f7d2c9b8a11";
@@ -46,6 +77,7 @@ function selectReturning(rows: unknown[]) {
 		from: () => chain,
 		where: () => chain,
 		limit: () => Promise.resolve(rows),
+		orderBy: () => Promise.resolve(rows),
 	};
 	return chain;
 }
@@ -77,5 +109,34 @@ describe("POST /api/planning/chat", () => {
 		expect(await response.json()).toEqual({ error: "Conversa não encontrada" });
 		expect(mocks.insert).not.toHaveBeenCalled();
 		expect(mocks.transaction).not.toHaveBeenCalled();
+	});
+
+	it("keeps the contribution category out of the cut candidates", async () => {
+		mocks.getOptionalUserSession.mockResolvedValue({ user: { id: "user-1" } });
+		mocks.select
+			.mockReturnValueOnce(selectReturning([{ id: CONVERSATION_ID, title: "Plano" }]))
+			.mockReturnValueOnce(selectReturning([]));
+		mocks.resolveLanguageModel.mockReturnValue({ success: true, model: {} });
+		mocks.fetchPlanningSnapshot.mockResolvedValue({
+			input: engineInput({ startMonth: "2026-11" }),
+			plans: [],
+		});
+		mocks.buildPlannerContext.mockReturnValue({});
+		mocks.getAdminPayerId.mockResolvedValue("payer-1");
+		mocks.fetchCategoryTotals.mockResolvedValue([
+			{ categoryId: "cat-invest", categoryName: "Investimentos", month: "2026-10", amount: 50_000 },
+			{ categoryId: "cat-food", categoryName: "Alimentação", month: "2026-10", amount: 30_000 },
+		]);
+		mocks.createPlannerResponse.mockResolvedValue(new Response(null));
+
+		await postChat();
+
+		const { tools } = mocks.createPlannerResponse.mock.calls[0][0];
+		const listCutCandidates = tools.list_cut_candidates as unknown as {
+			execute: (input: unknown, options: unknown) => Promise<{ categoryName: string }[]>;
+		};
+		const candidates = await listCutCandidates.execute({ months: 1 }, {});
+
+		expect(candidates.map((candidate) => candidate.categoryName)).toEqual(["Alimentação"]);
 	});
 });

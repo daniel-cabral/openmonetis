@@ -1,6 +1,7 @@
 import type { UIMessage } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { CONTRIBUTION_CATEGORY_NAME } from "@/features/planning/lib/baseline";
 import { runProjection } from "@/features/planning/lib/engine";
 import { buildPlannerContext } from "@/features/planning/lib/planner/context";
 import {
@@ -73,7 +74,12 @@ export async function POST(request: Request) {
 				),
 				loadCategoryTotals: (from, to) =>
 					adminPayerId
-						? fetchCategoryTotals(userId, adminPayerId, from, to)
+						? fetchCategoryTotals(userId, adminPayerId, from, to).then(
+								(totals) =>
+									totals.filter(
+										(total) => total.categoryName !== CONTRIBUTION_CATEGORY_NAME,
+									),
+							)
 						: Promise.resolve([]),
 				webSearch,
 			}),
