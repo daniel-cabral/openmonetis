@@ -1,6 +1,6 @@
+import type { UIMessage } from "ai";
 import type { SQL } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
-import type { UIMessage } from "ai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { plannerMessages } from "@/db/schema";
 

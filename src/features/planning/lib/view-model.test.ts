@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { type EnginePlan, runProjection } from "@/features/planning/lib/engine";
 import { engineInput, goalPlan, position } from "@/features/planning/lib/engine/test-fixtures";
-import type { InvestmentAccountView, PlanningSnapshot, PlanView, PositionView } from "@/features/planning/lib/snapshot-types";
 import type { PlanningSettingsInput } from "@/features/planning/lib/schemas";
+import type { InvestmentAccountView, PlanningSnapshot, PlanView, PositionView } from "@/features/planning/lib/snapshot-types";
 import { buildChartSeries, buildKpis, buildPlanRows } from "./view-model";
 
 const settings: PlanningSettingsInput = {

@@ -1,14 +1,14 @@
-import {
-	bidPctRange,
-	consorcioOwnCash,
-	inflateToMonth,
-} from "@/features/planning/lib/engine";
 import type {
 	AmountRange,
 	BidPoint,
 	ConsorcioFields,
 	MoneyBasis,
 	Period,
+} from "@/features/planning/lib/engine";
+import {
+	bidPctRange,
+	consorcioOwnCash,
+	inflateToMonth,
 } from "@/features/planning/lib/engine";
 
 export type BidPreview = {

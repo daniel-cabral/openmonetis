@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlanLifecycle, Period } from "@/features/planning/lib/engine";
+import type { Period, PlanLifecycle } from "@/features/planning/lib/engine";
 import type { PlanFormValues } from "@/features/planning/lib/plan-form";
 import type { InvestmentAccountView } from "@/features/planning/lib/snapshot-types";
 import { Button } from "@/shared/components/ui/button";

@@ -1,4 +1,4 @@
-import { type Cents, liquidToday, type PlanHealth, type Period, type Projection } from "@/features/planning/lib/engine";
+import { type Cents, liquidToday, type Period, type PlanHealth, type Projection } from "@/features/planning/lib/engine";
 import type { PlanningSnapshot, PlanView } from "@/features/planning/lib/snapshot-types";
 import { formatShortPeriodLabel } from "@/shared/utils/period";
 

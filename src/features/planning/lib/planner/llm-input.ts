@@ -14,9 +14,9 @@ import {
 	planningSettingsFieldsSchema,
 } from "@/features/planning/lib/schemas";
 import {
+	type Proposal,
 	type ProposalChange,
 	ProposalError,
-	type Proposal,
 	proposalSchema,
 } from "./proposal";
 

@@ -7,8 +7,8 @@ import { toEnginePlan } from "@/features/planning/lib/mappers";
 import { createConversation } from "@/features/planning/lib/planner/conversation-store";
 import {
 	type Proposal,
-	ProposalError,
 	type ProposalChange,
+	ProposalError,
 	proposalSchema,
 } from "@/features/planning/lib/planner/proposal";
 import { planInputSchema } from "@/features/planning/lib/schemas";

@@ -8,8 +8,8 @@ import {
 	runProjection,
 	simulateLever,
 } from "@/features/planning/lib/engine";
-import { periodSchema } from "@/features/planning/lib/schemas";
 import type { CategoryTotal } from "@/features/planning/lib/queries/category-totals";
+import { periodSchema } from "@/features/planning/lib/schemas";
 import { addMonthsToPeriod } from "@/shared/utils/period";
 import { type CutCandidate, rankCutCandidates } from "./cut-candidates";
 import {
@@ -27,11 +27,11 @@ import {
 	toLever,
 	toStress,
 } from "./llm-input";
-import { type Proposal, ProposalError, applyChangesToInput } from "./proposal";
+import { applyChangesToInput, type Proposal, ProposalError } from "./proposal";
 import {
+	diffSummaries,
 	type ProjectionSummary,
 	type ProposalDiff,
-	diffSummaries,
 	summarizeProjection,
 } from "./summary";
 
