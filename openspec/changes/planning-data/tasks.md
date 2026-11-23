@@ -92,11 +92,11 @@ Test: extends `schema.planning.test.ts` table, plus one assertion that both uniq
 
 Test: extends `schema.planning.test.ts` table.
 
-- [ ] **Step 1:** Add the three rows to the `it.each`.
-- [ ] **Step 2: Run** the test. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): tabelas de premissas e conversas do planejador"`.
+- [x] **Step 1:** Add the three rows to the `it.each`.
+- [x] **Step 2: Run** the test. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): tabelas de premissas e conversas do planejador"`.
 
 ### Task 4: Versioned migration
 

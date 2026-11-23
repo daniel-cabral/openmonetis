@@ -885,6 +885,84 @@ export const planCategoryMappings = pgTable(
 	}),
 );
 
+// ===================== PLANNER =====================
+
+export const assumptionLog = pgTable(
+	"planejamento_premissas",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		kind: text("tipo").notNull(),
+		summary: text("resumo").notNull(),
+		source: text("origem").notNull(),
+		proposalId: text("proposta_id"),
+		reviewByMonth: text("revisar_em"),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		userCreatedAtIdx: index("planejamento_premissas_user_created_at_idx").on(
+			table.userId,
+			table.createdAt,
+		),
+		userProposalUnique: uniqueIndex(
+			"planejamento_premissas_user_proposta_unique",
+		).on(table.userId, table.proposalId),
+	}),
+);
+
+export const plannerConversations = pgTable("planejamento_conversas", {
+	id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	title: text("titulo").notNull(),
+	createdAt: timestamp("created_at", {
+		mode: "date",
+		withTimezone: true,
+	})
+		.notNull()
+		.defaultNow(),
+	updatedAt: timestamp("updated_at", {
+		mode: "date",
+		withTimezone: true,
+	})
+		.notNull()
+		.defaultNow(),
+});
+
+export const plannerMessages = pgTable(
+	"planejamento_mensagens",
+	{
+		id: text("id").primaryKey(),
+		conversationId: uuid("conversa_id")
+			.notNull()
+			.references(() => plannerConversations.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		role: text("papel").notNull(),
+		parts: jsonb("partes").notNull(),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		conversationCreatedAtIdx: index(
+			"planejamento_mensagens_conversa_created_at_idx",
+		).on(table.conversationId, table.createdAt),
+	}),
+);
+
 // ===================== TRANSACTIONS =====================
 
 export const transactions = pgTable(
@@ -1471,3 +1549,6 @@ export type Plan = typeof plans.$inferSelect;
 export type PlanEventRow = typeof planEvents.$inferSelect;
 export type BidRecord = typeof bidRecords.$inferSelect;
 export type PlanCategoryMapping = typeof planCategoryMappings.$inferSelect;
+export type AssumptionEntry = typeof assumptionLog.$inferSelect;
+export type PlannerConversation = typeof plannerConversations.$inferSelect;
+export type PlannerMessageRow = typeof plannerMessages.$inferSelect;

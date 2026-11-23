@@ -1,11 +1,14 @@
 import { getTableConfig, type PgTable } from "drizzle-orm/pg-core";
 import { describe, expect, it } from "vitest";
 import {
+	assumptionLog,
 	bidRecords,
 	financialAccounts,
 	investmentPositions,
 	planCategoryMappings,
 	planEvents,
+	plannerConversations,
+	plannerMessages,
 	planningSettings,
 	plans,
 } from "./schema";
@@ -112,6 +115,38 @@ describe("planning schema", () => {
 			required: ["id", "user_id", "plano_id", "categoria_id"],
 			nullable: [],
 		},
+		{
+			table: assumptionLog,
+			name: "planejamento_premissas",
+			required: [
+				"id",
+				"user_id",
+				"tipo",
+				"resumo",
+				"origem",
+				"created_at",
+			],
+			nullable: ["proposta_id", "revisar_em"],
+		},
+		{
+			table: plannerConversations,
+			name: "planejamento_conversas",
+			required: ["id", "user_id", "titulo", "created_at", "updated_at"],
+			nullable: [],
+		},
+		{
+			table: plannerMessages,
+			name: "planejamento_mensagens",
+			required: [
+				"id",
+				"conversa_id",
+				"user_id",
+				"papel",
+				"partes",
+				"created_at",
+			],
+			nullable: [],
+		},
 	])("$name mapeia as colunas do contrato", ({ table, name, required, nullable }) => {
 		const config = getTableConfig(table);
 		expect(config.name).toBe(name);
@@ -153,6 +188,7 @@ describe("planning schema", () => {
 		expect(uniqueColumns(planCategoryMappings)).toEqual([
 			["user_id", "categoria_id"],
 		]);
+		expect(uniqueColumns(assumptionLog)).toEqual([["user_id", "proposta_id"]]);
 	});
 
 	it("contas.pote_reservado e obrigatoria", () => {
