@@ -471,9 +471,9 @@ Test: new, because distinct contract.
 
 Test: none, because no behaviour change (re-exports only).
 
-- [ ] **Step 1:** Write `index.ts`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine`. Expected: all PASS.
+- [x] **Step 1:** Write `index.ts`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine`. Expected: all PASS.
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Run** `pnpm exec biome check --formatter-enabled=false src/features/planning`. Expected: no errors.
-- [ ] **Step 5: Check** `git grep -nE "import .*(@/db|@/shared/lib/db|next/|react)" src/features/planning/lib/engine` returns nothing.
-- [ ] **Step 6: Commit** `git add src/features/planning/lib/engine/index.ts`; `git commit -m "feat(planning): ponto de entrada do motor"`.
+- [x] **Step 5: Check** `git grep -nE "import .*(@/db|@/shared/lib/db|next/|react)" src/features/planning/lib/engine` returns nothing.
+- [x] **Step 6: Commit** `git add src/features/planning/lib/engine/index.ts`; `git commit -m "feat(planning): ponto de entrada do motor"`.
