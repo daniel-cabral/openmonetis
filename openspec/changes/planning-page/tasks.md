@@ -118,11 +118,11 @@ Test: none, because presentational over Tasks 1 and 2 view models.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: goal form with `"1.500,00"` and no range → `target { min: 150_000, base: 150_000, max: 150_000 }`; round trip `formToPlanInput(planToForm(plan))` equals the plan's `PlanInput` fields for one goal and one consórcio fixture.
-- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): mapeamento do formulario de plano"`.
+- [x] **Step 1: Write the failing test**: goal form with `"1.500,00"` and no range → `target { min: 150_000, base: 150_000, max: 150_000 }`; round trip `formToPlanInput(planToForm(plan))` equals the plan's `PlanInput` fields for one goal and one consórcio fixture.
+- [x] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): mapeamento do formulario de plano"`.
 
 ### Task 6: Plan dialog, goal fields and delete/reorder
 
