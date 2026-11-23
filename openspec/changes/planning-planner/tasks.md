@@ -158,11 +158,11 @@ Test: new, because distinct contract (summary, diff and their LLM view share the
 
 Test: new, because distinct contract (calls each tool's `execute` and `toModelOutput` directly with in-memory deps; the loader is a plain function argument, not a module mock). Amount validation is locked by Task 3; not repeated here.
 
-- [ ] **Step 1: Write the failing tests**: `rankCutCandidates` literal top list with an excluded category absent; `propose_change.execute` with a valid create-plan (amounts in reais) returns `proposalId` equal to the given `toolCallId` and a `diff` with the new plan; its `toModelOutput({ output })` value has `diff.minSlackBaseDelta` equal to a literal BRL string; with an unknown planId returns `{ error: "Plano não encontrado." }`; `simulate_lever` shift outside window returns `{ error }`; with `webSearch: {}` the tool keys are exactly the five planner tools.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** with `tool({ description, inputSchema, execute, toModelOutput })`; descriptions state "valores em reais".
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): ferramentas do planejador"`.
+- [x] **Step 1: Write the failing tests**: `rankCutCandidates` literal top list with an excluded category absent; `propose_change.execute` with a valid create-plan (amounts in reais) returns `proposalId` equal to the given `toolCallId` and a `diff` with the new plan; its `toModelOutput({ output })` value has `diff.minSlackBaseDelta` equal to a literal BRL string; with an unknown planId returns `{ error: "Plano não encontrado." }`; `simulate_lever` shift outside window returns `{ error }`; with `webSearch: {}` the tool keys are exactly the five planner tools.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** with `tool({ description, inputSchema, execute, toModelOutput })`; descriptions state "valores em reais".
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): ferramentas do planejador"`.
 
 ### Task 6: Context pack and system prompt
 
