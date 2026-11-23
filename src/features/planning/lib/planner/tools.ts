@@ -2,6 +2,7 @@ import { type ToolSet, tool } from "ai";
 import { z } from "zod";
 import {
 	applyStress,
+	type Cents,
 	type EngineInput,
 	LeverError,
 	type Period,
@@ -49,6 +50,7 @@ export type ProposalToolOutput =
 
 export type PlannerToolDeps = {
 	input: EngineInput;
+	plannedContribution: Cents;
 	excludedCategoryIds: Set<string>;
 	loadCategoryTotals: (from: Period, to: Period) => Promise<CategoryTotal[]>;
 	webSearch: ToolSet;
@@ -81,7 +83,9 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 		if ("error" in parsed) {
 			throw new ProposalError(parsed.error);
 		}
-		return applyChangesToInput(input, parsed.proposal.changes);
+		return applyChangesToInput(input, parsed.proposal.changes, {
+			plannedContribution: deps.plannedContribution,
+		});
 	};
 
 	return {
@@ -169,7 +173,9 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 				try {
 					const before = summarize(input);
 					const after = summarize(
-						applyChangesToInput(input, parsed.proposal.changes),
+						applyChangesToInput(input, parsed.proposal.changes, {
+							plannedContribution: deps.plannedContribution,
+						}),
 					);
 					return {
 						proposalId: toolCallId,

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { driftMessages } from "@/features/planning/lib/drift-view";
 import {
 	applyStress,
+	type Cents,
 	detectDrift,
 	type EngineInput,
 	type Projection,
@@ -78,9 +79,10 @@ function configuredStress(settings: PlanningSettingsInput): StressToggles {
 function previewInput(
 	input: EngineInput,
 	changes: ProposalChange[],
+	plannedContribution: Cents,
 ): EngineInput | null {
 	try {
-		return applyChangesToInput(input, changes);
+		return applyChangesToInput(input, changes, { plannedContribution });
 	} catch (error) {
 		if (error instanceof ProposalError) return null;
 		throw error;
@@ -118,7 +120,11 @@ export function PlanningPage({
 			const previewed =
 				preview &&
 				!snapshot.assumptions.some((a) => a.proposalId === preview.proposalId)
-					? previewInput(snapshot.input, preview.changes)
+					? previewInput(
+							snapshot.input,
+							preview.changes,
+							snapshot.settings.plannedContribution,
+						)
 					: null;
 			const projection = runProjection(
 				applyStress(previewed ?? snapshot.input, activeStress),
@@ -171,7 +177,13 @@ export function PlanningPage({
 			return;
 		}
 		if ("error" in output) return;
-		if (!previewInput(snapshot.input, output.proposal.changes)) {
+		if (
+			!previewInput(
+				snapshot.input,
+				output.proposal.changes,
+				snapshot.settings.plannedContribution,
+			)
+		) {
 			toast.error("Esta proposta não se aplica aos planos atuais.");
 			return;
 		}

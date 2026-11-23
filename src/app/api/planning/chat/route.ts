@@ -79,6 +79,7 @@ export async function POST(request: Request) {
 			history: [...conversation.messages, message],
 			tools: buildPlannerTools({
 				input: snapshot.input,
+				plannedContribution: snapshot.settings.plannedContribution,
 				excludedCategoryIds: new Set(
 					snapshot.plans.flatMap((plan) => plan.categoryIds),
 				),

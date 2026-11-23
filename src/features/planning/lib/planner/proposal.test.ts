@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { runProjection } from "@/features/planning/lib/engine";
 import {
 	engineInput,
 	goalPlan,
@@ -10,6 +11,8 @@ import {
 } from "./proposal";
 
 const range = { min: 100_000, base: 100_000, max: 100_000 };
+
+const ctx = { plannedContribution: 100_000 };
 
 const input = engineInput({
 	reserveMonths: 3,
@@ -43,7 +46,7 @@ describe("applyChangesToInput", () => {
 			},
 		];
 
-		const result = applyChangesToInput(input, changes, () => "plan-new");
+		const result = applyChangesToInput(input, changes, ctx, () => "plan-new");
 
 		expect(result.plans.map((plan) => [plan.id, plan.priority])).toEqual([
 			["plan-1", 1],
@@ -62,7 +65,9 @@ describe("applyChangesToInput", () => {
 			},
 		];
 
-		expect(() => applyChangesToInput(input, changes)).toThrow(ProposalError);
+		expect(() => applyChangesToInput(input, changes, ctx)).toThrow(
+			ProposalError,
+		);
 	});
 
 	it("rejects a change to a plan that does not exist", () => {
@@ -74,7 +79,9 @@ describe("applyChangesToInput", () => {
 			},
 		];
 
-		expect(() => applyChangesToInput(input, changes)).toThrow(ProposalError);
+		expect(() => applyChangesToInput(input, changes, ctx)).toThrow(
+			ProposalError,
+		);
 	});
 
 	it("updates only the reserve months when the settings patch carries just that field", () => {
@@ -82,9 +89,30 @@ describe("applyChangesToInput", () => {
 			{ op: "update-settings", patch: { reserveMonths: 6 } },
 		];
 
-		expect(applyChangesToInput(input, changes)).toEqual({
+		expect(applyChangesToInput(input, changes, ctx)).toEqual({
 			...input,
 			reserveMonths: 6,
 		});
+	});
+
+	it("a raised planned contribution changes the projection", () => {
+		const slack = (value: typeof input) =>
+			Math.min(
+				...runProjection(value).scenarios.base.months.map((row) => row.slack),
+			);
+		const raised = applyChangesToInput(
+			input,
+			[{ op: "update-settings", patch: { plannedContribution: 300_000 } }],
+			ctx,
+		);
+		const untouched = applyChangesToInput(
+			input,
+			[{ op: "update-settings", patch: { reserveMonths: 6 } }],
+			ctx,
+		);
+
+		expect(raised.extraMonthlySaving).toBe(200_000);
+		expect(slack(raised)).toBeGreaterThan(slack(input));
+		expect(untouched.extraMonthlySaving).toBe(input.extraMonthlySaving);
 	});
 });

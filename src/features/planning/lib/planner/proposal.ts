@@ -1,5 +1,9 @@
 import { z } from "zod";
-import type { EngineInput, EnginePlan } from "@/features/planning/lib/engine";
+import type {
+	Cents,
+	EngineInput,
+	EnginePlan,
+} from "@/features/planning/lib/engine";
 import {
 	assumptionInputSchema,
 	planEventFieldsSchema,
@@ -55,13 +59,14 @@ export class ProposalError extends Error {}
 export function applyChangesToInput(
 	input: EngineInput,
 	changes: ProposalChange[],
+	ctx: { plannedContribution: Cents },
 	newId: (index: number) => string = () => createClientSafeId(),
 ): EngineInput {
 	let generated = 0;
 	const nextId = () => newId(generated++);
 
 	return changes.reduce(
-		(current, change) => applyChange(current, change, nextId),
+		(current, change) => applyChange(current, change, nextId, ctx),
 		input,
 	);
 }
@@ -70,6 +75,7 @@ function applyChange(
 	input: EngineInput,
 	change: ProposalChange,
 	nextId: () => string,
+	ctx: { plannedContribution: Cents },
 ): EngineInput {
 	switch (change.op) {
 		case "create-plan": {
@@ -108,6 +114,11 @@ function applyChange(
 				reserveMonths: change.patch.reserveMonths ?? input.reserveMonths,
 				indexForecastPct:
 					change.patch.indexForecastPct ?? input.indexForecastPct,
+				extraMonthlySaving:
+					input.extraMonthlySaving +
+					(change.patch.plannedContribution === undefined
+						? 0
+						: change.patch.plannedContribution - ctx.plannedContribution),
 			};
 		case "record-assumption":
 			return input;

@@ -329,11 +329,11 @@ Bug evidence: `proposal.ts:105-111` copies only `reserveMonths` and `indexForeca
 
 Test: extends `proposal.test.ts` with a new `it`, because it is a distinct contract (settings change reaching the engine).
 
-- [ ] **Step 1: Failing test** `"a raised planned contribution changes the projection"`: fixture input with `extraMonthlySaving: 0` and stored contribution 100000 cents; apply `update-settings` `{ plannedContribution: 300000 }` -> `extraMonthlySaving === 200000`; `projectBase(next).minSlack` (use the engine helper the existing proposal tests use) is greater than for the original input; a patch without `plannedContribution` leaves `extraMonthlySaving` unchanged.
-- [ ] **Step 2:** `pnpm exec vitest run src/features/planning/lib/planner/proposal.test.ts` -> FAIL.
-- [ ] **Step 3:** Implement and update call sites.
-- [ ] **Step 4:** Test and the planner folder tests (`pnpm exec vitest run src/features/planning/lib/planner`) -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `fix(planning): proposta de aporte entra na simulação`
+- [x] **Step 1: Failing test** `"a raised planned contribution changes the projection"`: fixture input with `extraMonthlySaving: 0` and stored contribution 100000 cents; apply `update-settings` `{ plannedContribution: 300000 }` -> `extraMonthlySaving === 200000`; `projectBase(next).minSlack` (use the engine helper the existing proposal tests use) is greater than for the original input; a patch without `plannedContribution` leaves `extraMonthlySaving` unchanged.
+- [x] **Step 2:** `pnpm exec vitest run src/features/planning/lib/planner/proposal.test.ts` -> FAIL.
+- [x] **Step 3:** Implement and update call sites.
+- [x] **Step 4:** Test and the planner folder tests (`pnpm exec vitest run src/features/planning/lib/planner`) -> PASS; lint touched files.
+- [x] **Step 5: Commit** `fix(planning): proposta de aporte entra na simulação`
 
 ### Task 17: Glossary and rules in the planner system prompt
 

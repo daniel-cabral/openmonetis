@@ -43,6 +43,7 @@ const deps = (over: Partial<PlannerToolDeps> = {}): PlannerToolDeps => ({
 		horizonEnd: "2026-03",
 		positions: [position({ id: "conta-corrente", amount: 100_000 })],
 	}),
+	plannedContribution: 0,
 	excludedCategoryIds: new Set(),
 	loadCategoryTotals: async () => [],
 	webSearch: {},
