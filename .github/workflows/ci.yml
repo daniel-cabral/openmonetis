@@ -44,6 +44,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check migrations
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: |
+          pnpm exec drizzle-kit check
+          pnpm exec drizzle-kit generate --name ci_drift_probe
+          if [ -n "$(git status --porcelain drizzle)" ]; then
+            echo "::error::schema.ts mudou sem migration: rode pnpm db:generate"
+            git status --porcelain drizzle
+            exit 1
+          fi
+
       - name: Generate Next.js types
         run: pnpm exec next typegen
 
