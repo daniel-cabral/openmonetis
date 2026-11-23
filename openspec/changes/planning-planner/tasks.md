@@ -60,11 +60,11 @@ Test: none, because no behaviour change (move and rename; `tsc` proves the impor
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: one `it.each` over one model id per provider taken from `AVAILABLE_MODELS` (by `provider` field, not hard-coded ids) plus `"ollama:llama3"` and `"meta/llama-3"` → expected key list (`["web_search"]`, `["google_search"]` or `[]`).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/shared/lib/ai/web-search.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(ai): busca na web conforme o provedor"`.
+- [x] **Step 1: Write the failing test**: one `it.each` over one model id per provider taken from `AVAILABLE_MODELS` (by `provider` field, not hard-coded ids) plus `"ollama:llama3"` and `"meta/llama-3"` → expected key list (`["web_search"]`, `["google_search"]` or `[]`).
+- [x] **Step 2: Run** `pnpm exec vitest run src/shared/lib/ai/web-search.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(ai): busca na web conforme o provedor"`.
 
 ### Task 3: Proposal schema, LLM input boundary and applying changes to the engine input
 
