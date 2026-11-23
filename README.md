@@ -75,7 +75,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 💸 **Parcelamentos avançados** — Séries de parcelas, antecipação com cálculo de desconto, análise consolidada.
 
-🤖 **Insights com IA** — Análises geradas por Claude, GPT, Gemini, MiniMax, OpenRouter ou modelos locais via Ollama. Insights personalizados e histórico salvo.
+🤖 **Insights com IA** — Análises geradas por Claude, GPT, Gemini, MiniMax, OpenRouter, assinatura do ChatGPT ou modelos locais via Ollama, com os provedores configurados por usuário em Ajustes > IA. Insights personalizados e histórico salvo.
 
 👥 **Gestão colaborativa** — Pagadores com permissões (admin/viewer), notificações automáticas por e-mail, códigos de compartilhamento.
 
@@ -186,6 +186,8 @@ As migrations versionadas em `drizzle/` são aplicadas automaticamente no startu
 > ```
 >
 > O script compara o schema do banco com o resultado das migrations e só registra se forem idênticos.
+
+> **Atualizando para 2.18:** as chaves de IA deixaram de ser lidas do `.env` (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `MINIMAX_API_KEY`, `OPENROUTER_API_KEY`, `OLLAMA_BASE_URL`, `OLLAMA_API_KEY`). Cada usuário cadastra as suas em **Ajustes > IA**; elas ficam criptografadas no banco com uma chave derivada do `BETTER_AUTH_SECRET`. Trocar o `BETTER_AUTH_SECRET` invalida as credenciais salvas: será preciso cadastrar os provedores de novo. A conexão com a assinatura do ChatGPT usa um backend da OpenAI que não é uma API pública, então pode mudar ou deixar de funcionar sem aviso; o uso é por sua conta e risco.
 
 ---
 
@@ -487,15 +489,6 @@ GOOGLE_CLIENT_SECRET=
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 
-# AI Providers
-ANTHROPIC_API_KEY=
-OPENAI_API_KEY=
-GOOGLE_GENERATIVE_AI_API_KEY=
-MINIMAX_API_KEY=
-OPENROUTER_API_KEY=
-OLLAMA_BASE_URL=http://localhost:11434/v1
-OLLAMA_API_KEY=
-
 # Logo.dev (opcional, necessário para logos automáticos de estabelecimentos)
 # Ambas as variáveis são runtime — basta definir no host; nenhum build arg necessário.
 LOGO_DEV_TOKEN=
@@ -524,13 +517,7 @@ ollama pull llama3.2
 ollama serve
 ```
 
-Configure a URL OpenAI-compatible no `.env`:
-
-```env
-OLLAMA_BASE_URL=http://localhost:11434/v1
-# Opcional; normalmente o Ollama local não exige chave.
-OLLAMA_API_KEY=
-```
+Configure em **Ajustes > IA > Ollama**, informando a URL base OpenAI-compatible (por exemplo `http://localhost:11434/v1`). A chave é opcional; normalmente o Ollama local não exige uma.
 
 Se o OpenMonetis estiver rodando dentro de um container Docker e o Ollama estiver no host, `localhost` aponta para o próprio container. Nesse caso, use uma URL acessível a partir do container, como `http://host.docker.internal:11434/v1` quando disponível, ou o endereço da rede Docker/host configurado no seu ambiente.
 

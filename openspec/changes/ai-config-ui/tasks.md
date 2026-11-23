@@ -301,8 +301,8 @@ Test: none, because the rules are locked by Task 12's `model-groups.test.ts`; th
 
 Test: none, because docs only.
 
-- [ ] **Step 1:** Edit. `rg -n "OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_GENERATIVE_AI_API_KEY|MINIMAX_API_KEY|OPENROUTER_API_KEY|OLLAMA_" .env.example README.md src` -> no matches.
-- [ ] **Step 2: Commit** `docs: chaves de IA configuradas por usuário em Ajustes`
+- [x] **Step 1:** Edit. `rg -n "OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_GENERATIVE_AI_API_KEY|MINIMAX_API_KEY|OPENROUTER_API_KEY|OLLAMA_" .env.example README.md src` -> no matches.
+- [x] **Step 2: Commit** `docs: chaves de IA configuradas por usuário em Ajustes`
 
 ### Task 15: Real-backend smoke test for the subscription
 
