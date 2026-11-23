@@ -100,11 +100,11 @@ Test: none, because thin route and layout (no logic beyond Tasks 1 and 2); verif
 
 Test: none, because presentational over Tasks 1 and 2 view models.
 
-- [ ] **Step 1:** Implement the four components following the preview variant c structure.
-- [ ] **Step 2:** Wire them into `PlanningPage`.
+- [x] **Step 1:** Implement the four components following the preview variant c structure.
+- [x] **Step 2:** Wire them into `PlanningPage`.
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Manual check (best-effort)** with dev server: chart lines and table render with at least one plan created via Task 6 later, or with seeded test data in a local db only.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): indicadores, grafico de liquidez e tabela de planos"`.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): indicadores, grafico de liquidez e tabela de planos"`.
 
 ### Task 5: Plan form mapping
 
