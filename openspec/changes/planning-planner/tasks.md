@@ -228,11 +228,11 @@ Test: new, because distinct contract (assert it contains each plan name and the 
 
 Test: new, because distinct contract; the model is `MockLanguageModelV3` (external boundary fake from `ai/test`).
 
-- [ ] **Step 1: Write the failing tests**: mock streaming `"Olá"` in two deltas; read the response body to the end; `onFinish` receives two messages, the second `role "assistant"` with a text part `"Olá"`. Second test: cancel the body reader after the first chunk; `onFinish` still resolves (await a promise resolved by the callback).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/stream.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): streaming das respostas do planejador"`.
+- [x] **Step 1: Write the failing tests**: mock streaming `"Olá"` in two deltas; read the response body to the end; `onFinish` receives two messages, the second `role "assistant"` with a text part `"Olá"`. Second test: cancel the body reader after the first chunk; `onFinish` still resolves (await a promise resolved by the callback).
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/stream.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): streaming das respostas do planejador"`.
 
 ### Task 10: Chat route
 
