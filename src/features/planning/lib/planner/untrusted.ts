@@ -1,7 +1,7 @@
 export const UNTRUSTED_OPEN = "<<<DADOS_DO_USUARIO>>>";
 export const UNTRUSTED_CLOSE = "<<<FIM_DADOS_DO_USUARIO>>>";
 
-const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
+const CONTROL_CHARS = /\p{Cc}/gu;
 
 /** Cleans a user-entered string before it enters the model prompt. */
 export function capUntrusted(text: string, max: number): string {
