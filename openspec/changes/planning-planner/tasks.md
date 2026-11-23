@@ -303,10 +303,10 @@ Test: none, because UI wiring (the server contract is locked by Tasks 9 and 10).
 
 Test: none, because the preview math is locked by Task 3 and apply by Task 11.
 
-- [ ] **Step 1:** Implement the card and the preview state.
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 1:** Implement the card and the preview state.
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 3: Manual check (best-effort)**: ask for a new goal; preview changes chart and table; "Aplicar" toasts `"Proposta aplicada."`, the plan appears after refresh, the log shows a `"Planejador"` entry; clicking again is disabled.
-- [ ] **Step 4: Commit**; `git commit -m "feat(planning): cartao de proposta com previa e aplicacao"`.
+- [x] **Step 4: Commit**; `git commit -m "feat(planning): cartao de proposta com previa e aplicacao"`.
 
 ### Task 14: Drift button prefill
 
@@ -318,9 +318,9 @@ Test: none, because the preview math is locked by Task 3 and apply by Task 11.
 
 Test: none, because the diagnosis text is locked by Task 8; this is wiring.
 
-- [ ] **Step 1:** Implement; the composer receives the text and focuses, nothing is sent automatically.
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Commit**; `git commit -m "feat(planning): desvio abre conversa com diagnostico"`.
+- [x] **Step 1:** Implement; the composer receives the text and focuses, nothing is sent automatically.
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 3: Commit**; `git commit -m "feat(planning): desvio abre conversa com diagnostico"`.
 
 ### Task 15: Version and closing checks
 
@@ -329,8 +329,8 @@ Test: none, because the diagnosis text is locked by Task 8; this is wiring.
 
 Test: none, because no behaviour change in tested code.
 
-- [ ] **Step 1:** Next minor version; changelog entry with the introductory paragraph and `### Adicionado` / `### Alterado` (insights import move).
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 1:** Next minor version; changelog entry with the introductory paragraph and `### Adicionado` / `### Alterado` (insights import move).
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 3: Run** `pnpm exec biome check --formatter-enabled=false src/features/planning src/shared/lib/ai src/features/insights src/app/api/planning "src/app/(dashboard)/planning"`. Expected: clean.
-- [ ] **Step 4: Run** the full suite once: `pnpm exec vitest run`. Expected: PASS.
-- [ ] **Step 5: Commit** the three files; `git commit -m "chore: versao X.Y.0 com planejador financeiro"`. Do not tag (AGENTS.md rule 6).
+- [x] **Step 4: Run** the full suite once: `pnpm exec vitest run`. Expected: PASS.
+- [x] **Step 5: Commit** the three files; `git commit -m "chore: versao X.Y.0 com planejador financeiro"`. Do not tag (AGENTS.md rule 6).
