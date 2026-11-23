@@ -285,11 +285,11 @@ Test: extends `consorcio.test.ts` (same fixtures); new `index.test.ts`, because 
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: `monthlyNominalRate(2, 10)` `toBeCloseTo(0.00964, 4)` and `monthlyNominalRate(0, 0) === 0`; positions (all `annualRealReturnPct: 0`, ipca 0): daily `10_000` in A, maturity `2027-03` `20_000` in A, maturity `2026-12` `3_000` in A, locked `50_000`, daily `5_000` in pot P. `openBuckets(..., ["P"], "2027-01", 0)` → general `13_000`, pots `{ P: 5_000 }`, one pending, locked `50_000`; `liquidToday` → `13_000`; advancing `2027-02` then `2027-03` → general `33_000`, `bucketsTotal` still `88_000`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/buckets.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `buckets.ts`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): baldes de liquidez das posicoes"`.
+- [x] **Step 1: Write the failing test**: `monthlyNominalRate(2, 10)` `toBeCloseTo(0.00964, 4)` and `monthlyNominalRate(0, 0) === 0`; positions (all `annualRealReturnPct: 0`, ipca 0): daily `10_000` in A, maturity `2027-03` `20_000` in A, maturity `2026-12` `3_000` in A, locked `50_000`, daily `5_000` in pot P. `openBuckets(..., ["P"], "2027-01", 0)` → general `13_000`, pots `{ P: 5_000 }`, one pending, locked `50_000`; `liquidToday` → `13_000`; advancing `2027-02` then `2027-03` → general `33_000`, `bucketsTotal` still `88_000`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/buckets.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `buckets.ts`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): baldes de liquidez das posicoes"`.
 
 ### Task 7: Scenario cash flow, reserve floor and breach
 
