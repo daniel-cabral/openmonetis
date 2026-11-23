@@ -448,8 +448,8 @@ Test: new, because it is a new DB-boundary contract (fake `database`, as `src/fe
 
 **Files:** Delete: `src/app/preview/`
 
-- [ ] **Step 1:** `git rm -r src/app/preview`; `rg -n "preview/ia" src` -> no matches.
-- [ ] **Step 2: Commit** `chore: remove preview temporário da aba IA`
+- [x] **Step 1:** `git rm -r src/app/preview`; `rg -n "preview/ia" src` -> no matches.
+- [x] **Step 2: Commit** `chore: remove preview temporário da aba IA`
 
 ### Task 24: Version 2.18.0
 
