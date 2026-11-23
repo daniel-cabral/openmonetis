@@ -1,5 +1,14 @@
-import { comparePeriods } from "@/shared/utils/period";
-import type { AmountRange, BidPoint, Cents, ConsorcioFields } from "../types";
+import { buildPeriodRange, comparePeriods } from "@/shared/utils/period";
+import { inflateToMonth } from "../money";
+import type {
+	AmountRange,
+	BidPoint,
+	Cents,
+	ConsorcioFields,
+	EnginePlan,
+	ExpandedEvent,
+} from "../types";
+import type { ExpandContext } from "./context";
 
 export const BID_HISTORY_MONTHS = 6;
 
@@ -49,4 +58,52 @@ export function consorcioOwnCash(
 		base: Math.max(0, own.base - embedded),
 		max: Math.max(0, own.max - embedded),
 	};
+}
+
+export function expandConsorcioEvents(
+	plan: EnginePlan & { fields: ConsorcioFields },
+	ctx: ExpandContext,
+): ExpandedEvent[] {
+	const events: ExpandedEvent[] = [];
+
+	if (plan.mappedMonthlyOutflow > 0) {
+		for (const month of buildPeriodRange(ctx.start, ctx.end)) {
+			events.push({
+				planId: plan.id,
+				month,
+				direction: "outflow",
+				amount: {
+					min: plan.mappedMonthlyOutflow,
+					base: plan.mappedMonthlyOutflow,
+					max: plan.mappedMonthlyOutflow,
+				},
+				label: "mapped",
+			});
+		}
+	}
+
+	const range = bidPctRange(plan.bidHistory, plan.fields.marginPp);
+	if (range) {
+		const pct = ctx.stress.bidAtRangeMax
+			? { min: range.max, base: range.max, max: range.max }
+			: range;
+		const letterAtBid =
+			plan.basis === "today"
+				? inflateToMonth(
+						plan.fields.letterValue,
+						ctx.indexForecastPct[plan.index],
+						ctx.start,
+						plan.targetMonth,
+					)
+				: plan.fields.letterValue;
+		events.push({
+			planId: plan.id,
+			month: plan.targetMonth,
+			direction: "outflow",
+			amount: consorcioOwnCash(plan.fields, pct, letterAtBid),
+			label: plan.name,
+		});
+	}
+
+	return events;
 }

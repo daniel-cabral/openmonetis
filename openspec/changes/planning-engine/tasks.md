@@ -255,17 +255,17 @@ it("embedded bid reduces own cash and floors at zero", () => {
 
 Test: extends `consorcio.test.ts` (same fixtures); new `index.test.ts`, because the dispatcher is a distinct contract.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
   - `consorcio.test.ts` "expands the bid at the target month with INCC-inflated letter": INCC 10, start `2027-01`, target `2028-01`, `bidBase "letter"`, history above → bid event amount `{ min: 352_000, base: 418_000, max: 418_000 }`.
   - same file "bid at range max stress": `{ min: 418_000, base: 418_000, max: 418_000 }`.
   - same file "no bid history still projects mapped installments": `bidHistory: []`, `mappedMonthlyOutflow: 5_000`, end `2027-03` → three events of `5_000` and no bid event.
   - `index.test.ts` (one `it.each` over lifecycles): `draft`, `paused`, `done`, `abandoned` → `[]`.
   - `index.test.ts` "clips manual events to the horizon": recurring event `2026-10..null` with start `2027-01`, end `2027-03` → months `["2027-01","2027-02","2027-03"]`; one-off at `2026-05` → absent.
   - `index.test.ts` "plan cost stress scales outflows only": one outflow `{100_000 x3}` and one inflow `{50_000 x3}`, `planCostPct: 10` → outflow `110_000`, inflow `50_000`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types`. Expected: FAIL.
-- [ ] **Step 3: Implement** `expandConsorcioEvents` and `index.ts`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit** the four files; `git commit -m "feat(planning): eventos do consorcio e despacho por tipo de plano"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types`. Expected: FAIL.
+- [x] **Step 3: Implement** `expandConsorcioEvents` and `index.ts`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit** the four files; `git commit -m "feat(planning): eventos do consorcio e despacho por tipo de plano"`.
 
 ### Task 6: Position buckets
 

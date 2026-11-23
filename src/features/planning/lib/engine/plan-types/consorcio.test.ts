@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { BidPoint, ConsorcioFields } from "../types";
-import { bidPctRange, consorcioOwnCash } from "./consorcio";
+import type { BidPoint, ConsorcioFields, EnginePlan } from "../types";
+import type { ExpandContext } from "./context";
+import { bidPctRange, consorcioOwnCash, expandConsorcioEvents } from "./consorcio";
 
 const history = [
 	["2026-06", 50],
@@ -57,5 +58,78 @@ describe("consorcioOwnCash", () => {
 				1_000_000,
 			),
 		).toEqual({ min: 0, base: 0, max: 100_000 });
+	});
+});
+
+const ctx: ExpandContext = {
+	start: "2027-01",
+	end: "2029-01",
+	indexForecastPct: { IPCA: 0, INCC: 10 },
+	stress: {},
+};
+
+function consorcioPlan(
+	over: Partial<Omit<EnginePlan, "fields">>,
+): EnginePlan & { fields: ConsorcioFields } {
+	return {
+		id: "c",
+		name: "c",
+		priority: 1,
+		nonNegotiable: true,
+		lifecycle: "active",
+		basis: "today",
+		index: "INCC",
+		targetMonth: "2028-01",
+		window: null,
+		potAccountIds: [],
+		fields: fields({}),
+		events: [],
+		bidHistory: history,
+		mappedMonthlyOutflow: 0,
+		...over,
+	};
+}
+
+describe("expandConsorcioEvents", () => {
+	it("expands the bid at the target month with the INCC-inflated letter", () => {
+		expect(expandConsorcioEvents(consorcioPlan({}), ctx)).toEqual([
+			{
+				planId: "c",
+				month: "2028-01",
+				direction: "outflow",
+				amount: { min: 352_000, base: 418_000, max: 418_000 },
+				label: "c",
+			},
+		]);
+	});
+
+	it("bids at the range max under the bidAtRangeMax stress", () => {
+		expect(
+			expandConsorcioEvents(consorcioPlan({}), { ...ctx, stress: { bidAtRangeMax: true } }),
+		).toEqual([
+			{
+				planId: "c",
+				month: "2028-01",
+				direction: "outflow",
+				amount: { min: 418_000, base: 418_000, max: 418_000 },
+				label: "c",
+			},
+		]);
+	});
+
+	it("still projects mapped installments without bid history", () => {
+		const events = expandConsorcioEvents(
+			consorcioPlan({ bidHistory: [], mappedMonthlyOutflow: 5_000 }),
+			{ ...ctx, end: "2027-03" },
+		);
+		expect(events).toEqual(
+			["2027-01", "2027-02", "2027-03"].map((month) => ({
+				planId: "c",
+				month,
+				direction: "outflow",
+				amount: { min: 5_000, base: 5_000, max: 5_000 },
+				label: "mapped",
+			})),
+		);
 	});
 });
