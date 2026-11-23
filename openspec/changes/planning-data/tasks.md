@@ -318,7 +318,7 @@ Test: new, because distinct actor (plan children).
 
 Test: none, because no behaviour change.
 
-- [ ] **Step 1: Run** `pnpm exec vitest run src/features/planning src/db/schema.planning.test.ts`. Expected: all PASS.
+- [x] **Step 1: Run** `pnpm exec vitest run src/features/planning src/db/schema.planning.test.ts`. Expected: all PASS.
 - [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 3: Run** `pnpm exec biome check --formatter-enabled=false src/features/planning src/db/schema.ts src/shared/lib/actions/helpers.ts`. Expected: no errors.
 - [ ] **Step 4: Run** `pnpm exec knip --reporter compact` and confirm only actions not yet used by UI are reported (expected until `planning-page`).
