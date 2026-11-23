@@ -211,11 +211,11 @@ Test: new, because distinct contract (db mocked as in `src/features/trips/querie
 
 Test: new, because distinct contract (assert it contains each plan name and the month label, and is empty for no signals; no full-text snapshot).
 
-- [ ] **Step 1: Write the failing test**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/drift-diagnosis.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): diagnostico de desvio para o planejador"`.
+- [x] **Step 1: Write the failing test**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/drift-diagnosis.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): diagnostico de desvio para o planejador"`.
 
 ### Task 9: Streaming core
 
