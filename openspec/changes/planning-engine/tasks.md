@@ -458,11 +458,11 @@ export function detectDrift(input: DriftInput): DriftSignal[];
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: health `{ a: "on-track", b: "at-risk", c: "off-track" }`, liquid `100_000`, floor `120_000`, contributions `2027-01: 4_000`, `2027-02: 3_000`, planned `5_000` → exactly `[{plan-at-risk b}, {plan-off-track c}, {reserve-below-floor 20_000}, {contribution-below-plan ["2027-01","2027-02"]}]`; second case with `2027-01: 6_000` → no contribution signal.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/drift.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `detectDrift`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): sinais de desvio"`.
+- [x] **Step 1: Write the failing test**: health `{ a: "on-track", b: "at-risk", c: "off-track" }`, liquid `100_000`, floor `120_000`, contributions `2027-01: 4_000`, `2027-02: 3_000`, planned `5_000` → exactly `[{plan-at-risk b}, {plan-off-track c}, {reserve-below-floor 20_000}, {contribution-below-plan ["2027-01","2027-02"]}]`; second case with `2027-01: 6_000` → no contribution signal.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/drift.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `detectDrift`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): sinais de desvio"`.
 
 ### Task 13: Barrel and closing checks
 
