@@ -87,7 +87,7 @@ export async function saveMessages(
 			)
 			.onConflictDoUpdate({
 				target: plannerMessages.id,
-				set: { parts: sql`excluded.${plannerMessages.parts}` },
+				set: { parts: sql`excluded.${sql.identifier(plannerMessages.parts.name)}` },
 				// a message id belonging to another user is never overwritten
 				setWhere: and(
 					eq(plannerMessages.userId, userId),

@@ -101,6 +101,9 @@ describe("conversation store", () => {
 		expect(write.table).toBe(plannerMessages);
 		expect(write.values).toHaveLength(2);
 		expect(write.conflict?.set).toHaveProperty("parts");
+		expect(
+			new PgDialect().sqlToQuery(write.conflict?.set.parts as SQL).sql,
+		).toBe('excluded."partes"');
 		expect(params(write.conflict?.setWhere)).toContain(USER_ID);
 	});
 });
