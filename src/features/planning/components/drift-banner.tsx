@@ -4,8 +4,15 @@ import {
 	AlertDescription,
 	AlertTitle,
 } from "@/shared/components/ui/alert";
+import { Button } from "@/shared/components/ui/button";
 
-export function DriftBanner({ messages }: { messages: string[] }) {
+export function DriftBanner({
+	messages,
+	onDiscuss,
+}: {
+	messages: string[];
+	onDiscuss?: () => void;
+}) {
 	if (messages.length === 0) {
 		return null;
 	}
@@ -20,6 +27,17 @@ export function DriftBanner({ messages }: { messages: string[] }) {
 						<li key={message}>{message}</li>
 					))}
 				</ul>
+				{onDiscuss ? (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						className="mt-2"
+						onClick={onDiscuss}
+					>
+						Discutir com o planejador
+					</Button>
+				) : null}
 			</AlertDescription>
 		</Alert>
 	);

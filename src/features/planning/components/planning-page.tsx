@@ -19,6 +19,7 @@ import {
 	stressEffects,
 } from "@/features/planning/lib/engine";
 import type { StoredConversation } from "@/features/planning/lib/planner/conversation-store";
+import { buildDriftDiagnosis } from "@/features/planning/lib/planner/drift-diagnosis";
 import {
 	applyChangesToInput,
 	type ProposalChange,
@@ -102,12 +103,14 @@ export function PlanningPage({
 		proposalId: string;
 		changes: ProposalChange[];
 	} | null>(null);
+	const [prefill, setPrefill] = useState<string | null>(null);
 	const configured = useMemo(
 		() => configuredStress(snapshot.settings),
 		[snapshot.settings],
 	);
 
-	const { kpis, chart, rows, drift, effects, previewedId } = useMemo(() => {
+	const { kpis, chart, rows, drift, driftSignals, effects, previewedId } =
+		useMemo(() => {
 		const todayDate = new Date(`${today}T00:00:00`);
 		// Drift reflects the real plan, so it reads the unstressed projection.
 		const baseProjection: Projection = runProjection(snapshot.input);
@@ -126,14 +129,15 @@ export function PlanningPage({
 			)
 			.map((plan) => ({ ...plan, type: plan.fields.type, categoryIds: [] }));
 		const kpis = buildKpis(snapshot, projection, todayDate);
-		const drift = driftMessages(
-			detectDrift({
+		const driftSignals = detectDrift({
 				health: baseProjection.health,
 				liquidNow: kpis.liquidToday,
 				reserveFloor: kpis.reserveFloor,
 				contributionsByMonth: snapshot.contributionsByMonth,
 				plannedContribution: snapshot.settings.plannedContribution,
-			}),
+		});
+		const drift = driftMessages(
+			driftSignals,
 			Object.fromEntries(snapshot.plans.map((plan) => [plan.id, plan.name])),
 		);
 		return {
@@ -145,6 +149,7 @@ export function PlanningPage({
 				kpis,
 			),
 			drift,
+			driftSignals,
 			effects: stressEffects(snapshot.input, configured),
 			previewedId: previewed && preview ? preview.proposalId : null,
 		};
@@ -174,6 +179,15 @@ export function PlanningPage({
 		}
 		setPreview({ proposalId: toolCallId, changes: output.proposal.changes });
 	};
+
+	const discussDrift = () =>
+		setPrefill(
+			buildDriftDiagnosis(
+				driftSignals,
+				Object.fromEntries(snapshot.plans.map((plan) => [plan.id, plan.name])),
+				snapshot.currentMonth,
+			),
+		);
 
 	const openNewPlan = (type: "goal" | "consorcio") => {
 		setNewPlanType(type);
@@ -205,7 +219,7 @@ export function PlanningPage({
 				title="Planejamento"
 				subtitle="Acompanhe a liquidez, as metas e os planos futuros."
 			/>
-			<DriftBanner messages={drift} />
+			<DriftBanner messages={drift} onDiscuss={discussDrift} />
 			<KpiRow kpis={kpis} />
 			<div className="grid gap-6 lg:grid-cols-5">
 				<div className="space-y-6 lg:col-span-2">
@@ -213,6 +227,8 @@ export function PlanningPage({
 						conversation={plannerConversation}
 						modelId={snapshot.settings.plannerModelId ?? DEFAULT_MODEL}
 						settings={snapshot.settings}
+						prefill={prefill}
+						onPrefillConsumed={() => setPrefill(null)}
 						renderProposal={(output, toolCallId) => (
 							<ProposalCard
 								output={output}
