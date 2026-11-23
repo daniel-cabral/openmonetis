@@ -136,7 +136,7 @@ export function PlansTable({
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-2">
-											{onEdit && row.kind !== "reserve" ? (
+											{row.kind !== "reserve" ? (
 												<button
 													type="button"
 													className="text-left font-medium hover:underline"
