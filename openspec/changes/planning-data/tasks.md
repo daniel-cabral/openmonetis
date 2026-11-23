@@ -192,11 +192,11 @@ Test: new, because distinct contract.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: two accounts with as-of `2026-10-31` and `2026-11-30` rows → only the November rows for the first account, both rows for the second; a consórcio `Plan` row with `valor_carta "10000.00"`, `margem_lance "2.00"` → `fields` `{ type: "consorcio", letterValue: 1_000_000, marginPp: 2, ... }` and `window null` when both window columns are null; `toSettingsInput(undefined).reserveMonths === 3`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/mappers.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): mapeamento das linhas do banco para o motor"`.
+- [x] **Step 1: Write the failing test**: two accounts with as-of `2026-10-31` and `2026-11-30` rows → only the November rows for the first account, both rows for the second; a consórcio `Plan` row with `valor_carta "10000.00"`, `margem_lance "2.00"` → `fields` `{ type: "consorcio", letterValue: 1_000_000, marginPp: 2, ... }` and `window null` when both window columns are null; `toSettingsInput(undefined).reserveMonths === 3`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/mappers.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): mapeamento das linhas do banco para o motor"`.
 
 ### Task 9: Planning snapshot query
 
