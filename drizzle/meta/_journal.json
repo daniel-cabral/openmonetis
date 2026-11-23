@@ -274,6 +274,13 @@
 			"when": 1795455911439,
 			"tag": "0039_planning",
 			"breakpoints": true
+		},
+		{
+			"idx": 40,
+			"version": "7",
+			"when": 1795475333267,
+			"tag": "0040_flashy_prowler",
+			"breakpoints": true
 		}
 	]
 }

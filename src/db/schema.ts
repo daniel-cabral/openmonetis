@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	boolean,
+	check,
 	date,
 	index,
 	integer,
@@ -175,6 +176,78 @@ export const userPreferences = pgTable("preferencias_usuario", {
 		.notNull()
 		.default(sql`now()`),
 	updatedAt: timestamp("updated_at", {
+		mode: "date",
+		withTimezone: true,
+	})
+		.notNull()
+		.default(sql`now()`),
+});
+
+export const aiCredentials = pgTable(
+	"ia_credenciais",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		provider: text("provedor").notNull(),
+		status: text("status").notNull(),
+		encryptedSecret: text("segredo_criptografado").notNull(),
+		secretMask: text("mascara_segredo"),
+		baseUrl: text("url_base"),
+		accountId: text("conta_externa_id"),
+		accountEmail: text("conta_externa_email"),
+		planType: text("tipo_plano"),
+		accessExpiresAt: timestamp("acesso_expira_em", {
+			mode: "date",
+			withTimezone: true,
+		}),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.default(sql`now()`),
+		updatedAt: timestamp("updated_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.default(sql`now()`),
+		refreshedAt: timestamp("renovado_em", {
+			mode: "date",
+			withTimezone: true,
+		}),
+	},
+	(table) => ({
+		userProviderIdx: uniqueIndex("ia_credenciais_user_provider_idx").on(
+			table.userId,
+			table.provider,
+		),
+		providerCheck: check(
+			"ia_credenciais_provedor_check",
+			sql`${table.provider} in ('chatgpt', 'openai', 'anthropic', 'google', 'minimax', 'openrouter', 'ollama')`,
+		),
+		statusCheck: check(
+			"ia_credenciais_status_check",
+			sql`${table.status} in ('connected', 'needs_reconnect', 'invalid_secret')`,
+		),
+	}),
+);
+
+export const aiPendingConnections = pgTable("ia_conexoes_pendentes", {
+	userId: text("user_id")
+		.primaryKey()
+		.references(() => user.id, { onDelete: "cascade" }),
+	deviceAuthId: text("device_auth_id").notNull(),
+	userCode: text("codigo_usuario").notNull(),
+	verificationUrl: text("url_verificacao").notNull(),
+	pollIntervalSeconds: integer("intervalo_consulta_segundos").notNull(),
+	expiresAt: timestamp("expira_em", {
+		mode: "date",
+		withTimezone: true,
+	}).notNull(),
+	createdAt: timestamp("created_at", {
 		mode: "date",
 		withTimezone: true,
 	})
@@ -1433,6 +1506,8 @@ export type Session = typeof session.$inferSelect;
 export type Verification = typeof verification.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewUserPreferences = typeof userPreferences.$inferInsert;
+export type AiCredential = typeof aiCredentials.$inferSelect;
+export type AiPendingConnection = typeof aiPendingConnections.$inferSelect;
 export type PayerShare = typeof payerShares.$inferSelect;
 export type FinancialAccount = typeof financialAccounts.$inferSelect;
 export type Category = typeof categories.$inferSelect;

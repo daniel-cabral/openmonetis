@@ -46,11 +46,11 @@
 
 Test: new, because the unique `(userId, provider)` and cascade are the only lock on "one credential per provider per user" and account deletion (pattern of `schema.planning.test.ts`).
 
-- [ ] **Step 1: Write the failing test** `"ai credentials are unique per user and provider and cascade with the user"`: with `getTableConfig(aiCredentials)` assert an index named `ia_credenciais_user_provider_idx` is unique over `user_id, provider`, and both tables' `user_id` FK has `onDelete === "cascade"`.
-- [ ] **Step 2:** `pnpm exec vitest run src/db/schema.ai-credentials.test.ts` -> FAIL (import not found).
-- [ ] **Step 3:** Add both tables to `src/db/schema.ts` following the `userPreferences` style (`uuid` id with `gen_random_uuid()`, timestamps `withTimezone`).
-- [ ] **Step 4:** Test -> PASS. Then `pnpm run db:generate`; confirm one new `drizzle/0040_*.sql` with two `CREATE TABLE` and no unrelated statements.
-- [ ] **Step 5: Commit** `git add src/db/schema.ts src/db/schema.ai-credentials.test.ts drizzle/0040_*.sql drizzle/meta` -> `feat(ia): tabelas de credenciais de IA por usuário`
+- [x] **Step 1: Write the failing test** `"ai credentials are unique per user and provider and cascade with the user"`: with `getTableConfig(aiCredentials)` assert an index named `ia_credenciais_user_provider_idx` is unique over `user_id, provider`, and both tables' `user_id` FK has `onDelete === "cascade"`.
+- [x] **Step 2:** `pnpm exec vitest run src/db/schema.ai-credentials.test.ts` -> FAIL (import not found).
+- [x] **Step 3:** Add both tables to `src/db/schema.ts` following the `userPreferences` style (`uuid` id with `gen_random_uuid()`, timestamps `withTimezone`).
+- [x] **Step 4:** Test -> PASS. Then `pnpm run db:generate`; confirm one new `drizzle/0040_*.sql` with two `CREATE TABLE` and no unrelated statements.
+- [x] **Step 5: Commit** `git add src/db/schema.ts src/db/schema.ai-credentials.test.ts drizzle/0040_*.sql drizzle/meta` -> `feat(ia): tabelas de credenciais de IA por usuário`
 
 ### Task 2: Secret cipher and key mask
 
