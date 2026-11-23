@@ -112,7 +112,8 @@ export function PlanningPage({
 	const { kpis, chart, rows, drift, driftSignals, effects, previewedId } =
 		useMemo(() => {
 		const todayDate = new Date(`${today}T00:00:00`);
-		// Drift reflects the real plan, so it reads the unstressed projection.
+		// Drift reflects the saved plan: health and reserve floor both come from
+		// this unstressed, unpreviewed projection.
 		const baseProjection: Projection = runProjection(snapshot.input);
 		const previewed =
 			preview &&
@@ -132,7 +133,7 @@ export function PlanningPage({
 		const driftSignals = detectDrift({
 				health: baseProjection.health,
 				liquidNow: kpis.liquidToday,
-				reserveFloor: kpis.reserveFloor,
+				reserveFloor: baseProjection.scenarios.base.months[0]?.reserveFloor ?? 0,
 				contributionsByMonth: snapshot.contributionsByMonth,
 				plannedContribution: snapshot.settings.plannedContribution,
 		});

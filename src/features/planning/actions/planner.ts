@@ -2,8 +2,8 @@
 
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { assumptionLog } from "@/db/schema";
-import { toEnginePlan } from "@/features/planning/lib/mappers";
+import { assumptionLog, planningSettings } from "@/db/schema";
+import { toEnginePlan, toSettingsInput } from "@/features/planning/lib/mappers";
 import { createConversation } from "@/features/planning/lib/planner/conversation-store";
 import {
 	type Proposal,
@@ -12,6 +12,7 @@ import {
 	proposalSchema,
 } from "@/features/planning/lib/planner/proposal";
 import { planInputSchema } from "@/features/planning/lib/schemas";
+import { changedAssumptions } from "@/features/planning/lib/settings-assumptions";
 import {
 	arePotsEarmarked,
 	assertOwnedPlan,
@@ -86,9 +87,22 @@ async function applyProposalChange(
 			await insertPlanEvent(tx, userId, change.planId, change.event);
 			return;
 		}
-		case "update-settings":
+		case "update-settings": {
+			const [previousRow] = await tx
+				.select()
+				.from(planningSettings)
+				.where(eq(planningSettings.userId, userId));
+			const previous = toSettingsInput(previousRow);
 			await upsertSettings(tx, userId, change.patch);
+			const entries = changedAssumptions(previous, {
+				...previous,
+				...change.patch,
+			});
+			for (const entry of entries) {
+				await insertAssumption(tx, userId, { ...entry, source: "user" });
+			}
 			return;
+		}
 		case "record-assumption":
 			// Written after the plan changes, in applyProposalAction.
 			return;

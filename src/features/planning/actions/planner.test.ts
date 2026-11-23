@@ -61,6 +61,7 @@ const {
 			values: (payload: unknown) => {
 				writes.push({ kind: "insert", table, payload });
 				return Object.assign(Promise.resolve(), {
+					onConflictDoUpdate: () => Promise.resolve(),
 					returning: () => Promise.resolve([{ id: NEW_PLAN_ID }]),
 				});
 			},
@@ -107,7 +108,13 @@ vi.mock("next/cache", () => ({
 	revalidateTag: revalidateTagMock,
 }));
 
-import { assumptionLog, financialAccounts, planEvents, plans } from "@/db/schema";
+import {
+	assumptionLog,
+	financialAccounts,
+	planEvents,
+	planningSettings,
+	plans,
+} from "@/db/schema";
 import type { Proposal } from "@/features/planning/lib/planner/proposal";
 import type { PlanInput } from "@/features/planning/lib/schemas";
 import { applyProposalAction } from "./planner";
@@ -305,6 +312,28 @@ describe("planner apply action", () => {
 
 		expect(result).toEqual(INVALID_POT);
 		expect(writes).toEqual([]);
+	});
+
+	it("logs per-field assumptions when a proposal updates settings", async () => {
+		const result = await applyProposalAction({
+			proposalId: PROPOSAL_ID,
+			proposal: proposalWith([
+				{
+					op: "update-settings",
+					patch: {
+						plannedContribution: 200_000,
+						indexForecastPct: { IPCA: 6, INCC: 5 },
+					},
+				},
+			]),
+		});
+
+		expect(result).toEqual({ success: true, message: "Proposta aplicada." });
+		const summaries = writes
+			.filter((w) => w.table === assumptionLog)
+			.map((w) => (w.payload as { kind: string }).kind);
+		expect(summaries).toEqual(["contribution", "index", "plan-change"]);
+		expect(writes.some((w) => w.table === planningSettings)).toBe(true);
 	});
 
 	it("creates a plan with its events and records the proposal as planner assumptions", async () => {
