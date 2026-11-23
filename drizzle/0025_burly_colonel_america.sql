@@ -1,3 +1,12 @@
+CREATE TABLE IF NOT EXISTS "establishment_logos" (
+	"user_id" text NOT NULL,
+	"name_key" text NOT NULL,
+	"domain" text NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "establishment_logos_user_id_name_key_pk" PRIMARY KEY("user_id","name_key")
+);
+--> statement-breakpoint
+ALTER TABLE "establishment_logos" ADD CONSTRAINT "establishment_logos_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 DROP INDEX "tokens_api_user_id_idx";--> statement-breakpoint
 DROP INDEX "cartoes_user_id_status_idx";--> statement-breakpoint
 DROP INDEX "dashboard_notification_states_user_id_archived_idx";--> statement-breakpoint

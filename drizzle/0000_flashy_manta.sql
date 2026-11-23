@@ -143,7 +143,7 @@ CREATE TABLE "pagadores" (
 	"anotacao" text,
 	"role" text,
 	"is_auto_send" boolean DEFAULT false NOT NULL,
-	"share_code" text DEFAULT substr(encode(gen_random_bytes(24), 'base64'), 1, 24) NOT NULL,
+	"share_code" text NOT NULL,
 	"last_mail" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"user_id" text NOT NULL
