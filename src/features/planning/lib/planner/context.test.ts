@@ -147,4 +147,40 @@ describe("buildPlannerContext", () => {
 			],
 		});
 	});
+
+	it("context exposes the index forecast and flags accounts not updated for 45+ days", () => {
+		const now = new Date("2027-03-01T00:00:00.000Z");
+		const account = (id: string, lastAsOf: string | null) => ({
+			...pot,
+			id,
+			name: id,
+			lastAsOf,
+		});
+		const forecast = { IPCA: 4.5, INCC: 6 };
+
+		const context = buildPlannerContext(
+			{
+				...snapshot,
+				input: { ...input, indexForecastPct: forecast },
+				accounts: [
+					account("recent", "2027-02-19"),
+					account("old", "2027-01-14"),
+					account("never", null),
+				],
+			},
+			runProjection(input),
+			now,
+		);
+
+		expect(context.patrimony.accounts.map((a) => a.stale)).toEqual([
+			false,
+			true,
+			true,
+		]);
+		expect(context.patrimony.accounts[1]).toMatchObject({
+			accountId: "old",
+			asOf: "2027-01-14",
+		});
+		expect(context.indexForecastPct).toEqual(forecast);
+	});
 });

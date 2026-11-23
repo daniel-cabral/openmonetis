@@ -368,11 +368,11 @@ Test: new, because `buildSystemPrompt` has no test and the prompt is the contrac
 
 Test: extends `context.test.ts` with a new `it`, because new context fields are a distinct contract.
 
-- [ ] **Step 1: Failing test** `"context exposes the index forecast and flags accounts not updated for 45+ days"`: snapshot fixture with two accounts, `lastAsOf` 10 days and 46 days before a fixed `now`, plus one `null` -> `stale` `[false, true, true]`; `context.indexForecastPct` equals the fixture's forecast.
-- [ ] **Step 2:** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts` -> FAIL.
-- [ ] **Step 3:** Implement; update existing expectations only where the type grew.
-- [ ] **Step 4:** Test -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `feat(planning): contexto do planejador com previsão de índices e posições defasadas`
+- [x] **Step 1: Failing test** `"context exposes the index forecast and flags accounts not updated for 45+ days"`: snapshot fixture with two accounts, `lastAsOf` 10 days and 46 days before a fixed `now`, plus one `null` -> `stale` `[false, true, true]`; `context.indexForecastPct` equals the fixture's forecast.
+- [x] **Step 2:** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts` -> FAIL.
+- [x] **Step 3:** Implement; update existing expectations only where the type grew.
+- [x] **Step 4:** Test -> PASS; lint touched files.
+- [x] **Step 5: Commit** `feat(planning): contexto do planejador com previsão de índices e posições defasadas`
 
 ### Task 19: Web-search policy
 

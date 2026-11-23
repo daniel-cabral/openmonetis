@@ -5,6 +5,7 @@ import type {
 	Period,
 	PlanHealth,
 	PlanTypeFields,
+	PriceIndex,
 	Projection,
 } from "@/features/planning/lib/engine";
 import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
@@ -46,7 +47,14 @@ export type PlannerContext = {
 		maturities: { month: Period; amount: LlmMoney }[];
 		locked: LlmMoney;
 		pots: { accountId: string; accountName: string; amount: LlmMoney }[];
+		accounts: {
+			accountId: string;
+			accountName: string;
+			asOf: string | null;
+			stale: boolean;
+		}[];
 	};
+	indexForecastPct: Record<PriceIndex, number>;
 	reserve: { months: number; floor: LlmMoney };
 	plans: {
 		id: string;
@@ -98,12 +106,16 @@ function toLlmFields(fields: PlanTypeFields): LlmPlanFields {
 	};
 }
 
+const STALE_AFTER_DAYS = 45;
+const MS_PER_DAY = 86_400_000;
+
 const sumCents = (values: Cents[]): Cents =>
 	values.reduce((total, value) => total + value, 0);
 
 export function buildPlannerContext(
 	snapshot: PlanningSnapshot,
 	projection: Projection,
+	now: Date = new Date(),
 ): PlannerContext {
 	const { input, settings } = snapshot;
 	const sumLiquidity = (liquidity: LiquidityKind) =>
@@ -151,7 +163,17 @@ export function buildPlannerContext(
 						sumCents(account.positions.map((p) => p.amount)),
 					),
 				})),
+			accounts: snapshot.accounts.map((account) => ({
+				accountId: account.id,
+				accountName: account.name,
+				asOf: account.lastAsOf,
+				stale:
+					account.lastAsOf === null ||
+					now.getTime() - new Date(account.lastAsOf).getTime() >
+						STALE_AFTER_DAYS * MS_PER_DAY,
+			})),
 		},
+		indexForecastPct: input.indexForecastPct,
 		reserve: {
 			months: input.reserveMonths,
 			floor: formatCentsForLlm(
