@@ -438,11 +438,11 @@ Test: new, because the schema refinement is a new pure contract.
 
 Test: new, because it is a new DB-boundary contract (fake `database`, as `src/features/planning/actions/settings.test.ts` does).
 
-- [ ] **Step 1: Failing test** `"summarizes only the signed-in user's plans, or null without plans"`: fake rows for `u1` -> the shape above; every `where` includes `userId = "u1"`; no rows -> `null`.
-- [ ] **Step 2:** `pnpm exec vitest run src/features/insights/lib/planning-summary.test.ts` -> FAIL.
-- [ ] **Step 3:** Implement (confirm table and column names in `src/db/schema.ts`) and wire into `aggregateMonthData`.
-- [ ] **Step 4:** Test -> PASS; `pnpm exec vitest run src/features/insights` -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `feat(insights): resumo do planejamento nos dados agregados`
+- [x] **Step 1: Failing test** `"summarizes only the signed-in user's plans, or null without plans"`: fake rows for `u1` -> the shape above; every `where` includes `userId = "u1"`; no rows -> `null`.
+- [x] **Step 2:** `pnpm exec vitest run src/features/insights/lib/planning-summary.test.ts` -> FAIL.
+- [x] **Step 3:** Implement (confirm table and column names in `src/db/schema.ts`) and wire into `aggregateMonthData`.
+- [x] **Step 4:** Test -> PASS; `pnpm exec vitest run src/features/insights` -> PASS; lint touched files.
+- [x] **Step 5: Commit** `feat(insights): resumo do planejamento nos dados agregados`
 
 ### Task 23: Remove the temporary preview
 

@@ -14,6 +14,7 @@ import { db } from "@/shared/lib/db";
 import { getAdminPayerId } from "@/shared/lib/payers/get-admin-id";
 import { safeToNumber } from "@/shared/utils/number";
 import { getPreviousPeriod } from "@/shared/utils/period";
+import { summarizePlanning } from "../lib/planning-summary";
 
 const TRANSFERENCIA = "Transferência";
 
@@ -387,8 +388,11 @@ async function aggregateMonthDataInternal(userId: string, period: string) {
 		return sum + tx.amount * remaining;
 	}, 0);
 
+	const planning = await summarizePlanning(userId);
+
 	return {
 		month: period,
+		planning,
 		totalIncome: currentIncome,
 		totalExpense: currentExpense,
 		balance: currentIncome - currentExpense,
