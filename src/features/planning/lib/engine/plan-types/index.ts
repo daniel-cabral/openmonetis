@@ -26,7 +26,7 @@ function expandManualEvent(
 	}
 	return buildPeriodRange(first, stop).map((month) => {
 		const inflate = (value: number) =>
-			plan.basis === "today"
+			event.basis === "today"
 				? inflateToMonth(value, ctx.indexForecastPct[plan.index], ctx.start, month)
 				: value;
 		return {

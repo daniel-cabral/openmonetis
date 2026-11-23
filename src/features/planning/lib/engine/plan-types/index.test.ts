@@ -71,6 +71,28 @@ describe("expandPlanEvents", () => {
 		]);
 	});
 
+	it("inflates manual events by their own basis, not the plan's", () => {
+		const amount = { min: 100_000, base: 100_000, max: 100_000 };
+		const oneOff = (basis: "today" | "nominal") => ({
+			id: "e",
+			label: "e",
+			direction: "outflow" as const,
+			amount,
+			basis,
+			startMonth: "2028-01",
+			endMonth: "2028-01",
+		});
+		const inflatedCtx = { ...ctx, indexForecastPct: { IPCA: 12, INCC: 0 } };
+		const baseAmounts = (p: EnginePlan) =>
+			expandPlanEvents(p, inflatedCtx).map((e) => e.amount.base);
+		expect(
+			baseAmounts(plan({ basis: "today", events: [oneOff("nominal")], targetMonth: "2026-01" })),
+		).toEqual([100_000]);
+		expect(
+			baseAmounts(plan({ basis: "nominal", events: [oneOff("today")], targetMonth: "2026-01" })),
+		).toEqual([112_000]);
+	});
+
 	it("scales outflows only under the plan cost stress", () => {
 		const events = expandPlanEvents(
 			plan({
