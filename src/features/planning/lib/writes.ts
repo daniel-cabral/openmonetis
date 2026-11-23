@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { z } from "zod";
 import {
 	assumptionLog,
@@ -222,6 +222,27 @@ export async function assertOwnedPlan(
 		.where(and(eq(plans.id, planId), eq(plans.userId, userId)))
 		.limit(1);
 	return row ?? null;
+}
+
+export async function arePotsEarmarked(
+	tx: PlanningTx,
+	userId: string,
+	potAccountIds: string[],
+): Promise<boolean> {
+	if (potAccountIds.length === 0) return true;
+
+	const rows = await tx
+		.select({ id: financialAccounts.id })
+		.from(financialAccounts)
+		.where(
+			and(
+				eq(financialAccounts.userId, userId),
+				eq(financialAccounts.isEarmarkedPot, true),
+				inArray(financialAccounts.id, potAccountIds),
+			),
+		);
+
+	return new Set(rows.map((row) => row.id)).size === new Set(potAccountIds).size;
 }
 
 export async function assertOwnedInvestmentAccount(

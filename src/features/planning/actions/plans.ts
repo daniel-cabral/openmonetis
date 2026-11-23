@@ -1,8 +1,8 @@
 "use server";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { financialAccounts, plans } from "@/db/schema";
+import { plans } from "@/db/schema";
 import {
 	type PlanInput,
 	planInputSchema,
@@ -10,8 +10,8 @@ import {
 	reorderPlansSchema,
 } from "@/features/planning/lib/schemas";
 import {
+	arePotsEarmarked,
 	insertPlan,
-	type PlanningTx,
 	updatePlan,
 } from "@/features/planning/lib/writes";
 import {
@@ -29,27 +29,6 @@ const INVALID_POT_MESSAGE = "Pote inválido.";
 const INVALID_ORDER_MESSAGE = "Ordem inválida.";
 
 const planIdSchema = z.object({ id: uuidSchema("Plano") });
-
-async function arePotsEarmarked(
-	tx: PlanningTx,
-	userId: string,
-	potAccountIds: string[],
-): Promise<boolean> {
-	if (potAccountIds.length === 0) return true;
-
-	const rows = await tx
-		.select({ id: financialAccounts.id })
-		.from(financialAccounts)
-		.where(
-			and(
-				eq(financialAccounts.userId, userId),
-				eq(financialAccounts.isEarmarkedPot, true),
-				inArray(financialAccounts.id, potAccountIds),
-			),
-		);
-
-	return new Set(rows.map((row) => row.id)).size === new Set(potAccountIds).size;
-}
 
 export async function createPlanAction(
 	input: PlanInput,

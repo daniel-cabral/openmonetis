@@ -13,6 +13,7 @@ import {
 } from "@/features/planning/lib/planner/proposal";
 import { planInputSchema } from "@/features/planning/lib/schemas";
 import {
+	arePotsEarmarked,
 	assertOwnedPlan,
 	insertAssumption,
 	insertPlan,
@@ -32,6 +33,7 @@ import { errorResult } from "@/shared/lib/types/actions";
 
 const NOT_FOUND_MESSAGE = "Registro não encontrado.";
 const ALREADY_APPLIED_MESSAGE = "Proposta já aplicada.";
+const INVALID_POT_MESSAGE = "Pote inválido.";
 
 const applyProposalSchema = z.object({
 	proposalId: z.string().min(1).max(200),
@@ -49,6 +51,9 @@ async function applyProposalChange(
 ): Promise<void> {
 	switch (change.op) {
 		case "create-plan": {
+			if (!(await arePotsEarmarked(tx, userId, change.plan.potAccountIds))) {
+				throw new ProposalError(INVALID_POT_MESSAGE);
+			}
 			const planId = await insertPlan(tx, userId, change.plan);
 			for (const event of change.events) {
 				await insertPlanEvent(tx, userId, planId, event);
@@ -67,6 +72,9 @@ async function applyProposalChange(
 				throw new ProposalError(
 					merged.error.issues[0]?.message ?? "Plano inválido.",
 				);
+			}
+			if (!(await arePotsEarmarked(tx, userId, merged.data.potAccountIds))) {
+				throw new ProposalError(INVALID_POT_MESSAGE);
 			}
 			await updatePlan(tx, userId, change.planId, merged.data);
 			return;

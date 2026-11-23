@@ -107,8 +107,9 @@ vi.mock("next/cache", () => ({
 	revalidateTag: revalidateTagMock,
 }));
 
-import { assumptionLog, planEvents, plans } from "@/db/schema";
+import { assumptionLog, financialAccounts, planEvents, plans } from "@/db/schema";
 import type { Proposal } from "@/features/planning/lib/planner/proposal";
+import type { PlanInput } from "@/features/planning/lib/schemas";
 import { applyProposalAction } from "./planner";
 
 const USER_ID = "user-1";
@@ -116,9 +117,13 @@ const FOREIGN_USER_ID = "user-2";
 const PLAN_ID = "5b1e6f2a-3c4d-4e5f-8a9b-0c1d2e3f4a5b";
 const FOREIGN_PLAN_ID = "7d3a8b4c-5e6f-4a71-8c1d-2e3f4a5b6c7d";
 const PROPOSAL_ID = "call_7Hq2";
+const POT_ID = "3f1c2a9e-5b7d-4e8f-9a0b-1c2d3e4f5a6b";
+const UNEARMARKED_ID = "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d";
+const FOREIGN_POT_ID = "c0ffee00-1111-4222-8333-444455556666";
 
 const NOT_FOUND = { success: false, error: "Registro não encontrado." };
 const ALREADY_APPLIED = { success: false, error: "Proposta já aplicada." };
+const INVALID_POT = { success: false, error: "Pote inválido." };
 
 const OWNED_GOAL_ROW = {
 	id: PLAN_ID,
@@ -149,6 +154,21 @@ function proposalWith(changes: Proposal["changes"]): Proposal {
 	return { title: "Nova meta", rationale: "Teste.", changes };
 }
 
+const NEW_GOAL_PLAN: PlanInput = {
+	name: "Reserva",
+	nonNegotiable: true,
+	lifecycle: "draft",
+	basis: "today",
+	index: "IPCA",
+	targetMonth: "2028-01",
+	window: null,
+	potAccountIds: [],
+	fields: {
+		type: "goal",
+		target: { min: 500_000, base: 500_000, max: 500_000 },
+	},
+};
+
 describe("planner apply action", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -160,6 +180,11 @@ describe("planner apply action", () => {
 			{ id: FOREIGN_PLAN_ID, userId: FOREIGN_USER_ID, priority: 1 },
 		]);
 		stored.set(assumptionLog, []);
+		stored.set(financialAccounts, [
+			{ id: POT_ID, userId: USER_ID, isEarmarkedPot: true },
+			{ id: UNEARMARKED_ID, userId: USER_ID, isEarmarkedPot: false },
+			{ id: FOREIGN_POT_ID, userId: FOREIGN_USER_ID, isEarmarkedPot: true },
+		]);
 	});
 
 	it("does not apply a proposal twice", async () => {
@@ -230,6 +255,56 @@ describe("planner apply action", () => {
 				payload: expect.objectContaining({ kind: "plan-change" }),
 			}),
 		]);
+	});
+
+	it.each([
+		["an account that is not earmarked", UNEARMARKED_ID],
+		["another user's earmarked account", FOREIGN_POT_ID],
+	])("rejects a new plan whose pot is %s, writing nothing", async (_label, potId) => {
+		const result = await applyProposalAction({
+			proposalId: PROPOSAL_ID,
+			proposal: proposalWith([
+				{
+					op: "create-plan",
+					plan: { ...NEW_GOAL_PLAN, potAccountIds: [potId] },
+					events: [],
+				},
+			]),
+		});
+
+		expect(result).toEqual(INVALID_POT);
+		expect(writes).toEqual([]);
+	});
+
+	it("accepts a new plan whose pot is an owned earmarked account", async () => {
+		const result = await applyProposalAction({
+			proposalId: PROPOSAL_ID,
+			proposal: proposalWith([
+				{
+					op: "create-plan",
+					plan: { ...NEW_GOAL_PLAN, potAccountIds: [POT_ID] },
+					events: [],
+				},
+			]),
+		});
+
+		expect(result.success).toBe(true);
+	});
+
+	it("rejects a plan update that points the plan at a non-pot account, writing nothing", async () => {
+		const result = await applyProposalAction({
+			proposalId: PROPOSAL_ID,
+			proposal: proposalWith([
+				{
+					op: "update-plan",
+					planId: PLAN_ID,
+					patch: { potAccountIds: [UNEARMARKED_ID] },
+				},
+			]),
+		});
+
+		expect(result).toEqual(INVALID_POT);
+		expect(writes).toEqual([]);
 	});
 
 	it("creates a plan with its events and records the proposal as planner assumptions", async () => {
