@@ -5,6 +5,33 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.18.0] - 2026-11-23
+
+Esta versão move a configuração de IA para dentro do app: cada usuário conecta os próprios provedores em Ajustes, por chave de API ou pela assinatura do ChatGPT, e Insights e o planejador passam a usar somente essas credenciais. As chaves ficam criptografadas no servidor e nunca voltam para o navegador. Atenção para quem hospeda o app: as variáveis de ambiente de IA deixam de ser lidas, então é preciso cadastrar as chaves em Ajustes > IA depois de atualizar. A versão também afina os prompts do planejador e dos insights e corrige a simulação de propostas de aporte.
+
+### Adicionado
+
+- Aba "IA" em Ajustes, com lista de provedores e painel de configuração (ChatGPT por assinatura, OpenAI por API, Claude AI, Gemini, MiniMax, OpenRouter e Ollama)
+- Chaves de API por usuário, criptografadas, exibidas apenas por máscara, com as ações Alterar e Remover
+- Login com a assinatura do ChatGPT por código de dispositivo, com renovação automática da sessão e lista de modelos obtida do backend
+- Estados de conexão por provedor: Conectado, Aguardando, Sessão expirada e Credencial inválida (quando o segredo da instalação mudou)
+- Resumo do planejamento nos dados agregados dos insights
+
+### Alterado
+
+- Seletores de modelo do planejador e dos insights listam apenas provedores conectados, com atalho para Ajustes > IA quando não há nenhum
+- Prompts do planejador com glossário, regras de resposta, política de pesquisa na web e dados do usuário tratados como não confiáveis
+- Insights com mês e data definidos pelo servidor e regras de categoria concentradas no prompt do sistema
+- Contexto do planejador com previsão de índices e alerta de posições defasadas
+
+### Corrigido
+
+- Proposta de aporte planejado agora altera a projeção na simulação
+
+### Removido
+
+- Leitura das variáveis de ambiente `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `MINIMAX_API_KEY`, `OPENROUTER_API_KEY`, `OLLAMA_BASE_URL` e `OLLAMA_API_KEY` (mudança incompatível para quem hospeda: cadastre as chaves em Ajustes > IA)
+
 ## [2.17.0] - 2026-11-23
 
 Esta versão estreia o Planejamento: uma página que projeta a liquidez do patrimônio mês a mês contra as metas e os planos futuros, com check-in mensal de aportes, saldos e lances de consórcio, cenários de estresse e alerta de desvio. Ao lado dela fica o planejador, um chat que consulta os seus dados e o motor de projeção, sugere cortes, metas e aportes, e só aplica uma mudança quando você clica em "Aplicar". Os números vêm sempre do motor, não do modelo, e os dados financeiros usados pelo planejador são enviados ao provedor do modelo escolhido.

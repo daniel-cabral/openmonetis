@@ -455,8 +455,8 @@ Test: new, because it is a new DB-boundary contract (fake `database`, as `src/fe
 
 **Files:** Modify: `package.json` (`"version": "2.18.0"`), `CHANGELOG.md` (`## [2.18.0]` with an intro paragraph in prose, then `### Adicionado` (aba IA, assinatura do ChatGPT com lista de modelos do backend), `### Alterado` (seletores filtrados, prompts), `### Removido` (leitura das env vars de IA, breaking para self-hosters)), README version badge.
 
-- [ ] **Step 1:** Edit; `rg -n "2\.18\.0" package.json CHANGELOG.md README.md` -> three files match.
-- [ ] **Step 2: Commit** `chore: versão 2.18.0`
+- [x] **Step 1:** Edit; `rg -n "2\.18\.0" package.json CHANGELOG.md README.md` -> three files match.
+- [x] **Step 2: Commit** `chore: versão 2.18.0`
 
 ### Task 25: Final verification
 
