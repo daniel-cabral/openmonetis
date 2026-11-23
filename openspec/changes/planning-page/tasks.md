@@ -137,11 +137,11 @@ Test: new, because distinct contract.
 
 Test: none, because form-to-input logic is locked by Task 5 and validation by `planning-data` Task 5.
 
-- [ ] **Step 1:** Implement the dialog and goal fields; submit via `formToPlanInput` then create/update action.
-- [ ] **Step 2:** Row actions in the table (`reorderPlansAction` with the swapped id list).
+- [x] **Step 1:** Implement the dialog and goal fields; submit via `formToPlanInput` then create/update action.
+- [x] **Step 2:** Row actions in the table (`reorderPlansAction` with the swapped id list).
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Manual check (best-effort)**: create a goal, edit it, move it, delete it; toasts appear and the table updates after refresh.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): dialogo de plano do tipo objetivo"`.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): dialogo de plano do tipo objetivo"`.
 
 ### Task 7: Consórcio fields with bid preview
 

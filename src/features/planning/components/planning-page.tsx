@@ -1,7 +1,7 @@
 "use client";
 
-import { RiCompass3Line } from "@remixicon/react";
-import { useMemo } from "react";
+import { RiAddLine, RiCompass3Line } from "@remixicon/react";
+import { useMemo, useState } from "react";
 import { runProjection } from "@/features/planning/lib/engine";
 import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
 import {
@@ -10,8 +10,10 @@ import {
 	buildPlanRows,
 } from "@/features/planning/lib/view-model";
 import PageDescription from "@/shared/components/page-description";
+import { Button } from "@/shared/components/ui/button";
 import { KpiRow } from "./kpi-row";
 import { LiquidityChart } from "./liquidity-chart";
+import { PlanDialog } from "./plan-dialog/plan-dialog";
 import { PlannerPlaceholder } from "./planner-placeholder";
 import { PlansTable } from "./plans-table";
 
@@ -36,6 +38,18 @@ export function PlanningPage({
 		};
 	}, [snapshot, today]);
 
+	const [dialogOpen, setDialogOpen] = useState(false);
+	const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+	const editingPlan = snapshot.plans.find((plan) => plan.id === editingPlanId);
+	const potAccounts = snapshot.accounts.filter(
+		(account) => account.isEarmarkedPot,
+	);
+
+	const openPlanDialog = (planId: string | null) => {
+		setEditingPlanId(planId);
+		setDialogOpen(true);
+	};
+
 	return (
 		<section className="space-y-6">
 			<PageDescription
@@ -50,9 +64,27 @@ export function PlanningPage({
 				</div>
 				<div className="space-y-6 lg:col-span-3">
 					<LiquidityChart points={chart} />
-					<PlansTable rows={rows} />
+					<div className="flex justify-end">
+						<Button type="button" onClick={() => openPlanDialog(null)}>
+							<RiAddLine className="size-4" />
+							Novo plano
+						</Button>
+					</div>
+					<PlansTable
+						rows={rows}
+						plans={snapshot.plans}
+						onEdit={(planId) => openPlanDialog(planId)}
+					/>
 				</div>
 			</div>
+			<PlanDialog
+				open={dialogOpen}
+				onOpenChange={setDialogOpen}
+				type="goal"
+				plan={editingPlan}
+				potAccounts={potAccounts}
+				currentMonth={snapshot.currentMonth}
+			/>
 		</section>
 	);
 }
