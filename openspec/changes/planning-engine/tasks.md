@@ -24,6 +24,8 @@
 - Run only the touched test file while iterating: `pnpm exec vitest run <file>`. Lint per file (CRLF noise locally): `pnpm exec biome check --formatter-enabled=false <files>`. Typecheck once in the last task.
 - Commits in PT-BR, `feat(planning): ...`, staging explicit paths only (never `git add -A` or `git add .`).
 
+- Test fixtures: shared `EngineInput` builders live in `src/features/planning/lib/engine/test-fixtures.ts`, created in Task 7 and reused by Tasks 8 to 11 (no verbatim duplication across test files).
+
 ## Review Focus
 
 1. Plan month before `startMonth` (stale target) or event `endMonth` after the horizon: events are clipped to `[start, end]`, never dropped silently into month zero. Test in Task 5.
@@ -276,8 +278,8 @@ Test: extends `consorcio.test.ts` (same fixtures); new `index.test.ts`, because 
 - Produces:
   - `DEFAULT_REAL_RETURN_PCT: Record<LiquidityKind, number> = { daily: 2, maturity: 4, locked: 4 }`
   - `monthlyNominalRate(realPct: number, ipcaPct: number): number` = `((1 + real/100) * (1 + ipca/100)) ** (1/12) - 1`
-  - `type Buckets = { general: Cents; pots: Record<string, Cents>; pending: { accountId: string; amount: Cents; maturityMonth: Period; rate: number }[]; locked: Cents; generalRate: number; lockedRate: number }` (`generalRate` and pot growth use `DEFAULT_REAL_RETURN_PCT.daily`; `lockedRate` uses the amount-weighted rate of locked positions)
-  - `openBuckets(positions: EnginePosition[], potAccountIds: string[], start: Period, ipcaPct: number): Buckets`: daily and already-matured (`maturityMonth < start`) go to `general`, or to `pots[accountId]` when the account is a pot; future maturities go to `pending`; locked to `locked`.
+  - `type Buckets = { general: Cents; pots: Record<string, Cents>; pending: { accountId: string; amount: Cents; maturityMonth: Period; rate: number }[]; locked: Cents; generalRate: number; lockedRate: number }` (`generalRate` = amount-weighted `annualRealReturnPct ?? DEFAULT_REAL_RETURN_PCT.daily` of the daily and already-matured positions in `general`; each pot grows at the same weighted rate of its own positions; `lockedRate` = amount-weighted rate of locked positions; an empty bucket has rate 0. With all fixtures at `annualRealReturnPct: 0`, every rate is 0)
+  - `openBuckets(positions: EnginePosition[], potAccountIds: string[], start: Period, ipcaPct: number): Buckets`: daily and already-matured (`maturityMonth <= start`) go to `general`, or to `pots[accountId]` when the account is a pot; future maturities go to `pending`; locked to `locked`.
   - `advanceMonth(b: Buckets, month: Period): Buckets`: grow every bucket by its rate, then release `pending` with `maturityMonth === month` into `general` or the pot.
   - `bucketsTotal(b: Buckets): Cents`; `liquidToday(positions: EnginePosition[], potAccountIds: string[], start: Period): Cents` = `general` of `openBuckets` (pots excluded).
 
@@ -422,7 +424,7 @@ Test: new, because distinct contract (reuses the Task 8 numbers: C short `50_000
   - `contribution deltaMonthly 30_000` → C `coveredPct 100`, `firstUnfundedAfter null`.
   - `cut monthlyAmount 5_000` → C still unfunded: `shortfallAfter 50_000`, `coveredPct 0` (claims are all-or-nothing), `firstUnfundedAfter.planId "C"`.
   - `redirect-pot P → C` → C covered 100, B `shortfallAfter 100_000` (trade-off visible).
-  - "shift outside window throws": C with window `2027-02..2027-06`, month `2027-08` → `toThrow(LeverError)`; plan without window → throws.
+  - "shift outside window throws": C with window `2027-02..2027-06`, month `2027-08` → `toThrow(LeverError)`; plan without window → throws; in both cases assert the input object is deep-equal to a `structuredClone` taken before the call (input untouched).
 - [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/levers.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement** `levers.ts`.
 - [ ] **Step 4: Run** again. Expected: PASS.
