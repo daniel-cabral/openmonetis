@@ -5,6 +5,22 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.16.0] - 2026-11-23
+
+Esta versão troca a forma como o banco é atualizado no deploy: em vez de comparar o schema e alterar o banco direto, o container aplica as migrations versionadas e revisadas, e se recusa a subir se alguma falhar. Para chegar lá, o histórico de migrations herdado foi corrigido para rodar do zero, e um script de baseline registra esse histórico em bancos criados pelo modelo antigo, depois de conferir que o schema é idêntico.
+
+### Adicionado
+
+- Script `scripts/db-baseline/run.mjs` que confere o schema contra as migrations e registra o histórico em bancos criados por `push`
+- Verificação na CI que falha quando o `schema.ts` muda sem migration gerada
+
+### Alterado
+
+- O startup do container roda `drizzle-kit migrate` no lugar de `drizzle-kit push`, e falha de migration impede o app de subir
+- O container recusa subir num banco com tabelas e sem histórico de migrations, indicando o comando de baseline
+- Migrations 0000, 0013 e 0025 corrigidas para reaplicar do zero sem `pgcrypto`, sem renames duplicados e criando `establishment_logos`
+- README orienta `pnpm db:migrate` nos fluxos de atualização
+
 ## [2.15.0] - 2026-11-11
 
 Esta versão torna a conciliação confiável na virada do mês: a revisão avisa os casamentos duvidosos, deixa desfazer qualquer casamento sem SQL e mostra o saldo previsto do app contra o do extrato antes de aplicar.

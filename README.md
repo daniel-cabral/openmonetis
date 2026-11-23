@@ -10,7 +10,7 @@
 
 > **Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
 
-[![Version](https://img.shields.io/badge/version-2.15.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.16.0-blue?style=flat-square)](CHANGELOG.md)
 [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -121,7 +121,7 @@ Escolha o perfil que corresponde ao seu objetivo:
 | **Banco roda em** | Container Docker | Container Docker |
 | **`DATABASE_URL` (host)** | `db` (automático pelo compose) | `localhost` |
 | **Banco remoto (Supabase, Neon...)** | Sim (`docker compose up -d app`) | Sim (ajustar `DATABASE_URL`) |
-| **Como atualizar** | `pnpm docker:update` | `git pull` + `pnpm install` + `pnpm db:push` |
+| **Como atualizar** | `pnpm docker:update` | `git pull` + `pnpm install` + `pnpm db:migrate` |
 | **Indicado para** | Self-hosting, VPS, servidor | Contribuidores, customizações |
 
 ---
@@ -173,7 +173,16 @@ pnpm docker:update
 docker compose pull && docker compose up -d
 ```
 
-O schema do banco é aplicado automaticamente no startup — nenhum passo extra necessário.
+As migrations versionadas em `drizzle/` são aplicadas automaticamente no startup. Se alguma falhar, o container não sobe.
+
+> **Atualizando da 2.15.x ou anterior:** até a 2.15 o startup usava `drizzle-kit push`, que não registra histórico. Antes de subir a 2.16, rode uma vez no container do app (ainda na versão antiga, desde que já contenha o script) ou numa imagem 2.16 com o entrypoint sobrescrito:
+>
+> ```bash
+> NODE_PATH=/app/migrate/node_modules node /app/scripts/db-baseline/run.mjs          # confere o schema
+> NODE_PATH=/app/migrate/node_modules node /app/scripts/db-baseline/run.mjs --apply  # registra o histórico
+> ```
+>
+> O script compara o schema do banco com o resultado das migrations e só registra se forem idênticos. Sem esse passo, a 2.16 recusa subir e mostra o comando.
 
 ---
 
@@ -199,8 +208,8 @@ cp .env.example .env
 # 4. Suba o banco
 pnpm docker:db
 
-# 5. Aplique o schema no banco (apenas no primeiro setup)
-pnpm db:push
+# 5. Aplique as migrations no banco
+pnpm db:migrate
 
 # 6. Inicie o app com hot-reload
 pnpm dev
@@ -215,7 +224,7 @@ Toda vez que salvar um arquivo, o app atualiza automaticamente sem precisar rein
 ```bash
 git pull
 pnpm install        # instala dependências novas, se houver
-pnpm db:push        # aplica mudanças de schema, se houver
+pnpm db:migrate     # aplica migrations novas, se houver
 ```
 
 O `pnpm dev` já em execução detecta as mudanças de código automaticamente — não precisa reiniciar.
@@ -239,7 +248,7 @@ pnpm lint:fix         # Biome auto-fix
 ```bash
 pnpm db:generate      # Gerar migrations
 pnpm db:migrate       # Executar migrations
-pnpm db:push          # Push schema direto (dev)
+pnpm db:push          # Push schema direto (só banco descartável de dev)
 pnpm db:studio        # Drizzle Studio (UI visual)
 ```
 
