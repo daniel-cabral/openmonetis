@@ -178,7 +178,7 @@ Test: new, because distinct contract.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 const ctx = { start: "2027-01", end: "2029-01", indexForecastPct: { IPCA: 12, INCC: 0 }, stress: {} };
@@ -194,10 +194,10 @@ it("pays mapped outflows toward the target", () => {
 ```
 
 (`goal(...)` is a local fixture builder returning an `EnginePlan` with id and name `"g"`, `basis: "today"`, `index: "IPCA"`.)
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/goal.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `context.ts` and `goal.ts`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit** the three files; `git commit -m "feat(planning): eventos do objetivo generico"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/goal.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `context.ts` and `goal.ts`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit** the three files; `git commit -m "feat(planning): eventos do objetivo generico"`.
 
 ### Task 4: Consórcio bid range and own cash
 
