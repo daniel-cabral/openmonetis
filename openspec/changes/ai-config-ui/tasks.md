@@ -65,11 +65,11 @@ Test: new, because the unique `(userId, provider)` and cascade are the only lock
 
 Test: new, because distinct contracts (crypto round trip; mask format).
 
-- [ ] **Step 1: Failing tests.** `cipher.test.ts` `"round-trips with the same secret and fails with another"`: `decryptSecret(encryptSecret({ apiKey: "sk-x" }, "a"), "a")` equals `{ apiKey: "sk-x" }`; two encryptions of the same payload differ; `decryptSecret(enc, "b")` throws `AiCredentialKeyError`; `encryptSecret({}, "")` throws `AiCredentialKeyError`. `mask.test.ts` one `it.each`: `"sk-proj-abcdefghijklmnopa3F9" -> "sk-…a3F9"`, `"sk-ant-api03-zzzzzzzzq8Lw" -> "sk-ant-…q8Lw"`, `"sk-or-v1-yyyyyyyym4Tn" -> "sk-or-…m4Tn"`, `"AIzaSyBBBBBBBBx2Kd" -> "AIza…x2Kd"`, `"short123" -> "…23"`.
-- [ ] **Step 2:** `pnpm exec vitest run src/shared/lib/ai/credentials` -> FAIL.
-- [ ] **Step 3:** Implement (port layout of cockpit `token-cipher.ts`; add `import "server-only"` if the package is present, else rely on node imports).
-- [ ] **Step 4:** Tests -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): criptografia de credenciais derivada do BETTER_AUTH_SECRET`
+- [x] **Step 1: Failing tests.** `cipher.test.ts` `"round-trips with the same secret and fails with another"`: `decryptSecret(encryptSecret({ apiKey: "sk-x" }, "a"), "a")` equals `{ apiKey: "sk-x" }`; two encryptions of the same payload differ; `decryptSecret(enc, "b")` throws `AiCredentialKeyError`; `encryptSecret({}, "")` throws `AiCredentialKeyError`. `mask.test.ts` one `it.each`: `"sk-proj-abcdefghijklmnopa3F9" -> "sk-…a3F9"`, `"sk-ant-api03-zzzzzzzzq8Lw" -> "sk-ant-…q8Lw"`, `"sk-or-v1-yyyyyyyym4Tn" -> "sk-or-…m4Tn"`, `"AIzaSyBBBBBBBBx2Kd" -> "AIza…x2Kd"`, `"short123" -> "…23"`.
+- [x] **Step 2:** `pnpm exec vitest run src/shared/lib/ai/credentials` -> FAIL.
+- [x] **Step 3:** Implement (port layout of cockpit `token-cipher.ts`; add `import "server-only"` if the package is present, else rely on node imports).
+- [x] **Step 4:** Tests -> PASS.
+- [x] **Step 5: Commit** `feat(ia): criptografia de credenciais derivada do BETTER_AUTH_SECRET`
 
 ### Task 3: API-key credential store
 
