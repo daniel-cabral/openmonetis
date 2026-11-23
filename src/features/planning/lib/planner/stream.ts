@@ -20,7 +20,7 @@ export async function createPlannerResponse(args: {
 }): Promise<Response> {
 	const validated = await validateUIMessages({
 		messages: args.history,
-		tools: args.tools,
+		tools: args.tools as Parameters<typeof validateUIMessages>[0]["tools"],
 	});
 	const result = streamText({
 		model: args.model,

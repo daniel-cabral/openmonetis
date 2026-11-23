@@ -11,7 +11,7 @@ import {
 import { periodSchema } from "@/features/planning/lib/schemas";
 import type { CategoryTotal } from "@/features/planning/lib/queries/category-totals";
 import { addMonthsToPeriod } from "@/shared/utils/period";
-import { rankCutCandidates } from "./cut-candidates";
+import { type CutCandidate, rankCutCandidates } from "./cut-candidates";
 import {
 	formatCentsForLlm,
 	toLlmDiff,
@@ -61,7 +61,7 @@ function toErrorOutput(error: unknown): { error: string } {
 	throw error;
 }
 
-export function buildPlannerTools(deps: PlannerToolDeps): ToolSet {
+export function buildPlannerTools(deps: PlannerToolDeps) {
 	const { input } = deps;
 
 	const summarize = (engineInput: EngineInput) =>
@@ -87,7 +87,8 @@ export function buildPlannerTools(deps: PlannerToolDeps): ToolSet {
 			description:
 				"Despesas por categoria e mês entre dois meses (YYYY-MM), em reais.",
 			inputSchema: z.object({ from: periodSchema, to: periodSchema }),
-			execute: ({ from, to }) => deps.loadCategoryTotals(from, to),
+			execute: ({ from, to }): Promise<CategoryTotal[]> =>
+				deps.loadCategoryTotals(from, to),
 			toModelOutput: ({ output }) => ({
 				type: "json",
 				value: output.map((total) => ({
@@ -100,7 +101,7 @@ export function buildPlannerTools(deps: PlannerToolDeps): ToolSet {
 			description:
 				"Categorias com maior gasto médio mensal recente, para sugerir cortes. Valores em reais.",
 			inputSchema: z.object({ months: z.number().int().min(1).max(12) }),
-			execute: async ({ months }) => {
+			execute: async ({ months }): Promise<CutCandidate[]> => {
 				const totals = await deps.loadCategoryTotals(
 					addMonthsToPeriod(input.startMonth, -months),
 					addMonthsToPeriod(input.startMonth, -1),
