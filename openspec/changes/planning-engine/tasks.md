@@ -420,15 +420,15 @@ export function simulateLever(input: EngineInput, lever: Lever): LeverResult;
 
 Test: new, because distinct contract (reuses the Task 8 numbers: C short `50_000`).
 
-- [ ] **Step 1: Write the failing test** (one `it.each` for coverage):
+- [x] **Step 1: Write the failing test** (one `it.each` for coverage):
   - `contribution deltaMonthly 30_000` → C `coveredPct 100`, `firstUnfundedAfter null`.
   - `cut monthlyAmount 5_000` → C still unfunded: `shortfallAfter 50_000`, `coveredPct 0` (claims are all-or-nothing), `firstUnfundedAfter.planId "C"`.
   - `redirect-pot P → C` → C covered 100, B `shortfallAfter 100_000` (trade-off visible).
   - "shift outside window throws": C with window `2027-02..2027-06`, month `2027-08` → `toThrow(LeverError)`; plan without window → throws; in both cases assert the input object is deep-equal to a `structuredClone` taken before the call (input untouched).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/levers.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `levers.ts`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): simulacao de alavancas"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/levers.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `levers.ts`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): simulacao de alavancas"`.
 
 ### Task 12: Drift signals
 
