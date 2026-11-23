@@ -7,6 +7,7 @@ import {
 	RiBarChart2Line,
 	RiCalendarEventLine,
 	RiCheckDoubleLine,
+	RiCompass3Line,
 	RiFileChartLine,
 	RiGroupLine,
 	RiPlaneLine,
@@ -152,6 +153,13 @@ export const NAV_SECTIONS: NavSection[] = [
 	{
 		label: "Relatórios",
 		items: [
+			{
+				href: "/planning",
+				label: "Planejamento",
+				description: "Metas, liquidez e planos futuros",
+				icon: <RiCompass3Line className="size-4" />,
+				iconClass: "text-primary",
+			},
 			{
 				href: "/insights",
 				label: "Insights",

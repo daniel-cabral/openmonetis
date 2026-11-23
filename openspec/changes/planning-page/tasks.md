@@ -81,8 +81,8 @@ Test: extends `view-model.test.ts` (same fixtures).
 
 Test: none, because thin route and layout (no logic beyond Tasks 1 and 2); verified by tsc and a manual run.
 
-- [ ] **Step 1:** Write the page (`await connection()`, `getUserId()`, `fetchPlanningSnapshot(userId)`).
-- [ ] **Step 2:** Write `PlanningPage` shell and `PlannerPlaceholder`; add the navbar item.
+- [x] **Step 1:** Write the page (`await connection()`, `getUserId()`, `fetchPlanningSnapshot(userId)`).
+- [x] **Step 2:** Write `PlanningPage` shell and `PlannerPlaceholder`; add the navbar item.
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Manual check (best-effort)**: `pnpm run dev` (one heavy process at a time), open `/planning` logged in. Expected: header, placeholder and empty slots render with no console error.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): rota /planning com layout da pagina"`.
