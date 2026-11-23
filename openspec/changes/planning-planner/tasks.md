@@ -43,10 +43,10 @@
 
 Test: none, because no behaviour change (move and rename; `tsc` proves the imports).
 
-- [ ] **Step 1:** Move the code with `git mv src/features/insights/lib/model-provider.ts src/shared/lib/ai/model-provider.ts`, then edit.
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 1:** Move the code with `git mv src/features/insights/lib/model-provider.ts src/shared/lib/ai/model-provider.ts`, then edit.
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 3: Run** `pnpm exec knip --reporter compact`. Expected: no new unused export from the moved files.
-- [ ] **Step 4: Commit** the five paths; `git commit -m "refactor(ai): provedores de modelo em shared para reuso pelo planejamento"`.
+- [x] **Step 4: Commit** the five paths; `git commit -m "refactor(ai): provedores de modelo em shared para reuso pelo planejamento"`.
 
 ### Task 2: Web search tool resolution
 

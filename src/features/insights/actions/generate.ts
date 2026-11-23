@@ -1,13 +1,13 @@
 "use server";
 
 import { generateObject } from "ai";
+import { resolveLanguageModel } from "@/shared/lib/ai/model-provider";
 import { getUser } from "@/shared/lib/auth/server";
 import {
 	type InsightsResponse,
 	InsightsResponseSchema,
 } from "@/shared/lib/schemas/insights";
 import { INSIGHTS_SYSTEM_PROMPT } from "../constants";
-import { resolveInsightsModel } from "../lib/model-provider";
 import { USER_INSTRUCTIONS_MAX_LENGTH } from "../lib/user-instructions";
 import { aggregateMonthData } from "./aggregate";
 import type { ActionResult } from "./types";
@@ -37,7 +37,7 @@ export async function generateInsightsAction(
 			};
 		}
 
-		const resolvedModel = resolveInsightsModel(modelId);
+		const resolvedModel = resolveLanguageModel(modelId);
 		if (!resolvedModel.success) {
 			return resolvedModel;
 		}

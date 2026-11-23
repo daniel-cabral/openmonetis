@@ -5,11 +5,11 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { minimax } from "vercel-minimax-ai-provider";
-import { AVAILABLE_MODELS } from "../constants";
+import { AVAILABLE_MODELS } from "./models";
 
 const OPENROUTER_MODEL_REGEX = /^[a-zA-Z0-9_-]+\/[a-zA-Z0-9._:-]+$/;
 
-type ResolveInsightsModelResult =
+type ResolveLanguageModelResult =
 	| { success: true; model: LanguageModel }
 	| { success: false; error: string };
 
@@ -22,9 +22,9 @@ function stripProviderPrefix(
 		: modelId.trim();
 }
 
-export function resolveInsightsModel(
+export function resolveLanguageModel(
 	modelId: string,
-): ResolveInsightsModelResult {
+): ResolveLanguageModelResult {
 	const normalizedModelId = modelId.trim();
 	const selectedModel = AVAILABLE_MODELS.find(
 		(m) => m.id === normalizedModelId,
