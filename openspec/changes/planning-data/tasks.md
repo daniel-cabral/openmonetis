@@ -108,7 +108,7 @@ Test: none, because CI's "Check migrations" step locks schema/migration parity.
 - [ ] **Step 1: Run** `pnpm run db:generate --name planning`. Expected: one new SQL file.
 - [ ] **Step 2: Check** the SQL creates the eight `planejamento_*` tables, adds `contas.pote_reservado` with `DEFAULT false NOT NULL`, and has no `DROP`.
 - [ ] **Step 3: Run** `pnpm exec drizzle-kit generate --name drift_probe`. Expected: "No schema changes" (delete nothing else).
-- [ ] **Step 4: Commit** the generated files by path; `git commit -m "feat(db): migration das tabelas de planejamento"`.
+- [ ] **Step 4: Commit** the generated files by path; `git commit -m "feat(planning): migration das tabelas de planejamento"`.
 
 ### Task 5: Zod input schemas and cents conversion
 
@@ -128,7 +128,7 @@ Test: none, because CI's "Check migrations" step locks schema/migration parity.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: `toCents("1234.56") === 123_456`, `centsToDecimal(123_450) === "1234.50"`; one `it.each` of invalid plan inputs with the expected message: window `latest < earliest` → `"A janela termina antes de começar."`; `targetMonth` outside window → `"O mês alvo deve estar dentro da janela."`; `embeddedBid.pct 31` → `"O lance embutido vai até 30%."`; one `it.each` for `replacePositionsSchema`: `liquidity "maturity"` without month → `"Informe o mês de vencimento."`, `"daily"` with month → same path rejected; one valid goal and one valid consórcio parse.
+- [ ] **Step 1: Write the failing test**: `toCents("1234.56") === 123_456`, `centsToDecimal(123_450) === "1234.50"`; one `it.each` of invalid plan inputs with the expected message: window `latest < earliest` → `"A janela termina antes de começar."`; `targetMonth` outside window → `"O mês alvo deve estar dentro da janela."`; `embeddedBid.pct 31` → `"O lance embutido vai até 30%."`; one `it.each` for `replacePositionsSchema`: `liquidity "maturity"` without month → `"Informe o mês de vencimento."`, `"daily"` with month → `"Vencimento só vale para liquidez no vencimento."`; one valid goal and one valid consórcio parse.
 - [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/schemas.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement** both files.
 - [ ] **Step 4: Run** again. Expected: PASS.

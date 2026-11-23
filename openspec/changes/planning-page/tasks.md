@@ -19,7 +19,8 @@
 - Build only from existing ui components (Card, Table, Progress, Badge, ChartContainer, Dialog, Select, Input, CurrencyInput, Switch, Textarea, Button, Tooltip).
 - After a mutation: toast the `ActionResult.message` or `error`, then `router.refresh()`.
 - Public repo: no personal figures in code, fixtures or copy.
-- Iterate with `pnpm exec vitest run <file>`; lint per file; `tsc` once at the end. Visual tweaks do not touch tests.
+- Iterate with `pnpm exec vitest run --maxWorkers=4 <file>`; lint per file; `tsc` once at the end. Visual tweaks do not touch tests.
+- Manual dev-server checks are best-effort; acceptance is `tsc` + lint + tests.
 - Commits PT-BR `feat(planning): ...`, explicit paths only.
 
 ## Review Focus
@@ -45,7 +46,7 @@
 Test: new, because distinct contract.
 
 - [ ] **Step 1: Write the failing test**: empty snapshot → `{ totalPatrimony: 0, stalestDays: null, isStale: false, liquidToday: 0, reserveFloor: 0, firstUnfunded: null }`; two accounts as-of 10 and 50 days before `today` → `stalestDays 50`, `isStale true`; projection with base `firstUnfunded { month: "2027-02", planId: "p" }` → `planName` of plan `p`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/view-model.test.ts`. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/view-model.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement**.
 - [ ] **Step 4: Run** again. Expected: PASS.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): indicadores da pagina de planejamento"`.
@@ -57,12 +58,12 @@ Test: new, because distinct contract.
 - Test: extend `src/features/planning/lib/view-model.test.ts`
 
 **Interfaces:**
-- Produces: `type ChartPoint = { month: Period; label: string; base: Cents; pessimistic: Cents; required: Cents }`; `buildChartSeries(projection: Projection): ChartPoint[]` (liquid of base and pessimistic, required of base); `type PlanRow = { id: string; name: string; kind: "reserve" | "goal" | "consorcio"; priority: number; nonNegotiable: boolean; month: Period | null; target: Cents; coveragePct: number; health: PlanHealth }`; `buildPlanRows(plans: PlanView[], projection: Projection, kpis: PlanningKpis): PlanRow[]`: row 0 is the reserve (`id "reserve"`, name `"Reserva de emergência"`, target = floor, coverage = `min(100, liquidToday / floor)`, health on-track when covered else off-track); then active plans by priority with `target = requiredByPlan` (base), `coveragePct = round(100 × (required - shortfall) / required)`, 100 when required is 0.
+- Produces: `type ChartPoint = { month: Period; label: string; base: Cents; pessimistic: Cents; required: Cents }`; `buildChartSeries(projection: Projection): ChartPoint[]` (liquid of base and pessimistic, required of base); `type PlanRow = { id: string; name: string; kind: "reserve" | "goal" | "consorcio"; priority: number; nonNegotiable: boolean; month: Period | null; target: Cents; coveragePct: number; health: PlanHealth }`; `buildPlanRows(plans: PlanView[], projection: Projection, kpis: PlanningKpis): PlanRow[]`: row 0 is the reserve (`id "reserve"`, name `"Reserva de emergência"`, target = floor, coverage = `min(100, round(100 × liquidToday / floor))` and 100 when floor is 0, health on-track when covered else off-track); then active plans by priority with `target = requiredByPlan` (base), `coveragePct = round(100 × (required - shortfall) / required)`, 100 when required is 0.
 
 Test: extends `view-model.test.ts` (same fixtures).
 
-- [ ] **Step 1: Add failing assertions**: chart has one point per projection month with literal cents from a 2-month fixture; plan with `required 200_000` and `shortfall 50_000` → `coveragePct 75`; plan with `required 0` → `100`; reserve row first.
-- [ ] **Step 2: Run** the file. Expected: FAIL on the new assertions.
+- [ ] **Step 1: Add failing assertions**: chart has one point per projection month with literal cents from a 2-month fixture; plan with `required 200_000` and `shortfall 50_000` → `coveragePct 75`; plan with `required 0` → `100`; reserve row first; reserve with floor `0` → `coveragePct 100` and `Number.isFinite(coveragePct)` (no NaN/Infinity).
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/view-model.test.ts`. Expected: FAIL on the new assertions.
 - [ ] **Step 3: Implement**.
 - [ ] **Step 4: Run** again. Expected: PASS.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): series do grafico e linhas da tabela de planos"`.
@@ -75,7 +76,7 @@ Test: extends `view-model.test.ts` (same fixtures).
 
 **Interfaces:**
 - Consumes: `fetchPlanningSnapshot`, `getUserId`, `runProjection`, Task 1 and 2.
-- Produces: `PlanningPage(props: { snapshot: PlanningSnapshot; today: string }): JSX.Element` (client), holding state `activeStress: StressToggles` (default `{}`) and computing `projection`, `kpis`, `chart`, `rows` with `useMemo`. Layout: header, KPI slot, `grid lg:grid-cols-5` with left `lg:col-span-2` `PlannerPlaceholder` and right `lg:col-span-3` chart and table slots (filled by Tasks 4 and 5).
+- Produces: `PlanningPage(props: { snapshot: PlanningSnapshot; today: string }): JSX.Element` (client), holding state `activeStress: StressToggles` (default `{}`) and computing `projection`, `kpis`, `chart`, `rows` with `useMemo`. Layout: header, KPI slot, `grid lg:grid-cols-5` with left `lg:col-span-2` `PlannerPlaceholder` and right `lg:col-span-3` chart and table slots (KPI, chart and table slots are filled by Task 4 only).
 - Placeholder copy: title `"Planejador"`, body `"O planejador com IA chega em breve. Enquanto isso, use o check-in e os ajustes."`
 
 Test: none, because thin route and layout (no logic beyond Tasks 1 and 2); verified by tsc and a manual run.
@@ -83,7 +84,7 @@ Test: none, because thin route and layout (no logic beyond Tasks 1 and 2); verif
 - [ ] **Step 1:** Write the page (`await connection()`, `getUserId()`, `fetchPlanningSnapshot(userId)`).
 - [ ] **Step 2:** Write `PlanningPage` shell and `PlannerPlaceholder`; add the navbar item.
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 4: Run** `pnpm run dev` (one heavy process at a time), open `/planning` logged in. Expected: header, placeholder and empty slots render with no console error.
+- [ ] **Step 4: Manual check (best-effort)**: `pnpm run dev` (one heavy process at a time), open `/planning` logged in. Expected: header, placeholder and empty slots render with no console error.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): rota /planning com layout da pagina"`.
 
 ### Task 4: KPI row, liquidity chart and plans table
@@ -102,7 +103,7 @@ Test: none, because presentational over Tasks 1 and 2 view models.
 - [ ] **Step 1:** Implement the four components following the preview variant c structure.
 - [ ] **Step 2:** Wire them into `PlanningPage`.
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 4: Manual check** with dev server: chart lines and table render with at least one plan created via Task 6 later, or with seeded test data in a local db only.
+- [ ] **Step 4: Manual check (best-effort)** with dev server: chart lines and table render with at least one plan created via Task 6 later, or with seeded test data in a local db only.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): indicadores, grafico de liquidez e tabela de planos"`.
 
 ### Task 5: Plan form mapping
@@ -118,7 +119,7 @@ Test: none, because presentational over Tasks 1 and 2 view models.
 Test: new, because distinct contract.
 
 - [ ] **Step 1: Write the failing test**: goal form with `"1.500,00"` and no range → `target { min: 150_000, base: 150_000, max: 150_000 }`; round trip `formToPlanInput(planToForm(plan))` equals the plan's `PlanInput` fields for one goal and one consórcio fixture.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement**.
 - [ ] **Step 4: Run** again. Expected: PASS.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): mapeamento do formulario de plano"`.
@@ -139,7 +140,7 @@ Test: none, because form-to-input logic is locked by Task 5 and validation by `p
 - [ ] **Step 1:** Implement the dialog and goal fields; submit via `formToPlanInput` then create/update action.
 - [ ] **Step 2:** Row actions in the table (`reorderPlansAction` with the swapped id list).
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 4: Manual check**: create a goal, edit it, move it, delete it; toasts appear and the table updates after refresh.
+- [ ] **Step 4: Manual check (best-effort)**: create a goal, edit it, move it, delete it; toasts appear and the table updates after refresh.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): dialogo de plano do tipo objetivo"`.
 
 ### Task 7: Consórcio fields with bid preview
@@ -156,7 +157,7 @@ Test: none, because form-to-input logic is locked by Task 5 and validation by `p
 Test: new, because distinct contract.
 
 - [ ] **Step 1: Write the failing test**: history and fields of engine Task 4/5 (INCC 10, start `2027-01`, target `2028-01`) → `letter { min: 352_000, base: 418_000, max: 418_000 }`, `outstanding { min: 256_000, base: 304_000, max: 304_000 }`; empty history → all `null`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/consorcio-preview.test.ts`. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/consorcio-preview.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement** the helper and `ConsorcioFields` component (plug into `PlanDialog`).
 - [ ] **Step 4: Run** the test. Expected: PASS. Then `pnpm exec tsc --noEmit`: exit 0.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): campos e previa de lance do consorcio"`.
@@ -176,7 +177,7 @@ Test: new, because distinct contract.
 Test: extends `plan-form.test.ts` (same form-mapping contract).
 
 - [ ] **Step 1: Add failing assertions** for `eventFormToInput` (one-off and open recurring).
-- [ ] **Step 2: Run** the file. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement** the helper and both components.
 - [ ] **Step 4: Run** again (PASS) and `pnpm exec tsc --noEmit` (exit 0).
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): eventos do plano e categorias mapeadas"`.
@@ -194,7 +195,7 @@ Test: extends `plan-form.test.ts` (same form-mapping contract).
 Test: new, because distinct contract.
 
 - [ ] **Step 1: Write the failing test**: current daily `100_000` and maturity `2028-05` `50_000`; assignments daily `10_000`, maturity `2028-05` `5_000`, maturity `2029-01` `7_000`, one for another account → lines `[daily 110_000, 2028-05 55_000, 2029-01 7_000]`; unassigned (default) contribution adds to daily.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/check-in.test.ts`. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/check-in.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement**.
 - [ ] **Step 4: Run** again. Expected: PASS.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): atribuicao de aportes no check-in"`.
@@ -213,7 +214,7 @@ Test: none, because prefill logic is locked by Task 9 and persistence by `planni
 
 - [ ] **Step 1:** Implement the dialog and steps.
 - [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Manual check**: assign a contribution, save an account, record a bid; KPIs and chart update after refresh.
+- [ ] **Step 3: Manual check (best-effort)**: assign a contribution, save an account, record a bid; KPIs and chart update after refresh.
 - [ ] **Step 4: Commit**; `git commit -m "feat(planning): check-in mensal"`.
 
 ### Task 11: Settings dialog and assumption log card
@@ -230,7 +231,7 @@ Test: none, because presentational; persistence locked by `planning-data` Tasks 
 
 - [ ] **Step 1:** Implement both components and labels.
 - [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Manual check**: change IPCA forecast; a new `"Índice"` entry appears in the log.
+- [ ] **Step 3: Manual check (best-effort)**: change IPCA forecast; a new `"Índice"` entry appears in the log.
 - [ ] **Step 4: Commit**; `git commit -m "feat(planning): ajustes e registro de premissas na pagina"`.
 
 ### Task 12: Stress card and drift banner
@@ -242,12 +243,12 @@ Test: none, because presentational; persistence locked by `planning-data` Tasks 
 
 **Interfaces:**
 - Consumes: `stressEffects`, `detectDrift`, `snapshot.settings` (stress values), `snapshot.contributionsByMonth`.
-- Produces: `driftMessages(signals: DriftSignal[], planNames: Record<string, string>): string[]` (PT-BR, one per signal: `"<plano> está em risco"`, `"<plano> está fora do eixo"`, `"Reserva abaixo do piso em R$ X"`, `"Aporte abaixo do planejado em <mês> e <mês>"`). `StressCard({ effects, active, onToggle })`: one row per toggle (`"Aporte cai para R$ X"`, `"Sem renda por N meses"`, `"Lance no máximo da faixa"`, `"Planos custam +X%"`) with the slack delta and first unfunded month; checking a toggle sets `activeStress` in `PlanningPage` so chart and table show the stressed projection. `DriftBanner({ messages })` hidden when empty.
+- Produces: `driftMessages(signals: DriftSignal[], planNames: Record<string, string>): string[]` (PT-BR, one per signal: `"<plano> está em risco"`, `"<plano> está fora do eixo"`, `"Reserva abaixo do piso em R$ X"`, `"Aporte abaixo do planejado em <mês> e <mês>"`). `StressCard({ effects, active, onToggle })`: one row per toggle (`"Aporte cai para R$ X"`, `"Sem renda por N meses"`, `"Lance no máximo da faixa"`, `"Planos custam +X%"`) with the slack delta and first unfunded month; checking a toggle sets `activeStress` in `PlanningPage` so chart and table show the stressed projection. `DriftBanner({ messages, onDiscuss?: () => void })` hidden when empty (`onDiscuss` is wired by `planning-planner` Task 14).
 
 Test: new, because `driftMessages` is a distinct contract (assert each kind produces a message containing the plan name or formatted amount, not the full sentence).
 
 - [ ] **Step 1: Write the failing test** with one `it.each` over the four signal kinds.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/drift-view.test.ts`. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/drift-view.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement** helper and both components; wire into the page.
 - [ ] **Step 4: Run** the test (PASS) and `pnpm exec tsc --noEmit` (exit 0).
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): cenarios de estresse e alerta de desvio na pagina"`.
@@ -262,7 +263,7 @@ Test: none, because no behaviour change in tested code; the existing changelog/v
 
 - [ ] **Step 1:** Delete the preview folder; `git grep -n "preview-planning"` returns nothing.
 - [ ] **Step 2:** Bump to the next minor of the current `package.json` version; add the `CHANGELOG.md` entry with the introductory paragraph (AGENTS.md rule 6) and `### Adicionado`; update the README badge.
-- [ ] **Step 3: Run** `pnpm exec vitest run src/features/planning src/features/settings/lib/parse-changelog.test.ts`. Expected: PASS.
-- [ ] **Step 4: Run** `pnpm exec tsc --noEmit` and `pnpm exec biome check --formatter-enabled=false src/features/planning src/app/(dashboard)/planning src/shared/components/navigation`. Expected: clean.
-- [ ] **Step 5: Run** the full suite once: `pnpm exec vitest run`. Expected: PASS.
+- [ ] **Step 3: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning src/features/settings/lib/parse-changelog.test.ts`. Expected: PASS.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit` and `pnpm exec biome check --formatter-enabled=false src/features/planning 'src/app/(dashboard)/planning' src/shared/components/navigation`. Expected: clean.
+- [ ] **Step 5: Run** the full suite once: `pnpm exec vitest run --maxWorkers=4`. Expected: PASS.
 - [ ] **Step 6: Commit** `git add` the changed paths and the deletion by path (`git rm -r --cached` not needed: the folder was never tracked); `git commit -m "feat(planning): pagina de planejamento e versao X.Y.0"`. Do not tag.

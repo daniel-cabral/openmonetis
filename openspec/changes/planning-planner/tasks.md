@@ -12,10 +12,10 @@
 
 ## Global Constraints
 
-- Depends on `planning-engine`, `planning-data` and `planning-page` merged. Names used: `EngineInput`, `EnginePlan`, `runProjection`, `simulateLever`, `Lever`, `stressEffects`, `DriftSignal` (engine); `planInputSchema`, `planFieldsSchema`, `planEventFieldsSchema`, `planningSettingsFieldsSchema`, `assumptionInputSchema`, `PlanningSnapshot`, `PlanView`, `fetchPlanningSnapshot`, `writes.ts` helpers, tables `plannerConversations`, `plannerMessages`, `assumptionLog` (data); `PlanningPage`, `LiquidityChart` `previewLabel`, `buildPlanRows`, `DriftBanner`, `driftMessages` (page).
+- Depends on `planning-engine`, `planning-data` and `planning-page` merged. Names used: `Cents`, `Period`, `EngineInput`, `EnginePlan`, `Projection`, `PlanHealth`, `StressToggles`, `runProjection`, `applyStress`, `simulateLever`, `Lever`, `LeverError`, `LeverResult`, `stressEffects`, `DriftSignal` (engine); `toCents`, `planInputSchema`, `planFieldsSchema`, `planEventFieldsSchema`, `planningSettingsFieldsSchema`, `assumptionInputSchema`, `PlanningSnapshot`, `PlanView`, `fetchPlanningSnapshot`, `writes.ts` helpers, tables `plannerConversations`, `plannerMessages`, `assumptionLog` (data); `PlanningPage`, `LiquidityChart` `previewLabel`, `buildPlanRows`, `DriftBanner`, `driftMessages` (page).
 - Anti-goal: the LLM never produces figures. Every number shown in a card comes from engine output computed server-side in the tool; the system prompt forbids computing figures and requires tools.
 - Nothing changes data without the user's click on "Aplicar". Tools are read-only; `propose_change` has no side effects.
-- LLM-facing amounts are reais, never cents: the context pack and tool outputs format money with `formatCurrency` (e.g. "R$ 100.000,00"); tool inputs take reais as decimal numbers (max 2 decimals) and convert with `toCents` at the boundary. Internal engine/data values stay `Cents`. Percentages are plain numbers.
+- LLM-facing amounts are reais, never cents: the context pack and tool outputs format money with `formatCentsForLlm` (Task 4, `formatCurrency(cents / 100)`, e.g. "R$ 100.000,00"; `Intl` puts a non-breaking space after "R$", so test literals use `"R$\u00a0100.000,00"`); tool inputs take reais as decimal numbers (max 2 decimals) and convert with `toCents` at the boundary (Task 3, `llm-input.ts`). Internal engine/data values, `execute` results and the client stay `Cents`; each tool's `toModelOutput` is the only place the model-facing view is built. Percentages are plain numbers.
 - Route security (AGENTS.md): `getOptionalUserSession()` first, 401 if absent; conversation ownership by `userId` (404 otherwise); generic error messages, details only in `console.error`.
 - No recommendation of specific assets or products (spec non-goal): stated in the system prompt.
 - Web search degrades gracefully: unsupported provider → tool absent, chat still works.
@@ -25,7 +25,7 @@
 
 ## Review Focus
 
-1. Malformed or hallucinated proposal (unknown `planId`, window violation, amount with more than 2 decimals or negative where not allowed): `propose_change` returns `{ error }` to the model instead of throwing, and no card offers "Aplicar". Test in Task 5.
+1. Malformed or hallucinated proposal: amount with more than 2 decimals or negative where not allowed → `parseLlmProposal` returns `{ error }` (test in Task 3); unknown `planId` or window violation → `propose_change` returns `{ error }` to the model instead of throwing (test in Task 5). No card offers "Aplicar" for an `{ error }` output.
 2. Double click on "Aplicar" or applying the same proposal from a reloaded thread: second call returns `"Proposta já aplicada."` and writes nothing. Test in Task 11.
 3. Conversation id of another user, or none at all: 404 / 401 and nothing persisted. Test in Task 10.
 4. Provider without web search (Ollama, MiniMax, OpenRouter): no search tool, no error. Test in Task 2.
@@ -66,11 +66,11 @@ Test: new, because distinct contract.
 - [ ] **Step 4: Run** again. Expected: PASS.
 - [ ] **Step 5: Commit**; `git commit -m "feat(ai): busca na web conforme o provedor"`.
 
-### Task 3: Proposal schema and applying changes to the engine input
+### Task 3: Proposal schema, LLM input boundary and applying changes to the engine input
 
 **Files:**
-- Create: `src/features/planning/lib/planner/proposal.ts`
-- Test: `src/features/planning/lib/planner/proposal.test.ts`
+- Create: `src/features/planning/lib/planner/proposal.ts`, `src/features/planning/lib/planner/llm-input.ts`
+- Test: `src/features/planning/lib/planner/proposal.test.ts`, `src/features/planning/lib/planner/llm-input.test.ts`
 
 **Interfaces:**
 - Produces:
@@ -90,32 +90,50 @@ export class ProposalError extends Error {}
 export function applyChangesToInput(input: EngineInput, changes: ProposalChange[], newId?: (index: number) => string): EngineInput;
 ```
 
+- Produces (`llm-input.ts`, the only place reais become `Cents`; `proposalSchema` above stays internal, used by the client preview and `applyProposalAction`):
+
+```ts
+export function reaisToCents(value: number, opts?: { allowNegative?: boolean }): Cents; // toCents after checks; throws ProposalError
+// ProposalError messages (exact): more than 2 decimals → "Use valores em reais com no máximo 2 casas decimais."; negative → "Valor não pode ser negativo."
+export const llmProposalSchema: z.ZodType<LlmProposal>; // same shape as proposalSchema, every money field a plain z.number() described "em reais": fields.target / event amount (min, base, max), consorcio letterValue and outstandingBalance, settings plannedContribution
+export type LlmProposal; export type LlmProposalChange;
+export const llmLeverSchema: z.ZodType<LlmLever>; // Lever with monthlyAmount / deltaMonthly in reais
+export const llmStressSchema: z.ZodType<LlmStress>; // StressToggles with contributionCap in reais
+export function parseLlmProposal(input: LlmProposal): { proposal: Proposal } | { error: string }; // reaisToCents per money field, then proposalSchema.safeParse (first issue message); never throws
+export function toLever(input: LlmLever): Lever; // deltaMonthly allowNegative; throws ProposalError
+export function toStress(input: LlmStress): StressToggles; // throws ProposalError
+```
+
+- Money fields in the LLM schemas are not refined or transformed in Zod (the SDK would reject the call before `execute`); validation happens in `parseLlmProposal` / `toLever` / `toStress` so the model always gets `{ error }` back.
 - Rules: `create-plan` appends an `EnginePlan` (priority = max + 1, `bidHistory: []`, `mappedMonthlyOutflow: 0`, events with generated ids); `update-plan` merges then re-validates with `planInputSchema` (`ProposalError` with the Zod message on failure); unknown `planId` → `ProposalError("Plano não encontrado.")`; `update-settings` changes `reserveMonths` and `indexForecastPct` (`plannedContribution` does not affect the engine); `record-assumption` is a no-op. Never mutates `input`.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing tests**: create-plan appends with priority 3 after plans 1 and 2; update-plan moving `targetMonth` out of its window throws `ProposalError`; unknown planId throws; `update-settings { reserveMonths: 6 }` changes only that field; input object unchanged (deep equal to a copy taken before).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/proposal.test.ts`. Expected: FAIL.
+Test (`llm-input.test.ts`): new, because distinct contract (LLM boundary).
+
+- [ ] **Step 1: Write the failing tests**: in `proposal.test.ts`, create-plan appends with priority 3 after plans 1 and 2; update-plan moving `targetMonth` out of its window throws `ProposalError`; unknown planId throws; `update-settings { reserveMonths: 6 }` changes only that field; input object unchanged (deep equal to a copy taken before). In `llm-input.test.ts`: `parseLlmProposal` of a goal create-plan with target `{ min: 1234.56, base: 1234.56, max: 1234.56 }` → `proposal.changes[0].plan.fields.target` equals `{ min: 123_456, base: 123_456, max: 123_456 }`; one `it.each` of rejected inputs → exact `{ error }`: event amount `10.005` → `{ error: "Use valores em reais com no máximo 2 casas decimais." }`, `plannedContribution: -1` → `{ error: "Valor não pode ser negativo." }`, consórcio `letterValue: -100` → same negative message; `toLever({ kind: "contribution", deltaMonthly: -50 })` → `deltaMonthly -5_000` (negative allowed there).
+- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/proposal.test.ts src/features/planning/lib/planner/llm-input.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement**.
 - [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): schema de proposta e aplicacao na entrada do motor"`.
+- [ ] **Step 5: Commit**; `git commit -m "feat(planning): schema de proposta, fronteira em reais e aplicacao na entrada do motor"`.
 
-### Task 4: Projection summary and diff
+### Task 4: Projection summary, diff and LLM-facing formatting
 
 **Files:**
-- Create: `src/features/planning/lib/planner/summary.ts`
+- Create: `src/features/planning/lib/planner/summary.ts`, `src/features/planning/lib/planner/llm-format.ts`
 - Test: `src/features/planning/lib/planner/summary.test.ts`
 
 **Interfaces:**
 - Produces: `type ProjectionSummary = { horizonEnd: Period; firstUnfunded: Record<"base" | "pessimistic", { month: Period; planName: string } | null>; minSlack: Record<"base" | "pessimistic", Cents>; plans: { id: string; name: string; health: PlanHealth; shortfallBase: Cents }[] }`; `summarizeProjection(projection: Projection, plans: Pick<EnginePlan, "id" | "name">[]): ProjectionSummary`; `type ProposalDiff = { healthChanges: { name: string; from: PlanHealth | null; to: PlanHealth }[]; firstUnfundedBase: { from: Period | null; to: Period | null }; minSlackBaseDelta: Cents }`; `diffSummaries(before: ProjectionSummary, after: ProjectionSummary): ProposalDiff` (new plans have `from: null`).
+- Produces (`llm-format.ts`): `formatCentsForLlm(value: Cents): string` (`formatCurrency(value / 100)`); `LlmProjectionSummary`, `LlmProposalDiff`, `LlmLeverResult` (same shape as the source type, every `Cents` field a `formatCentsForLlm` string); `toLlmSummary(s: ProjectionSummary): LlmProjectionSummary`, `toLlmDiff(d: ProposalDiff): LlmProposalDiff`, `toLlmLeverResult(r: LeverResult): LlmLeverResult` (lever amounts and coverage shortfalls formatted).
 
-Test: new, because distinct contract.
+Test: new, because distinct contract (summary, diff and their LLM view share the same fixtures in `summary.test.ts`).
 
-- [ ] **Step 1: Write the failing test**: two hand-built `Projection` objects (literal months and BRL-formatted amounts) → summary fields literal; diff of at-risk → on-track and a new plan → `healthChanges` with both entries, `minSlackBaseDelta` literal.
+- [ ] **Step 1: Write the failing test**: two hand-built `Projection` objects (literal months and literal cents) → summary fields literal; diff of at-risk → on-track and a new plan → `healthChanges` with both entries, `minSlackBaseDelta` literal; `formatCentsForLlm(10_000_000)` → `"R$\u00a0100.000,00"`; `toLlmSummary(summary).minSlack.base` and `toLlmDiff(diff).minSlackBaseDelta` → literal BRL strings.
 - [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/summary.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement**.
 - [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): resumo e diferenca de projecoes"`.
+- [ ] **Step 5: Commit**; `git commit -m "feat(planning): resumo, diferenca de projecoes e formatacao para o modelo"`.
 
 ### Task 5: Planner tools
 
@@ -124,18 +142,25 @@ Test: new, because distinct contract.
 - Test: `src/features/planning/lib/planner/tools.test.ts`
 
 **Interfaces:**
-- Consumes: Tasks 3 and 4, `runProjection`, `applyStress`, `simulateLever`.
+- Consumes: Task 3 (`proposalSchema`, `Proposal`, `ProposalError`, `applyChangesToInput`, `llmProposalSchema`, `llmLeverSchema`, `llmStressSchema`, `parseLlmProposal`, `toLever`, `toStress`), Task 4 (`ProjectionSummary`, `ProposalDiff`, `summarizeProjection`, `diffSummaries`, `formatCentsForLlm`, `toLlmSummary`, `toLlmDiff`, `toLlmLeverResult`), `runProjection`, `applyStress`, `simulateLever`, `LeverError`.
 - Produces:
   - `type CategoryTotal = { categoryId: string; categoryName: string; month: Period; amount: Cents }`; `fetchCategoryTotals(userId: string, adminPayerId: string, from: Period, to: Period): Promise<CategoryTotal[]>` (Despesa, admin payer, grouped by category and period, userId filter).
-  - `rankCutCandidates(totals: CategoryTotal[], months: number, excludedCategoryIds: Set<string>): { categoryName: string; monthlyAverage: Cents; lastMonth: Cents }[]` (top 5 by average; excludes mapped and contribution categories).
+  - `type CutCandidate = { categoryName: string; monthlyAverage: Cents; lastMonth: Cents }`; `rankCutCandidates(totals: CategoryTotal[], months: number, excludedCategoryIds: Set<string>): CutCandidate[]` (top 5 by average; excludes mapped and contribution categories).
+  - `type ProposalToolOutput = { proposalId: string; proposal: Proposal; before: ProjectionSummary; after: ProjectionSummary; diff: ProposalDiff } | { error: string }` (exported from `tools.ts`; internal `Cents`, consumed by Tasks 12 and 13).
   - `type PlannerToolDeps = { input: EngineInput; plans: PlanView[]; excludedCategoryIds: Set<string>; loadCategoryTotals: (from: Period, to: Period) => Promise<CategoryTotal[]>; webSearch: ToolSet }`
-  - `buildPlannerTools(deps: PlannerToolDeps): ToolSet` with exactly: `get_category_totals { from, to }`, `list_cut_candidates { months (1..12) }`, `run_projection { changes?: ProposalChange[], stress?: StressToggles }` → `ProjectionSummary`, `simulate_lever { lever: Lever }` → `LeverResult` (or `{ error }` on `LeverError`), `propose_change: proposalSchema` → `{ proposalId: toolCallId, proposal, before: ProjectionSummary, after: ProjectionSummary, diff: ProposalDiff }` or `{ error }` on `ProposalError`; plus `...deps.webSearch`.
+  - `buildPlannerTools(deps: PlannerToolDeps): ToolSet` with exactly (input schema → `execute` result in `Cents` → `toModelOutput: ({ output }) => ({ type: "json", value })` in reais):
+    - `get_category_totals { from, to }` → `CategoryTotal[]` → amounts via `formatCentsForLlm`.
+    - `list_cut_candidates { months (1..12) }` → `CutCandidate[]` → amounts via `formatCentsForLlm`.
+    - `run_projection { changes?: LlmProposalChange[], stress?: LlmStress }` → `ProjectionSummary` or `{ error }` (from `parseLlmProposal` / `toStress` / `ProposalError`) → `toLlmSummary`.
+    - `simulate_lever { lever: llmLeverSchema }` → `LeverResult` or `{ error }` (on `ProposalError` or `LeverError`) → `toLlmLeverResult`.
+    - `propose_change: llmProposalSchema` → `ProposalToolOutput` (`proposalId` = `toolCallId`; `{ error }` from `parseLlmProposal` or `ProposalError`) → `{ proposalId, title, diff: toLlmDiff(diff), after: toLlmSummary(after) }` (no `Cents` reach the model).
+    - plus `...deps.webSearch`. `{ error }` outputs pass through `toModelOutput` unchanged.
 
-Test: new, because distinct contract (calls each tool's `execute` directly with in-memory deps; the loader is a plain function argument, not a module mock).
+Test: new, because distinct contract (calls each tool's `execute` and `toModelOutput` directly with in-memory deps; the loader is a plain function argument, not a module mock). Amount validation is locked by Task 3; not repeated here.
 
-- [ ] **Step 1: Write the failing tests**: `rankCutCandidates` literal top list with an excluded category absent; `propose_change.execute` with a valid create-plan returns `proposalId` equal to the given `toolCallId` and a `diff` with the new plan; with an unknown planId returns `{ error: "Plano não encontrado." }`; `simulate_lever` shift outside window returns `{ error }`; with `webSearch: {}` the tool keys are exactly the five planner tools.
+- [ ] **Step 1: Write the failing tests**: `rankCutCandidates` literal top list with an excluded category absent; `propose_change.execute` with a valid create-plan (amounts in reais) returns `proposalId` equal to the given `toolCallId` and a `diff` with the new plan; its `toModelOutput({ output })` value has `diff.minSlackBaseDelta` equal to a literal BRL string; with an unknown planId returns `{ error: "Plano não encontrado." }`; `simulate_lever` shift outside window returns `{ error }`; with `webSearch: {}` the tool keys are exactly the five planner tools.
 - [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** with `tool({ description, inputSchema, execute })`; descriptions state "valores em reais".
+- [ ] **Step 3: Implement** with `tool({ description, inputSchema, execute, toModelOutput })`; descriptions state "valores em reais".
 - [ ] **Step 4: Run** again. Expected: PASS.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): ferramentas do planejador"`.
 
@@ -146,11 +171,12 @@ Test: new, because distinct contract (calls each tool's `execute` directly with 
 - Test: `src/features/planning/lib/planner/context.test.ts`
 
 **Interfaces:**
-- Produces: `type PlannerContext = { today: Period; cashFlow: { incomeBaseline: Cents; costOfLiving: Cents; plannedContribution: Cents; contributionsByMonth: { month: Period; amount: Cents }[] }; patrimony: { total: Cents; daily: Cents; maturities: { month: Period; amount: Cents }[]; locked: Cents; pots: { accountName: string; amount: Cents }[] }; reserve: { months: number; floor: Cents }; plans: { id: string; name: string; type: string; priority: number; nonNegotiable: boolean; targetMonth: Period; window: { earliest: Period; latest: Period } | null; health: PlanHealth | null }[]; projection: ProjectionSummary; latestBids: { planName: string; month: Period; winningBidPct: number }[]; assumptions: { date: string; kind: string; summary: string; source: string }[] }`; `buildPlannerContext(snapshot: PlanningSnapshot, projection: Projection): PlannerContext` (assumptions capped at 20, newest first); `buildSystemPrompt(context: PlannerContext, opts: { webSearch: boolean }): string` (PT-BR; rules: never compute figures, always use tools for numbers; propose only via `propose_change`; amounts in centavos; no specific assets; mention web search only when available; context appended as JSON).
+- Consumes: `formatCentsForLlm`, `toLlmSummary`, `LlmProjectionSummary` (Task 4).
+- Produces: `type LlmMoney = string` (a `formatCentsForLlm` result); `type PlannerContext = { today: Period; cashFlow: { incomeBaseline: LlmMoney; costOfLiving: LlmMoney; plannedContribution: LlmMoney; contributionsByMonth: { month: Period; amount: LlmMoney }[] }; patrimony: { total: LlmMoney; daily: LlmMoney; maturities: { month: Period; amount: LlmMoney }[]; locked: LlmMoney; pots: { accountName: string; amount: LlmMoney }[] }; reserve: { months: number; floor: LlmMoney }; plans: { id: string; name: string; type: string; priority: number; nonNegotiable: boolean; targetMonth: Period; window: { earliest: Period; latest: Period } | null; health: PlanHealth | null }[]; projection: LlmProjectionSummary; latestBids: { planName: string; month: Period; winningBidPct: number }[]; assumptions: { date: string; kind: string; summary: string; source: string }[] }`; `buildPlannerContext(snapshot: PlanningSnapshot, projection: Projection): PlannerContext` (assumptions capped at 20, newest first); `buildSystemPrompt(context: PlannerContext, opts: { webSearch: boolean }): string` (PT-BR; rules: never compute figures, always use tools for numbers; propose only via `propose_change`; amounts in reais: context and tool results are already formatted as "R$", tool inputs take reais as decimal numbers with at most 2 decimals, never centavos; no specific assets; mention web search only when available; context appended as JSON).
 
 Test: new, because `buildPlannerContext` is a distinct contract. The prompt text gets no test (copy, change detector).
 
-- [ ] **Step 1: Write the failing test**: snapshot fixture with one maturity position, one pot, 25 assumptions → `patrimony.maturities` literal, `pots[0].accountName`, `assumptions.length 20`, plan health from the projection.
+- [ ] **Step 1: Write the failing test**: snapshot fixture with one maturity position of `150_000` cents in `2028-05`, one pot, 25 assumptions → `patrimony.maturities` equals `[{ month: "2028-05", amount: "R$\u00a01.500,00" }]`, `pots[0].accountName`, `assumptions.length 20`, plan health from the projection.
 - [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts`. Expected: FAIL.
 - [ ] **Step 3: Implement** both files.
 - [ ] **Step 4: Run** again. Expected: PASS.
@@ -198,7 +224,7 @@ Test: new, because distinct contract (assert it contains each plan name and the 
 - Test: `src/features/planning/lib/planner/stream.test.ts`
 
 **Interfaces:**
-- Produces: `PLANNER_MAX_STEPS = 8`; `createPlannerResponse(args: { model: LanguageModel; system: string; history: UIMessage[]; tools: ToolSet; onFinish: (messages: UIMessage[]) => Promise<void> }): Promise<Response>`: `validateUIMessages({ messages: history, tools })`, `streamText({ model, system, messages: await convertToModelMessages(validated), tools, stopWhen: stepCountIs(PLANNER_MAX_STEPS) })`, `result.consumeStream()` (no await, so `onFinish` runs after a client disconnect), `result.toUIMessageStreamResponse({ originalMessages: validated, generateMessageId: createIdGenerator({ prefix: "msg", size: 16 }), onFinish: ({ messages }) => args.onFinish(messages), onError: () => "Algo deu errado." })`.
+- Produces: `PLANNER_MAX_STEPS = 8`; `createPlannerResponse(args: { model: LanguageModel; system: string; history: UIMessage[]; tools: ToolSet; onFinish: (messages: UIMessage[]) => Promise<void> }): Promise<Response>`: `validateUIMessages({ messages: history, tools })`, `streamText({ model, system, messages: await convertToModelMessages(validated, { tools }), tools, stopWhen: stepCountIs(PLANNER_MAX_STEPS) })`, (`{ tools }` makes replayed tool outputs go through each tool's `toModelOutput`, so stored `Cents` never reach the model), `result.consumeStream()` (no await, so `onFinish` runs after a client disconnect), `result.toUIMessageStreamResponse({ originalMessages: validated, generateMessageId: createIdGenerator({ prefix: "msg", size: 16 }), onFinish: ({ messages }) => args.onFinish(messages), onError: () => "Algo deu errado." })`.
 
 Test: new, because distinct contract; the model is `MockLanguageModelV3` (external boundary fake from `ai/test`).
 
@@ -254,37 +280,41 @@ Test: new, because distinct actor (approved writes).
 - Delete: `src/features/planning/components/planner-placeholder.tsx`
 
 **Interfaces:**
-- Produces: `PlannerPanel(props: { conversation: { id: string; messages: UIMessage[] } | null; modelId: string; prefill: string | null; onPrefillConsumed(): void; renderProposal(part: ProposalToolOutput, toolCallId: string): ReactNode })`; `useChat({ id, messages, transport: new DefaultChatTransport({ api: "/api/planning/chat", prepareSendMessagesRequest: ({ id, messages }) => ({ body: { conversationId: id, message: messages.at(-1), modelId } }) }) })`. Without a conversation, the first send calls `startPlannerConversationAction`, then `router.refresh()` and sends. Header: title `"Planejador"`, model `Select` over `AVAILABLE_MODELS` (default `settings.plannerModelId ?? DEFAULT_MODEL`; change saves via `savePlanningSettingsAction`), button `"Nova conversa"`. Parts: `text` → bubble; `tool-propose_change` in `output-available` → `renderProposal`; other `tool-*` → `ToolActivity` chip (`"Consultando projeção…"` etc.); `source-url` → link list. Notice under the composer: `"Os dados financeiros desta página são enviados ao provedor do modelo selecionado."` Composer: `Textarea` + `"Enviar"`, disabled while `status === "streaming"`, `"Parar"` calls `stop`.
+- Consumes: `ProposalToolOutput` (Task 5), `startPlannerConversationAction` (Task 11), `fetchLatestConversation` (Task 7).
+- Produces: `PlannerPanel(props: { conversation: { id: string; messages: UIMessage[] } | null; modelId: string; prefill?: string | null; onPrefillConsumed?: () => void; renderProposal?: (output: ProposalToolOutput, toolCallId: string) => ReactNode })`. The three optional props are wired by Tasks 13 and 14; without them the panel works on its own (no prefill; `tool-propose_change` falls back to the `ToolActivity` chip). `PlanningPage` in this task passes only `conversation` and `modelId`. `useChat({ id, messages, transport: new DefaultChatTransport({ api: "/api/planning/chat", prepareSendMessagesRequest: ({ id, messages }) => ({ body: { conversationId: id, message: messages.at(-1), modelId } }) }) })`. Without a conversation, the first send calls `startPlannerConversationAction`, then `router.refresh()` and sends. Header: title `"Planejador"`, model `Select` over `AVAILABLE_MODELS` (default `settings.plannerModelId ?? DEFAULT_MODEL`; change saves via `savePlanningSettingsAction`), button `"Nova conversa"`. Parts: `text` → bubble; `tool-propose_change` in `output-available` → `renderProposal` when given; other `tool-*` → `ToolActivity` chip (`"Consultando projeção…"` etc.); `source-url` → link list. Notice under the composer: `"Os dados financeiros desta página são enviados ao provedor do modelo selecionado."` Composer: `Textarea` + `"Enviar"`, disabled while `status === "streaming"`, `"Parar"` calls `stop`.
 
 Test: none, because UI wiring (the server contract is locked by Tasks 9 and 10).
 
 - [ ] **Step 1:** Add the dependency; `git diff package.json` shows only `@ai-sdk/react`.
 - [ ] **Step 2:** Implement the components and wire the page.
 - [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 4: Manual check** with a configured provider: send a question, see streaming text and a tool chip; reload and see the thread persisted.
+- [ ] **Step 4: Manual check (best-effort)** with a configured provider: send a question, see streaming text and a tool chip; reload and see the thread persisted.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): chat do planejador acoplado a pagina"`.
 
 ### Task 13: Proposal card with preview and apply
 
 **Files:**
 - Create: `src/features/planning/components/planner/proposal-card.tsx`
-- Modify: `src/features/planning/components/planning-page.tsx` (state `preview: { proposalId: string; changes: ProposalChange[] } | null`; `projection = runProjection(applyStress(preview ? applyChangesToInput(input, preview.changes) : input, activeStress))`; `LiquidityChart previewLabel="Prévia"` while previewing; plans table shows new plans with a `"Novo"` tag)
+- Modify: `src/features/planning/components/planning-page.tsx` (passes `renderProposal={(output, toolCallId) => <ProposalCard ... />}` to `PlannerPanel`; state `preview: { proposalId: string; changes: ProposalChange[] } | null`; `projection = runProjection(applyStress(preview ? applyChangesToInput(input, preview.changes) : input, activeStress))`; `LiquidityChart previewLabel="Prévia"` while previewing; plans table shows new plans with a `"Novo"` tag)
 
 **Interfaces:**
-- Consumes: `ProposalToolOutput = { proposalId: string; proposal: Proposal; before: ProjectionSummary; after: ProjectionSummary; diff: ProposalDiff } | { error: string }` (Task 5), `applyProposalAction`, `snapshot.assumptions` (applied ids = `proposalId` values).
-- Produces: `ProposalCard({ output, applied: boolean, previewing: boolean, onPreview(), onDiscard() })`: title, rationale, list of changes in PT-BR, before/after rows (status per plan, first unfunded month, min slack delta) formatted from the deterministic `diff`; buttons `"Pré-visualizar"` / `"Sair da prévia"`, `"Aplicar"` (disabled when applied or pending, label `"Aplicada"` after), `"Descartar"`. `{ error }` outputs render a muted line `"Proposta inválida: <erro>"` with no buttons.
+- Consumes: `ProposalToolOutput` (Task 5, `tools.ts`), `PlannerPanel` `renderProposal` prop (Task 12), `applyChangesToInput`, `ProposalChange` (Task 3), `applyProposalAction`, `snapshot.assumptions` (applied ids = `proposalId` values).
+- Produces: `ProposalCard({ output: ProposalToolOutput, applied: boolean, previewing: boolean, onPreview(), onDiscard() })`: title, rationale, list of changes in PT-BR, before/after rows (status per plan, first unfunded month, min slack delta) formatted from the deterministic `diff`; buttons `"Pré-visualizar"` / `"Sair da prévia"`, `"Aplicar"` (disabled when applied or pending, label `"Aplicada"` after), `"Descartar"`. `{ error }` outputs render a muted line `"Proposta inválida: <erro>"` with no buttons.
 
 Test: none, because the preview math is locked by Task 3 and apply by Task 11.
 
 - [ ] **Step 1:** Implement the card and the preview state.
 - [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Manual check**: ask for a new goal; preview changes chart and table; "Aplicar" toasts `"Proposta aplicada."`, the plan appears after refresh, the log shows a `"Planejador"` entry; clicking again is disabled.
+- [ ] **Step 3: Manual check (best-effort)**: ask for a new goal; preview changes chart and table; "Aplicar" toasts `"Proposta aplicada."`, the plan appears after refresh, the log shows a `"Planejador"` entry; clicking again is disabled.
 - [ ] **Step 4: Commit**; `git commit -m "feat(planning): cartao de proposta com previa e aplicacao"`.
 
 ### Task 14: Drift button prefill
 
 **Files:**
-- Modify: `src/features/planning/components/drift-banner.tsx` (button `"Discutir com o planejador"`), `planning-page.tsx` (state `prefill` set from `buildDriftDiagnosis`, passed to `PlannerPanel`)
+- Modify: `src/features/planning/components/drift-banner.tsx` (button `"Discutir com o planejador"` via the `onDiscuss` prop, rendered only when given), `planning-page.tsx` (state `prefill: string | null` set from `buildDriftDiagnosis` in `onDiscuss`; passes `prefill` and `onPrefillConsumed={() => setPrefill(null)}` to `PlannerPanel`)
+
+**Interfaces:**
+- Consumes: `buildDriftDiagnosis` (Task 8), `PlannerPanel` `prefill` / `onPrefillConsumed` props (Task 12), `DriftBanner({ messages, onDiscuss? })` (`planning-page` Task 12).
 
 Test: none, because the diagnosis text is locked by Task 8; this is wiring.
 
