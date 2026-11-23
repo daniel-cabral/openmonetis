@@ -460,7 +460,7 @@ Test: new, because it is a new DB-boundary contract (fake `database`, as `src/fe
 
 ### Task 25: Final verification
 
-- [ ] **Step 1:** `pnpm exec next typegen` then `pnpm exec tsc --noEmit` -> 0 errors.
-- [ ] **Step 2:** `pnpm exec biome check` on all files changed in this change -> clean.
-- [ ] **Step 3:** `pnpm test` (full suite, once) -> all pass.
-- [ ] **Step 4:** `rg -n "process\.env\.(OPENAI|ANTHROPIC|GOOGLE_GENERATIVE|MINIMAX|OPENROUTER|OLLAMA)" src` -> no matches.
+- [x] **Step 1:** `pnpm exec next typegen` then `pnpm exec tsc --noEmit` -> 0 errors.
+- [x] **Step 2:** `pnpm exec biome check` on all files changed in this change -> clean.
+- [x] **Step 3:** `pnpm test` (full suite, once) -> all pass.
+- [x] **Step 4:** `rg -n "process\.env\.(OPENAI|ANTHROPIC|GOOGLE_GENERATIVE|MINIMAX|OPENROUTER|OLLAMA)" src` -> no matches.
