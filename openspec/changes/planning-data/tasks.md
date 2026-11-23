@@ -105,10 +105,10 @@ Test: extends `schema.planning.test.ts` table.
 
 Test: none, because CI's "Check migrations" step locks schema/migration parity.
 
-- [ ] **Step 1: Run** `pnpm run db:generate --name planning`. Expected: one new SQL file.
-- [ ] **Step 2: Check** the SQL creates the eight `planejamento_*` tables, adds `contas.pote_reservado` with `DEFAULT false NOT NULL`, and has no `DROP`.
-- [ ] **Step 3: Run** `pnpm exec drizzle-kit generate --name drift_probe`. Expected: "No schema changes" (delete nothing else).
-- [ ] **Step 4: Commit** the generated files by path; `git commit -m "feat(planning): migration das tabelas de planejamento"`.
+- [x] **Step 1: Run** `pnpm run db:generate --name planning`. Expected: one new SQL file.
+- [x] **Step 2: Check** the SQL creates the eight `planejamento_*` tables, adds `contas.pote_reservado` with `DEFAULT false NOT NULL`, and has no `DROP`.
+- [x] **Step 3: Run** `pnpm exec drizzle-kit generate --name drift_probe`. Expected: "No schema changes" (delete nothing else).
+- [x] **Step 4: Commit** the generated files by path; `git commit -m "feat(planning): migration das tabelas de planejamento"`.
 
 ### Task 5: Zod input schemas and cents conversion
 

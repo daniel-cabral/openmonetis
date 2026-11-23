@@ -267,6 +267,13 @@
 			"when": 1792790573435,
 			"tag": "0038_motionless_blink",
 			"breakpoints": true
+		},
+		{
+			"idx": 39,
+			"version": "7",
+			"when": 1795455911439,
+			"tag": "0039_planning",
+			"breakpoints": true
 		}
 	]
 }
