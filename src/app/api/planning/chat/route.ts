@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 			);
 		}
 
-		const model = resolveLanguageModel(modelId);
+		const model = await resolveLanguageModel(userId, modelId);
 		if (!model.success) {
 			return NextResponse.json({ error: model.error }, { status: 400 });
 		}

@@ -181,11 +181,11 @@ Test: new, because distinct contract (external HTTP boundary with timeout, cache
 
 Test: new, because no test covers `model-provider.ts`. `route.test.ts`: none, because route behaviour is unchanged (only the mock's sync/async shape changes).
 
-- [ ] **Step 1: Failing test** `"resolves only from the user's own credentials"`, one setup with a fake `getProviderSecret` dep: with `process.env.ANTHROPIC_API_KEY = "env"` and no stored Anthropic credential, `claude-sonnet-4-6` -> `{ success: false, error: "Provedor não configurado. Configure em Ajustes > IA." }` (Review Focus 4); stored Ollama `{ baseUrl: "http://lan:11434/v1" }` + `ollama:llama3.2` -> success; `chatgpt:gpt-5.5` -> success and `createChatGptModel` dep called with `("u1", "gpt-5.5")`; reconnect error -> the expired message; invalid-credential error -> the "Credencial inválida" message.
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement; update both callers (`await resolveLanguageModel(user.id, modelId)` / `(userId, modelId)`).
-- [ ] **Step 4:** `pnpm exec vitest run src/shared/lib/ai src/app/api/planning/chat/route.test.ts` -> PASS.
-- [ ] **Step 5: Commit** `refactor(ia): resolve modelos pelas credenciais do usuário e para de ler env`
+- [x] **Step 1: Failing test** `"resolves only from the user's own credentials"`, one setup with a fake `getProviderSecret` dep: with `process.env.ANTHROPIC_API_KEY = "env"` and no stored Anthropic credential, `claude-sonnet-4-6` -> `{ success: false, error: "Provedor não configurado. Configure em Ajustes > IA." }` (Review Focus 4); stored Ollama `{ baseUrl: "http://lan:11434/v1" }` + `ollama:llama3.2` -> success; `chatgpt:gpt-5.5` -> success and `createChatGptModel` dep called with `("u1", "gpt-5.5")`; reconnect error -> the expired message; invalid-credential error -> the "Credencial inválida" message.
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement; update both callers (`await resolveLanguageModel(user.id, modelId)` / `(userId, modelId)`).
+- [x] **Step 4:** `pnpm exec vitest run src/shared/lib/ai src/app/api/planning/chat/route.test.ts` -> PASS.
+- [x] **Step 5: Commit** `refactor(ia): resolve modelos pelas credenciais do usuário e para de ler env`
 
 ### Task 8: Settings actions for API keys
 
@@ -200,11 +200,11 @@ Test: new, because no test covers `model-provider.ts`. `route.test.ts`: none, be
 
 Test: new, because distinct actor (server action boundary: auth, Zod, scoping). Use the real store (Task 3) and fake only `@/shared/lib/db` and `getUserId`, as `src/features/planning/actions/settings.test.ts` does.
 
-- [ ] **Step 1: Failing test** `"saves, masks and removes keys only for the signed-in user"`: `getUserId` -> `"u1"`; save OpenAI `sk-proj-abcdefghijklmnopa3F9` -> `data` equals `{ provider: "openai", status: "connected", secretMask: "sk-…a3F9", baseUrl: null, accountEmail: null, planType: null }` and `JSON.stringify(result)` does not contain the key; save Ollama `ftp://x` -> `{ success: false, error: "Informe uma URL http(s) válida." }` with no write; remove `"anthropic"` -> delete `where` includes `userId = "u1"` (Review Focus 3).
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Run -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): actions de chaves de API em Ajustes`
+- [x] **Step 1: Failing test** `"saves, masks and removes keys only for the signed-in user"`: `getUserId` -> `"u1"`; save OpenAI `sk-proj-abcdefghijklmnopa3F9` -> `data` equals `{ provider: "openai", status: "connected", secretMask: "sk-…a3F9", baseUrl: null, accountEmail: null, planType: null }` and `JSON.stringify(result)` does not contain the key; save Ollama `ftp://x` -> `{ success: false, error: "Informe uma URL http(s) válida." }` with no write; remove `"anthropic"` -> delete `where` includes `userId = "u1"` (Review Focus 3).
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Run -> PASS.
+- [x] **Step 5: Commit** `feat(ia): actions de chaves de API em Ajustes`
 
 ### Task 9: Settings actions for the ChatGPT device flow
 
@@ -218,11 +218,11 @@ Test: new, because distinct actor (server action boundary: auth, Zod, scoping). 
 
 Test: extends `ai.test.ts` with a new `it`, because a distinct setup (fake `fetch` for the auth server) is needed.
 
-- [ ] **Step 1: Failing test** `"device flow stores the session on approval and stops after expiry or cancel"`: start -> result has `userCode` and no `deviceAuthId`; poll with fake 403 -> `pending`; poll with 200 + exchange -> `connected` with e-mail, pending row deleted; poll after `expiresAt` -> `expired` and exchange fetch not called; poll after cancel -> `disconnected` (Review Focus 5).
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement (cockpit `startCodexConnectionForCaller` / `pollCodexConnectionForCaller` keyed by `userId`).
-- [ ] **Step 4:** Run -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): actions de conexão da assinatura do ChatGPT`
+- [x] **Step 1: Failing test** `"device flow stores the session on approval and stops after expiry or cancel"`: start -> result has `userCode` and no `deviceAuthId`; poll with fake 403 -> `pending`; poll with 200 + exchange -> `connected` with e-mail, pending row deleted; poll after `expiresAt` -> `expired` and exchange fetch not called; poll after cancel -> `disconnected` (Review Focus 5).
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement (cockpit `startCodexConnectionForCaller` / `pollCodexConnectionForCaller` keyed by `userId`).
+- [x] **Step 4:** Run -> PASS.
+- [x] **Step 5: Commit** `feat(ia): actions de conexão da assinatura do ChatGPT`
 
 ### Task 10: IA tab with provider list and API-key panel
 

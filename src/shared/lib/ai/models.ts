@@ -18,9 +18,13 @@ export type AiProviderId = "chatgpt" | AIProvider;
  * Metadados dos providers
  */
 export const PROVIDERS = {
+	chatgpt: {
+		id: "chatgpt" as const,
+		name: "ChatGPT (assinatura)",
+	},
 	openai: {
 		id: "openai" as const,
-		name: "ChatGPT",
+		name: "OpenAI",
 	},
 	anthropic: {
 		id: "anthropic" as const,

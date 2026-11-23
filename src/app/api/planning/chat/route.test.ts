@@ -118,9 +118,10 @@ describe("POST /api/planning/chat", () => {
 				selectReturning([{ id: CONVERSATION_ID, title: "Plano" }]),
 			)
 			.mockReturnValueOnce(selectReturning([]));
-		mocks.resolveLanguageModel.mockReturnValue({ success: true, model: {} });
+		mocks.resolveLanguageModel.mockResolvedValue({ success: true, model: {} });
 		mocks.fetchPlanningSnapshot.mockResolvedValue({
 			input: engineInput({ startMonth: "2026-11" }),
+			settings: { plannedContribution: 0 },
 			plans: [],
 		});
 		mocks.buildPlannerContext.mockReturnValue({});

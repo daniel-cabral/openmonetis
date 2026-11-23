@@ -37,7 +37,7 @@ export async function generateInsightsAction(
 			};
 		}
 
-		const resolvedModel = resolveLanguageModel(modelId);
+		const resolvedModel = await resolveLanguageModel(user.id, modelId);
 		if (!resolvedModel.success) {
 			return resolvedModel;
 		}
