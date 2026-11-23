@@ -290,11 +290,11 @@ Test: new, because distinct actor (account ownership and type).
 
 Test: new, because distinct actor (plans).
 
-- [ ] **Step 1: Write the failing tests**: create assigns priority `max + 1` (existing max 2 → 3); update/delete of a foreign id → not found, no writes; reorder with a missing or foreign id → `"Ordem inválida."`; pot not earmarked → `"Pote inválido."`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/plans.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): cadastro e ordenacao de planos"`.
+- [x] **Step 1: Write the failing tests**: create assigns priority `max + 1` (existing max 2 → 3); update/delete of a foreign id → not found, no writes; reorder with a missing or foreign id → `"Ordem inválida."`; pot not earmarked → `"Pote inválido."`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/plans.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): cadastro e ordenacao de planos"`.
 
 ### Task 13: Events, winning bid, category mappings and assumptions actions
 
