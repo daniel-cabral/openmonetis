@@ -329,14 +329,14 @@ Test: new, because distinct contract.
 
 Test: extends `project.test.ts` (same builder), because the waterfall shares the scenario setup.
 
-- [ ] **Step 1: Write the failing tests**: general `300_000`, pot P `50_000`, income = cost = `10_000` (floor `30_000`), claims at `2027-02`: A prio 1 `200_000`, B prio 2 `100_000` with `potAccountIds: ["P"]`, C prio 3 `50_000`.
+- [x] **Step 1: Write the failing tests**: general `300_000`, pot P `50_000`, income = cost = `10_000` (floor `30_000`), claims at `2027-02`: A prio 1 `200_000`, B prio 2 `100_000` with `potAccountIds: ["P"]`, C prio 3 `50_000`.
   - "lower priority gives way": `firstUnfunded` `{ month: "2027-02", planId: "C" }`, `shortfallByPlan` `{ C: 50_000 }`, Feb row `slack 20_000`, `paid 300_000`, `required 350_000`.
   - "failed claim does not block lower priorities": A claims `290_000` → `firstUnfunded.planId "A"`, `unfundedPlanIds` `["A"]`, C paid.
   - "pot money is not available to plans that do not name it": only C claims `280_000` (available `270_000` general, pot ignored) → C unfunded.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/project.test.ts`. Expected: the three new tests FAIL.
-- [ ] **Step 3: Implement** the waterfall.
-- [ ] **Step 4: Run** again. Expected: PASS (Task 7 test still passes).
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): cascata de prioridade com potes reservados"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/project.test.ts`. Expected: the three new tests FAIL.
+- [x] **Step 3: Implement** the waterfall.
+- [x] **Step 4: Run** again. Expected: PASS (Task 7 test still passes).
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): cascata de prioridade com potes reservados"`.
 
 ### Task 9: Three scenarios, plan health and first unfunded month
 
