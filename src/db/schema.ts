@@ -198,6 +198,7 @@ export const financialAccounts = pgTable("contas", {
 	excludeInitialBalanceFromIncome: boolean("excluir_saldo_inicial_receitas")
 		.notNull()
 		.default(false),
+	isEarmarkedPot: boolean("pote_reservado").notNull().default(false),
 	userId: text("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
@@ -677,6 +678,84 @@ export const trips = pgTable(
 		userIdStartDateIdx: index("viagens_user_id_data_inicio_idx").on(
 			table.userId,
 			table.startDate,
+		),
+	}),
+);
+
+// ===================== PLANNING =====================
+
+export const planningSettings = pgTable("planejamento_ajustes", {
+	userId: text("user_id")
+		.primaryKey()
+		.references(() => user.id, { onDelete: "cascade" }),
+	plannedContribution: numeric("aporte_planejado", {
+		precision: 12,
+		scale: 2,
+	})
+		.notNull()
+		.default("0"),
+	reserveMonths: smallint("meses_reserva").notNull().default(3),
+	baselineMonths: smallint("meses_base").notNull().default(6),
+	ipcaForecastPct: numeric("previsao_ipca", { precision: 5, scale: 2 })
+		.notNull()
+		.default("4.00"),
+	inccForecastPct: numeric("previsao_incc", { precision: 5, scale: 2 })
+		.notNull()
+		.default("5.00"),
+	horizonEnd: text("horizonte_fim"),
+	stressContributionCap: numeric("estresse_teto_aporte", {
+		precision: 12,
+		scale: 2,
+	}),
+	stressIncomeLossMonths: smallint("estresse_meses_sem_renda")
+		.notNull()
+		.default(3),
+	stressPlanCostPct: numeric("estresse_custo_planos", {
+		precision: 5,
+		scale: 2,
+	})
+		.notNull()
+		.default("10.00"),
+	plannerModelId: text("modelo_planejador"),
+	updatedAt: timestamp("updated_at", {
+		mode: "date",
+		withTimezone: true,
+	})
+		.notNull()
+		.defaultNow(),
+});
+
+export const investmentPositions = pgTable(
+	"planejamento_posicoes",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		accountId: uuid("conta_id")
+			.notNull()
+			.references(() => financialAccounts.id, { onDelete: "cascade" }),
+		description: text("descricao").notNull(),
+		amount: numeric("valor", { precision: 12, scale: 2 }).notNull(),
+		liquidity: text("liquidez").notNull(),
+		maturityMonth: text("mes_vencimento"),
+		annualRealReturnPct: numeric("retorno_real_anual", {
+			precision: 5,
+			scale: 2,
+		}),
+		asOf: date("data_referencia", { mode: "date" }).notNull(),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		userAccountAsOfIdx: index("planejamento_posicoes_user_conta_ref_idx").on(
+			table.userId,
+			table.accountId,
+			table.asOf,
 		),
 	}),
 );
@@ -1261,3 +1340,5 @@ export const importNameMappings = pgTable(
 );
 
 export type ImportNameMapping = typeof importNameMappings.$inferSelect;
+export type PlanningSettings = typeof planningSettings.$inferSelect;
+export type InvestmentPosition = typeof investmentPositions.$inferSelect;

@@ -49,11 +49,11 @@
 
 Test: new, because distinct contract (pattern of `src/db/schema.trips.test.ts`; the planning tables are a cross-change contract).
 
-- [ ] **Step 1: Write the failing test**: one `it.each` over `[table, sqlName, requiredColumns, nullableColumns]` for `planningSettings` and `investmentPositions` using `getTableConfig`; plus `financialAccounts` has `pote_reservado` notNull.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/db/schema.planning.test.ts`. Expected: FAIL (exports missing).
-- [ ] **Step 3: Implement** the column, tables and types.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit** `src/db/schema.ts src/db/schema.planning.test.ts`; `git commit -m "feat(planning): tabelas de ajustes e posicoes e flag de pote reservado"`.
+- [x] **Step 1: Write the failing test**: one `it.each` over `[table, sqlName, requiredColumns, nullableColumns]` for `planningSettings` and `investmentPositions` using `getTableConfig`; plus `financialAccounts` has `pote_reservado` notNull.
+- [x] **Step 2: Run** `pnpm exec vitest run src/db/schema.planning.test.ts`. Expected: FAIL (exports missing).
+- [x] **Step 3: Implement** the column, tables and types.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit** `src/db/schema.ts src/db/schema.planning.test.ts`; `git commit -m "feat(planning): tabelas de ajustes e posicoes e flag de pote reservado"`.
 
 ### Task 2: Plans, events, bids and category mappings
 
