@@ -164,6 +164,19 @@ export async function updatePlan(
 	return rows.length > 0;
 }
 
+function toEventColumns(event: PlanEventFields) {
+	return {
+		label: event.label,
+		direction: event.direction,
+		basis: event.basis,
+		amountMin: centsToDecimal(event.amount.min),
+		amountBase: centsToDecimal(event.amount.base),
+		amountMax: centsToDecimal(event.amount.max),
+		startMonth: event.startMonth,
+		endMonth: event.endMonth,
+	};
+}
+
 export async function insertPlanEvent(
 	tx: PlanningTx,
 	userId: string,
@@ -172,20 +185,30 @@ export async function insertPlanEvent(
 ): Promise<string> {
 	const [row] = await tx
 		.insert(planEvents)
-		.values({
-			userId,
-			planId,
-			label: event.label,
-			direction: event.direction,
-			basis: event.basis,
-			amountMin: centsToDecimal(event.amount.min),
-			amountBase: centsToDecimal(event.amount.base),
-			amountMax: centsToDecimal(event.amount.max),
-			startMonth: event.startMonth,
-			endMonth: event.endMonth,
-		})
+		.values({ userId, planId, ...toEventColumns(event) })
 		.returning({ id: planEvents.id });
 	return row.id;
+}
+
+export async function updatePlanEvent(
+	tx: PlanningTx,
+	userId: string,
+	planId: string,
+	eventId: string,
+	event: PlanEventFields,
+): Promise<boolean> {
+	const rows = await tx
+		.update(planEvents)
+		.set(toEventColumns(event))
+		.where(
+			and(
+				eq(planEvents.id, eventId),
+				eq(planEvents.userId, userId),
+				eq(planEvents.planId, planId),
+			),
+		)
+		.returning({ id: planEvents.id });
+	return rows.length > 0;
 }
 
 export async function assertOwnedPlan(

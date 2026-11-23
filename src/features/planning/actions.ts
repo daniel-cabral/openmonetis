@@ -9,3 +9,10 @@ export {
 	reorderPlansAction,
 	updatePlanAction,
 } from "./actions/plans";
+export {
+	addAssumptionAction,
+	deletePlanEventAction,
+	recordWinningBidAction,
+	savePlanEventAction,
+	setPlanCategoryMappingsAction,
+} from "./actions/plan-details";
