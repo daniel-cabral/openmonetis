@@ -254,11 +254,11 @@ Test: new, because the query is a distinct contract (db mocked as in `src/featur
 
 Test: new, because distinct contract (db mocked, pattern of `reconciliation-action.test.ts`).
 
-- [ ] **Step 1: Write the failing test**: previous settings IPCA `4.00`, input IPCA `4.50` and unchanged contribution → one upsert and exactly one assumption insert with `{ kind: "index", source: "user" }`; `revalidatePath` called with `"/planning"`. Invalid input (`reserveMonths: 30`) → `success false`, no writes.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/settings.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `writes.ts`, the action, the barrel and the helpers entry.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): ajustes do planejamento com registro de premissas"`.
+- [x] **Step 1: Write the failing test**: previous settings IPCA `4.00`, input IPCA `4.50` and unchanged contribution → one upsert and exactly one assumption insert with `{ kind: "index", source: "user" }`; `revalidatePath` called with `"/planning"`. Invalid input (`reserveMonths: 30`) → `success false`, no writes.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/settings.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `writes.ts`, the action, the barrel and the helpers entry.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): ajustes do planejamento com registro de premissas"`.
 
 ### Task 11: Positions replace and earmark actions
 
