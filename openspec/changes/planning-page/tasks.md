@@ -62,11 +62,11 @@ Test: new, because distinct contract.
 
 Test: extends `view-model.test.ts` (same fixtures).
 
-- [ ] **Step 1: Add failing assertions**: chart has one point per projection month with literal cents from a 2-month fixture; plan with `required 200_000` and `shortfall 50_000` → `coveragePct 75`; plan with `required 0` → `100`; reserve row first; reserve with floor `0` → `coveragePct 100` and `Number.isFinite(coveragePct)` (no NaN/Infinity).
-- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/view-model.test.ts`. Expected: FAIL on the new assertions.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): series do grafico e linhas da tabela de planos"`.
+- [x] **Step 1: Add failing assertions**: chart has one point per projection month with literal cents from a 2-month fixture; plan with `required 200_000` and `shortfall 50_000` → `coveragePct 75`; plan with `required 0` → `100`; reserve row first; reserve with floor `0` → `coveragePct 100` and `Number.isFinite(coveragePct)` (no NaN/Infinity).
+- [x] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/view-model.test.ts`. Expected: FAIL on the new assertions.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): series do grafico e linhas da tabela de planos"`.
 
 ### Task 3: Route, page shell and navbar
 

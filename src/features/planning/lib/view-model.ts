@@ -1,5 +1,6 @@
-import { liquidToday, type Period, type Projection } from "@/features/planning/lib/engine";
-import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
+import { type Cents, liquidToday, type PlanHealth, type Period, type Projection } from "@/features/planning/lib/engine";
+import type { PlanningSnapshot, PlanView } from "@/features/planning/lib/snapshot-types";
+import { formatShortPeriodLabel } from "@/shared/utils/period";
 
 export const STALE_AFTER_DAYS = 45;
 
@@ -44,4 +45,78 @@ export function buildKpis(snapshot: PlanningSnapshot, projection: Projection, to
 				}
 			: null,
 	};
+}
+
+export type ChartPoint = {
+	month: Period;
+	label: string;
+	base: Cents;
+	pessimistic: Cents;
+	required: Cents;
+};
+
+export function buildChartSeries(projection: Projection): ChartPoint[] {
+	const pessimistic = projection.scenarios.pessimistic.months;
+
+	return projection.scenarios.base.months.map((row, index) => ({
+		month: row.month,
+		label: formatShortPeriodLabel(row.month),
+		base: row.liquid,
+		pessimistic: pessimistic[index].liquid,
+		required: row.required,
+	}));
+}
+
+export type PlanRow = {
+	id: string;
+	name: string;
+	kind: "reserve" | "goal" | "consorcio";
+	priority: number;
+	nonNegotiable: boolean;
+	month: Period | null;
+	target: Cents;
+	coveragePct: number;
+	health: PlanHealth;
+};
+
+function coveragePct(covered: number, required: number): number {
+	return required === 0 ? 100 : Math.round((100 * covered) / required);
+}
+
+export function buildPlanRows(plans: PlanView[], projection: Projection, kpis: PlanningKpis): PlanRow[] {
+	const base = projection.scenarios.base;
+	const reserveCoverage = kpis.reserveFloor === 0 ? 100 : Math.min(100, coveragePct(kpis.liquidToday, kpis.reserveFloor));
+
+	const reserve: PlanRow = {
+		id: "reserve",
+		name: "Reserva de emergência",
+		kind: "reserve",
+		priority: 0,
+		nonNegotiable: true,
+		month: null,
+		target: kpis.reserveFloor,
+		coveragePct: reserveCoverage,
+		health: kpis.liquidToday >= kpis.reserveFloor ? "on-track" : "off-track",
+	};
+
+	const planRows = plans
+		.filter((plan) => plan.lifecycle === "active")
+		.sort((a, b) => a.priority - b.priority)
+		.map((plan): PlanRow => {
+			const required = base.requiredByPlan[plan.id] ?? 0;
+			const shortfall = base.shortfallByPlan[plan.id] ?? 0;
+			return {
+				id: plan.id,
+				name: plan.name,
+				kind: plan.type,
+				priority: plan.priority,
+				nonNegotiable: plan.nonNegotiable,
+				month: plan.targetMonth,
+				target: required,
+				coveragePct: coveragePct(required - shortfall, required),
+				health: projection.health[plan.id],
+			};
+		});
+
+	return [reserve, ...planRows];
 }
