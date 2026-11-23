@@ -1,8 +1,5 @@
 import { z } from "zod";
-import type {
-	EngineInput,
-	EnginePlan,
-} from "@/features/planning/lib/engine";
+import type { EngineInput, EnginePlan } from "@/features/planning/lib/engine";
 import {
 	assumptionInputSchema,
 	planEventFieldsSchema,
@@ -109,7 +106,8 @@ function applyChange(
 			return {
 				...input,
 				reserveMonths: change.patch.reserveMonths ?? input.reserveMonths,
-				indexForecastPct: change.patch.indexForecastPct ?? input.indexForecastPct,
+				indexForecastPct:
+					change.patch.indexForecastPct ?? input.indexForecastPct,
 			};
 		case "record-assumption":
 			return input;

@@ -36,7 +36,15 @@ export function buildBidPreview(
 			: fields.letterValue;
 	return {
 		pct,
-		letter: consorcioOwnCash({ ...fields, bidBase: "letter" }, pct, letterAtBid),
-		outstanding: consorcioOwnCash({ ...fields, bidBase: "outstanding" }, pct, letterAtBid),
+		letter: consorcioOwnCash(
+			{ ...fields, bidBase: "letter" },
+			pct,
+			letterAtBid,
+		),
+		outstanding: consorcioOwnCash(
+			{ ...fields, bidBase: "outstanding" },
+			pct,
+			letterAtBid,
+		),
 	};
 }

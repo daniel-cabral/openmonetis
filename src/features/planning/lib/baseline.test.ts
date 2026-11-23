@@ -41,12 +41,20 @@ describe("classifyTransaction", () => {
 	it.each([
 		[
 			"transfer into an investment account",
-			row({ transactionType: "Transferência", amount: 50_000, accountType: INVESTMENT_ACCOUNT_TYPE }),
+			row({
+				transactionType: "Transferência",
+				amount: 50_000,
+				accountType: INVESTMENT_ACCOUNT_TYPE,
+			}),
 			"contribution",
 		],
 		[
 			"transfer into a checking account",
-			row({ transactionType: "Transferência", transferId: "t-1", amount: 50_000 }),
+			row({
+				transactionType: "Transferência",
+				transferId: "t-1",
+				amount: 50_000,
+			}),
 			"ignored",
 		],
 		[
@@ -56,17 +64,29 @@ describe("classifyTransaction", () => {
 		],
 		[
 			"invoice adjustment",
-			row({ name: INVOICE_ADJUSTMENT_NAME, transactionType: "Receita", amount: 5_000 }),
+			row({
+				name: INVOICE_ADJUSTMENT_NAME,
+				transactionType: "Receita",
+				amount: 5_000,
+			}),
 			"ignored",
 		],
 		[
 			"balance adjustment",
-			row({ name: ACCOUNT_BALANCE_ADJUSTMENT_NAME, transactionType: "Receita", amount: 5_000 }),
+			row({
+				name: ACCOUNT_BALANCE_ADJUSTMENT_NAME,
+				transactionType: "Receita",
+				amount: 5_000,
+			}),
 			"ignored",
 		],
 		[
 			"opening balance",
-			row({ categoryName: INITIAL_BALANCE_CATEGORY_NAME, transactionType: "Receita", amount: 5_000 }),
+			row({
+				categoryName: INITIAL_BALANCE_CATEGORY_NAME,
+				transactionType: "Receita",
+				amount: 5_000,
+			}),
 			"ignored",
 		],
 		[
@@ -76,23 +96,47 @@ describe("classifyTransaction", () => {
 		],
 		[
 			"income in the investments category (redemption)",
-			row({ transactionType: "Receita", amount: 30_000, categoryName: CONTRIBUTION_CATEGORY_NAME }),
+			row({
+				transactionType: "Receita",
+				amount: 30_000,
+				categoryName: CONTRIBUTION_CATEGORY_NAME,
+			}),
 			"ignored",
 		],
 		[
 			"income in the yield category",
-			row({ transactionType: "Receita", amount: 30_000, categoryName: YIELD_CATEGORY_NAME }),
+			row({
+				transactionType: "Receita",
+				amount: 30_000,
+				categoryName: YIELD_CATEGORY_NAME,
+			}),
 			"ignored",
 		],
 		[
 			"refund reduces cost",
-			row({ transactionType: "Receita", amount: 8_000, note: `${REFUND_NOTE_PREFIX}tx-0` }),
+			row({
+				transactionType: "Receita",
+				amount: 8_000,
+				note: `${REFUND_NOTE_PREFIX}tx-0`,
+			}),
 			"cost",
 		],
-		["expense in a mapped category", row({ categoryId: "cat-mapped" }), "mapped"],
-		["expense in an irregular category", row({ categoryId: "cat-irregular" }), "irregular"],
+		[
+			"expense in a mapped category",
+			row({ categoryId: "cat-mapped" }),
+			"mapped",
+		],
+		[
+			"expense in an irregular category",
+			row({ categoryId: "cat-irregular" }),
+			"irregular",
+		],
 		["plain expense", row({}), "cost"],
-		["plain income", row({ transactionType: "Receita", amount: 500_000 }), "income"],
+		[
+			"plain income",
+			row({ transactionType: "Receita", amount: 500_000 }),
+			"income",
+		],
 	])("classifies %s", (_label, input, expected) => {
 		expect(classifyTransaction(input, ctx)).toBe(expected);
 	});
@@ -101,14 +145,44 @@ describe("classifyTransaction", () => {
 describe("buildBaselines", () => {
 	it("averages income, cost and mapped outflow and sums contributions per month", () => {
 		const rows = [
-			row({ id: "i1", period: "2026-10", transactionType: "Receita", amount: 500_000 }),
-			row({ id: "i2", period: "2026-11", transactionType: "Receita", amount: 520_000 }),
+			row({
+				id: "i1",
+				period: "2026-10",
+				transactionType: "Receita",
+				amount: 500_000,
+			}),
+			row({
+				id: "i2",
+				period: "2026-11",
+				transactionType: "Receita",
+				amount: 520_000,
+			}),
 			row({ id: "c1", period: "2026-10", amount: -300_000 }),
 			row({ id: "c2", period: "2026-11", amount: -340_000 }),
-			row({ id: "c3", period: "2026-11", amount: -340_000, note: `${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}card-1:2026-11` }),
-			row({ id: "m1", period: "2026-10", categoryId: "cat-mapped", amount: -20_000 }),
-			row({ id: "m2", period: "2026-11", categoryId: "cat-mapped", amount: -20_000 }),
-			row({ id: "k1", period: "2026-10", categoryName: CONTRIBUTION_CATEGORY_NAME, amount: -20_000 }),
+			row({
+				id: "c3",
+				period: "2026-11",
+				amount: -340_000,
+				note: `${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}card-1:2026-11`,
+			}),
+			row({
+				id: "m1",
+				period: "2026-10",
+				categoryId: "cat-mapped",
+				amount: -20_000,
+			}),
+			row({
+				id: "m2",
+				period: "2026-11",
+				categoryId: "cat-mapped",
+				amount: -20_000,
+			}),
+			row({
+				id: "k1",
+				period: "2026-10",
+				categoryName: CONTRIBUTION_CATEGORY_NAME,
+				amount: -20_000,
+			}),
 		];
 
 		expect(buildBaselines(rows, ["2026-10", "2026-11"], ctx)).toEqual({

@@ -6,9 +6,14 @@ const PLAN_ID = "123e4567-e89b-12d3-a456-426614174000";
 
 const baseline: ChangeBaseline = {
 	plans: [
-		goalPlan(PLAN_ID, "2028-06", { min: 100_000, base: 100_000, max: 100_000 }, {
-			name: "Viagem",
-		}),
+		goalPlan(
+			PLAN_ID,
+			"2028-06",
+			{ min: 100_000, base: 100_000, max: 100_000 },
+			{
+				name: "Viagem",
+			},
+		),
 	],
 	reserveMonths: 3,
 	indexForecastPct: { IPCA: 4, INCC: 5 },
@@ -23,7 +28,10 @@ describe("describeChange", () => {
 				patch: {
 					lifecycle: "paused",
 					name: "Viagem",
-					fields: { type: "goal", target: { min: 100_000, base: 150_000, max: 150_000 } },
+					fields: {
+						type: "goal",
+						target: { min: 100_000, base: 150_000, max: 150_000 },
+					},
 				},
 			},
 			baseline,
@@ -41,7 +49,11 @@ describe("describeChange", () => {
 		const description = describeChange(
 			{
 				op: "update-settings",
-				patch: { plannedContribution: 200_000, reserveMonths: 6, indexForecastPct: { IPCA: 4, INCC: 7 } },
+				patch: {
+					plannedContribution: 200_000,
+					reserveMonths: 6,
+					indexForecastPct: { IPCA: 4, INCC: 7 },
+				},
 			},
 			baseline,
 		);
@@ -66,7 +78,10 @@ describe("describeChange", () => {
 					targetMonth: "2028-06",
 					window: null,
 					potAccountIds: [PLAN_ID],
-					fields: { type: "goal", target: { min: 5_000_000, base: 6_000_000, max: 7_000_000 } },
+					fields: {
+						type: "goal",
+						target: { min: 5_000_000, base: 6_000_000, max: 7_000_000 },
+					},
 				},
 				events: [],
 			},

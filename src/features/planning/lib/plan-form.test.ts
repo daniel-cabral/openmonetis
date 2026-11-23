@@ -82,7 +82,10 @@ describe("planToForm", () => {
 			targetMonth: "2027-06",
 			window: null,
 			potAccountIds: ["pot-1"],
-			fields: { type: "goal", target: { min: 100_000, base: 150_000, max: 200_000 } },
+			fields: {
+				type: "goal",
+				target: { min: 100_000, base: 150_000, max: 200_000 },
+			},
 			events: [],
 			bidHistory: [],
 			mappedMonthlyOutflow: 0,
@@ -123,7 +126,10 @@ describe("planToForm", () => {
 			targetMonth: "2027-06",
 			window: null,
 			potAccountIds: ["pot-1"],
-			fields: { type: "goal", target: { min: 100_000, base: 150_000, max: 200_000 } },
+			fields: {
+				type: "goal",
+				target: { min: 100_000, base: 150_000, max: 200_000 },
+			},
 		});
 		expect(formToPlanInput(planToForm(consorcio))).toEqual({
 			name: "Carro",

@@ -51,7 +51,13 @@ export function prefillPositionLines(
 	accountId: string,
 ): PositionLineDraft[] {
 	const lines: PositionLineDraft[] = current.map(
-		({ description, amount, liquidity, maturityMonth, annualRealReturnPct }) => ({
+		({
+			description,
+			amount,
+			liquidity,
+			maturityMonth,
+			annualRealReturnPct,
+		}) => ({
 			description,
 			amount,
 			liquidity,
@@ -61,7 +67,10 @@ export function prefillPositionLines(
 	);
 
 	// Contributions dated on or before the base balance's asOf are already inside it.
-	const baseAsOf = current.reduce((max, item) => (item.asOf > max ? item.asOf : max), "");
+	const baseAsOf = current.reduce(
+		(max, item) => (item.asOf > max ? item.asOf : max),
+		"",
+	);
 
 	for (const assignment of assignments) {
 		if (assignment.accountId !== accountId) continue;

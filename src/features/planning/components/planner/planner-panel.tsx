@@ -36,7 +36,10 @@ export type PlannerPanelProps = {
 	settings: PlanningSettingsInput;
 	prefill?: string | null;
 	onPrefillConsumed?: () => void;
-	renderProposal?: (output: ProposalToolOutput, toolCallId: string) => ReactNode;
+	renderProposal?: (
+		output: ProposalToolOutput,
+		toolCallId: string,
+	) => ReactNode;
 };
 
 export function PlannerPanel({
@@ -48,7 +51,9 @@ export function PlannerPanel({
 	renderProposal,
 }: PlannerPanelProps) {
 	const router = useRouter();
-	const [conversationId, setConversationId] = useState(conversation?.id ?? null);
+	const [conversationId, setConversationId] = useState(
+		conversation?.id ?? null,
+	);
 	const [modelId, setModelId] = useState(initialModelId);
 	const [input, setInput] = useState("");
 	const inputRef = useRef<HTMLTextAreaElement>(null);

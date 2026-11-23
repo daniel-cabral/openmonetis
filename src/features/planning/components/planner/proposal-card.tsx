@@ -55,7 +55,9 @@ export function ProposalCard({
 	}
 
 	if (discarded) {
-		return <p className="text-muted-foreground text-sm">Proposta descartada.</p>;
+		return (
+			<p className="text-muted-foreground text-sm">Proposta descartada.</p>
+		);
 	}
 
 	const { proposalId, proposal, diff, current } = output;
@@ -121,8 +123,7 @@ export function ProposalCard({
 							: "nenhum"}
 					</li>
 					<li>
-						Folga mínima:{" "}
-						{diff.minSlackBaseDelta > 0 ? "+" : ""}
+						Folga mínima: {diff.minSlackBaseDelta > 0 ? "+" : ""}
 						{formatCents(diff.minSlackBaseDelta)}
 					</li>
 				</ul>

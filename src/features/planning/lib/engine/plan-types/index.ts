@@ -5,7 +5,10 @@ import { expandConsorcioEvents } from "./consorcio";
 import type { ExpandContext } from "./context";
 import { expandGoalEvents } from "./goal";
 
-function expandTypedEvents(plan: EnginePlan, ctx: ExpandContext): ExpandedEvent[] {
+function expandTypedEvents(
+	plan: EnginePlan,
+	ctx: ExpandContext,
+): ExpandedEvent[] {
 	if (plan.fields.type === "goal") {
 		return expandGoalEvents({ ...plan, fields: plan.fields }, ctx);
 	}
@@ -18,7 +21,9 @@ function expandManualEvent(
 	ctx: ExpandContext,
 ): ExpandedEvent[] {
 	const first =
-		comparePeriods(event.startMonth, ctx.start) < 0 ? ctx.start : event.startMonth;
+		comparePeriods(event.startMonth, ctx.start) < 0
+			? ctx.start
+			: event.startMonth;
 	const last = event.endMonth ?? ctx.end;
 	const stop = comparePeriods(last, ctx.end) > 0 ? ctx.end : last;
 	if (comparePeriods(first, stop) > 0) {
@@ -27,7 +32,12 @@ function expandManualEvent(
 	return buildPeriodRange(first, stop).map((month) => {
 		const inflate = (value: number) =>
 			event.basis === "today"
-				? inflateToMonth(value, ctx.indexForecastPct[plan.index], ctx.start, month)
+				? inflateToMonth(
+						value,
+						ctx.indexForecastPct[plan.index],
+						ctx.start,
+						month,
+					)
 				: value;
 		return {
 			planId: plan.id,
@@ -43,7 +53,10 @@ function expandManualEvent(
 	});
 }
 
-export function expandPlanEvents(plan: EnginePlan, ctx: ExpandContext): ExpandedEvent[] {
+export function expandPlanEvents(
+	plan: EnginePlan,
+	ctx: ExpandContext,
+): ExpandedEvent[] {
 	if (plan.lifecycle !== "active") {
 		return [];
 	}

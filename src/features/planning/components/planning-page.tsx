@@ -111,50 +111,47 @@ export function PlanningPage({
 
 	const { kpis, chart, rows, drift, driftSignals, effects, previewedId } =
 		useMemo(() => {
-		const todayDate = new Date(`${today}T00:00:00`);
-		// Drift reflects the saved plan: health and reserve floor both come from
-		// this unstressed, unpreviewed projection.
-		const baseProjection: Projection = runProjection(snapshot.input);
-		const previewed =
-			preview &&
-			!snapshot.assumptions.some((a) => a.proposalId === preview.proposalId)
-				? previewInput(snapshot.input, preview.changes)
-				: null;
-		const projection = runProjection(
-			applyStress(previewed ?? snapshot.input, activeStress),
-		);
-		// Plans that exist only in the preview get rows; PlansTable flags them "Novo".
-		const newPlans: PlanView[] = (previewed?.plans ?? [])
-			.filter(
-				(plan) => !snapshot.input.plans.some((saved) => saved.id === plan.id),
-			)
-			.map((plan) => ({ ...plan, type: plan.fields.type, categoryIds: [] }));
-		const kpis = buildKpis(snapshot, projection, todayDate);
-		const driftSignals = detectDrift({
+			const todayDate = new Date(`${today}T00:00:00`);
+			// Drift reflects the saved plan: health and reserve floor both come from
+			// this unstressed, unpreviewed projection.
+			const baseProjection: Projection = runProjection(snapshot.input);
+			const previewed =
+				preview &&
+				!snapshot.assumptions.some((a) => a.proposalId === preview.proposalId)
+					? previewInput(snapshot.input, preview.changes)
+					: null;
+			const projection = runProjection(
+				applyStress(previewed ?? snapshot.input, activeStress),
+			);
+			// Plans that exist only in the preview get rows; PlansTable flags them "Novo".
+			const newPlans: PlanView[] = (previewed?.plans ?? [])
+				.filter(
+					(plan) => !snapshot.input.plans.some((saved) => saved.id === plan.id),
+				)
+				.map((plan) => ({ ...plan, type: plan.fields.type, categoryIds: [] }));
+			const kpis = buildKpis(snapshot, projection, todayDate);
+			const driftSignals = detectDrift({
 				health: baseProjection.health,
 				liquidNow: kpis.liquidToday,
-				reserveFloor: baseProjection.scenarios.base.months[0]?.reserveFloor ?? 0,
+				reserveFloor:
+					baseProjection.scenarios.base.months[0]?.reserveFloor ?? 0,
 				contributionsByMonth: snapshot.contributionsByMonth,
 				plannedContribution: snapshot.settings.plannedContribution,
-		});
-		const drift = driftMessages(
-			driftSignals,
-			Object.fromEntries(snapshot.plans.map((plan) => [plan.id, plan.name])),
-		);
-		return {
-			kpis,
-			chart: buildChartSeries(projection),
-			rows: buildPlanRows(
-				[...snapshot.plans, ...newPlans],
-				projection,
+			});
+			const drift = driftMessages(
+				driftSignals,
+				Object.fromEntries(snapshot.plans.map((plan) => [plan.id, plan.name])),
+			);
+			return {
 				kpis,
-			),
-			drift,
-			driftSignals,
-			effects: stressEffects(snapshot.input, configured),
-			previewedId: previewed && preview ? preview.proposalId : null,
-		};
-	}, [snapshot, activeStress, configured, today, preview]);
+				chart: buildChartSeries(projection),
+				rows: buildPlanRows([...snapshot.plans, ...newPlans], projection, kpis),
+				drift,
+				driftSignals,
+				effects: stressEffects(snapshot.input, configured),
+				previewedId: previewed && preview ? preview.proposalId : null,
+			};
+		}, [snapshot, activeStress, configured, today, preview]);
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [newPlanType, setNewPlanType] = useState<"goal" | "consorcio">("goal");

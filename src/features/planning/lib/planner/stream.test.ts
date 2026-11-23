@@ -8,7 +8,12 @@ const history: UIMessage[] = [
 ];
 
 const usage = {
-	inputTokens: { total: 1, noCache: 1, cacheRead: undefined, cacheWrite: undefined },
+	inputTokens: {
+		total: 1,
+		noCache: 1,
+		cacheRead: undefined,
+		cacheWrite: undefined,
+	},
 	outputTokens: { total: 1, text: 1, reasoning: undefined },
 };
 

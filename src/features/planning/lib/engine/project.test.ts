@@ -13,17 +13,33 @@ describe("projectScenario", () => {
 			reserveMonths: 3,
 		});
 
-		const result = projectScenario(input, "base", [], { start: "2027-01", end: "2027-04" });
+		const result = projectScenario(input, "base", [], {
+			start: "2027-01",
+			end: "2027-04",
+		});
 
-		expect(result.months.map((row) => row.liquid)).toEqual([110_000, 120_000, 100_000, 110_000]);
-		expect(result.months.map((row) => row.slack)).toEqual([-10_000, 0, -20_000, -10_000]);
-		expect(result.months.map((row) => row.reserveBreached)).toEqual([true, false, true, true]);
+		expect(result.months.map((row) => row.liquid)).toEqual([
+			110_000, 120_000, 100_000, 110_000,
+		]);
+		expect(result.months.map((row) => row.slack)).toEqual([
+			-10_000, 0, -20_000, -10_000,
+		]);
+		expect(result.months.map((row) => row.reserveBreached)).toEqual([
+			true,
+			false,
+			true,
+			true,
+		]);
 		expect(result.firstUnfunded).toBeNull();
 	});
 });
 
 describe("priority waterfall", () => {
-	const plan = (id: string, priority: number, potAccountIds: string[] = []): EnginePlan => ({
+	const plan = (
+		id: string,
+		priority: number,
+		potAccountIds: string[] = [],
+	): EnginePlan => ({
 		id,
 		name: id,
 		priority,
@@ -91,7 +107,12 @@ describe("priority waterfall", () => {
 	});
 
 	it("does not let a plan spend a pot it does not name", () => {
-		const result = projectScenario(waterfallInput(), "base", [claimAt("C", 280_000)], range);
+		const result = projectScenario(
+			waterfallInput(),
+			"base",
+			[claimAt("C", 280_000)],
+			range,
+		);
 
 		expect(result.shortfallByPlan).toEqual({ C: 280_000 });
 	});

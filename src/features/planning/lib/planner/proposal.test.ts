@@ -45,9 +45,7 @@ describe("applyChangesToInput", () => {
 
 		const result = applyChangesToInput(input, changes, () => "plan-new");
 
-		expect(
-			result.plans.map((plan) => [plan.id, plan.priority]),
-		).toEqual([
+		expect(result.plans.map((plan) => [plan.id, plan.priority])).toEqual([
 			["plan-1", 1],
 			["plan-2", 2],
 			["plan-new", 3],

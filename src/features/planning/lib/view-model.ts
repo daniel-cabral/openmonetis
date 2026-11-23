@@ -1,5 +1,14 @@
-import { type Cents, liquidToday, type Period, type PlanHealth, type Projection } from "@/features/planning/lib/engine";
-import type { PlanningSnapshot, PlanView } from "@/features/planning/lib/snapshot-types";
+import {
+	type Cents,
+	liquidToday,
+	type Period,
+	type PlanHealth,
+	type Projection,
+} from "@/features/planning/lib/engine";
+import type {
+	PlanningSnapshot,
+	PlanView,
+} from "@/features/planning/lib/snapshot-types";
 import { formatShortPeriodLabel } from "@/shared/utils/period";
 
 export const STALE_AFTER_DAYS = 45;
@@ -16,11 +25,19 @@ export type PlanningKpis = {
 };
 
 export function ageInDays(asOf: string, today: Date): number {
-	const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+	const todayUtc = Date.UTC(
+		today.getFullYear(),
+		today.getMonth(),
+		today.getDate(),
+	);
 	return Math.round((todayUtc - Date.parse(`${asOf}T00:00:00Z`)) / DAY_MS);
 }
 
-export function buildKpis(snapshot: PlanningSnapshot, projection: Projection, today: Date): PlanningKpis {
+export function buildKpis(
+	snapshot: PlanningSnapshot,
+	projection: Projection,
+	today: Date,
+): PlanningKpis {
 	const ages = snapshot.accounts.flatMap((account) =>
 		account.lastAsOf === null ? [] : [ageInDays(account.lastAsOf, today)],
 	);
@@ -31,17 +48,25 @@ export function buildKpis(snapshot: PlanningSnapshot, projection: Projection, to
 
 	return {
 		totalPatrimony: snapshot.accounts.reduce(
-			(total, account) => total + account.positions.reduce((sum, position) => sum + position.amount, 0),
+			(total, account) =>
+				total +
+				account.positions.reduce((sum, position) => sum + position.amount, 0),
 			0,
 		),
 		stalestDays,
 		isStale: stalestDays !== null && stalestDays > STALE_AFTER_DAYS,
-		liquidToday: liquidToday(snapshot.input.positions, snapshot.input.potAccountIds, projection.start),
+		liquidToday: liquidToday(
+			snapshot.input.positions,
+			snapshot.input.potAccountIds,
+			projection.start,
+		),
 		reserveFloor: base.months[0]?.reserveFloor ?? 0,
 		firstUnfunded: unfunded
 			? {
 					month: unfunded.month,
-					planName: snapshot.plans.find((plan) => plan.id === unfunded.planId)?.name ?? unfunded.planId,
+					planName:
+						snapshot.plans.find((plan) => plan.id === unfunded.planId)?.name ??
+						unfunded.planId,
 				}
 			: null,
 	};
@@ -83,9 +108,16 @@ function coveragePct(covered: number, required: number): number {
 	return required === 0 ? 100 : Math.round((100 * covered) / required);
 }
 
-export function buildPlanRows(plans: PlanView[], projection: Projection, kpis: PlanningKpis): PlanRow[] {
+export function buildPlanRows(
+	plans: PlanView[],
+	projection: Projection,
+	kpis: PlanningKpis,
+): PlanRow[] {
 	const base = projection.scenarios.base;
-	const reserveCoverage = kpis.reserveFloor === 0 ? 100 : Math.min(100, coveragePct(kpis.liquidToday, kpis.reserveFloor));
+	const reserveCoverage =
+		kpis.reserveFloor === 0
+			? 100
+			: Math.min(100, coveragePct(kpis.liquidToday, kpis.reserveFloor));
 
 	const reserve: PlanRow = {
 		id: "reserve",

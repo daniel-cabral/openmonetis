@@ -204,7 +204,11 @@ describe("planner apply action", () => {
 			proposal: proposalWith([
 				{
 					op: "record-assumption",
-					assumption: { kind: "other", summary: "Premissa", reviewByMonth: null },
+					assumption: {
+						kind: "other",
+						summary: "Premissa",
+						reviewByMonth: null,
+					},
 				},
 			]),
 		});
@@ -224,7 +228,11 @@ describe("planner apply action", () => {
 				},
 				{
 					op: "record-assumption",
-					assumption: { kind: "other", summary: "Premissa", reviewByMonth: null },
+					assumption: {
+						kind: "other",
+						summary: "Premissa",
+						reviewByMonth: null,
+					},
 				},
 			]),
 		});

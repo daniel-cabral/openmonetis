@@ -848,7 +848,10 @@ export const bidRecords = pgTable(
 			.notNull()
 			.references(() => plans.id, { onDelete: "cascade" }),
 		month: text("mes").notNull(),
-		winningBidPct: numeric("pct_vencedor", { precision: 5, scale: 2 }).notNull(),
+		winningBidPct: numeric("pct_vencedor", {
+			precision: 5,
+			scale: 2,
+		}).notNull(),
 		createdAt: timestamp("created_at", {
 			mode: "date",
 			withTimezone: true,

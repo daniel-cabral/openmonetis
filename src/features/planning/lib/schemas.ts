@@ -59,7 +59,10 @@ export const planFieldsSchema = z.object({
 	targetMonth: periodSchema,
 	window: windowSchema,
 	potAccountIds: z.array(uuidSchema("Pote")),
-	fields: z.discriminatedUnion("type", [goalFieldsSchema, consorcioFieldsSchema]),
+	fields: z.discriminatedUnion("type", [
+		goalFieldsSchema,
+		consorcioFieldsSchema,
+	]),
 });
 
 export const planInputSchema = planFieldsSchema.superRefine((plan, ctx) => {
@@ -161,7 +164,9 @@ export const planningSettingsFieldsSchema = z.object({
 	plannerModelId: z.string().nullable(),
 });
 
-export type PlanningSettingsInput = z.infer<typeof planningSettingsFieldsSchema>;
+export type PlanningSettingsInput = z.infer<
+	typeof planningSettingsFieldsSchema
+>;
 
 export const bidInputSchema = z.object({
 	planId: uuidSchema("Plano"),
@@ -182,7 +187,14 @@ export const categoryMappingInputSchema = z.object({
 export type CategoryMappingInput = z.infer<typeof categoryMappingInputSchema>;
 
 export const assumptionInputSchema = z.object({
-	kind: z.enum(["contribution", "return", "bid", "index", "plan-change", "other"]),
+	kind: z.enum([
+		"contribution",
+		"return",
+		"bid",
+		"index",
+		"plan-change",
+		"other",
+	]),
 	summary: z
 		.string()
 		.trim()

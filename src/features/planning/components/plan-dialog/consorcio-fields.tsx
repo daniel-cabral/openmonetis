@@ -32,7 +32,11 @@ import {
 } from "@/shared/components/ui/table";
 import type { PatchPlanForm } from "./common-fields";
 
-type BidRow = { key: "letter" | "outstanding"; label: string; range: AmountRange };
+type BidRow = {
+	key: "letter" | "outstanding";
+	label: string;
+	range: AmountRange;
+};
 
 export function ConsorcioFields({
 	values,
@@ -85,7 +89,9 @@ export function ConsorcioFields({
 					<CurrencyInput
 						id="consorcio-outstanding"
 						value={values.outstandingBalance}
-						onValueChange={(outstandingBalance) => patch({ outstandingBalance })}
+						onValueChange={(outstandingBalance) =>
+							patch({ outstandingBalance })
+						}
 						placeholder="R$ 0,00"
 					/>
 				</div>
@@ -105,13 +111,17 @@ export function ConsorcioFields({
 					<SelectContent>
 						<SelectItem value="letter">Valor da carta</SelectItem>
 						<SelectItem value="outstanding">Saldo devedor</SelectItem>
-						<SelectItem value="both">Ainda não sei (mostrar as duas)</SelectItem>
+						<SelectItem value="both">
+							Ainda não sei (mostrar as duas)
+						</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
 
 			<div className="space-y-2">
-				<Label htmlFor="consorcio-margin">Margem sobre o lance vencedor (p.p.)</Label>
+				<Label htmlFor="consorcio-margin">
+					Margem sobre o lance vencedor (p.p.)
+				</Label>
 				<Input
 					id="consorcio-margin"
 					type="number"
@@ -129,7 +139,9 @@ export function ConsorcioFields({
 					<Switch
 						id="consorcio-embedded-bid"
 						checked={values.embeddedBidEnabled}
-						onCheckedChange={(embeddedBidEnabled) => patch({ embeddedBidEnabled })}
+						onCheckedChange={(embeddedBidEnabled) =>
+							patch({ embeddedBidEnabled })
+						}
 					/>
 				</div>
 				{values.embeddedBidEnabled ? (

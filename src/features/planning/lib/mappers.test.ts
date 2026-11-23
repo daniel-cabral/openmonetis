@@ -118,17 +118,33 @@ function settingsRow(over: Partial<PlanningSettings>): PlanningSettings {
 describe("latestPositionSet", () => {
 	it("keeps only the rows of each account's most recent as-of date", () => {
 		const rows = [
-			positionRow({ id: "old", accountId: ACCOUNT_A, asOf: new Date("2026-10-31T00:00:00Z") }),
-			positionRow({ id: "new", accountId: ACCOUNT_A, asOf: new Date("2026-11-30T00:00:00Z") }),
-			positionRow({ id: "b1", accountId: ACCOUNT_B, asOf: new Date("2026-10-31T00:00:00Z") }),
-			positionRow({ id: "b2", accountId: ACCOUNT_B, asOf: new Date("2026-10-31T00:00:00Z") }),
+			positionRow({
+				id: "old",
+				accountId: ACCOUNT_A,
+				asOf: new Date("2026-10-31T00:00:00Z"),
+			}),
+			positionRow({
+				id: "new",
+				accountId: ACCOUNT_A,
+				asOf: new Date("2026-11-30T00:00:00Z"),
+			}),
+			positionRow({
+				id: "b1",
+				accountId: ACCOUNT_B,
+				asOf: new Date("2026-10-31T00:00:00Z"),
+			}),
+			positionRow({
+				id: "b2",
+				accountId: ACCOUNT_B,
+				asOf: new Date("2026-10-31T00:00:00Z"),
+			}),
 		];
 
-		expect(latestPositionSet(rows).map((row) => row.id).sort()).toEqual([
-			"b1",
-			"b2",
-			"new",
-		]);
+		expect(
+			latestPositionSet(rows)
+				.map((row) => row.id)
+				.sort(),
+		).toEqual(["b1", "b2", "new"]);
 	});
 });
 
@@ -143,7 +159,8 @@ describe("toEnginePosition", () => {
 			annualRealReturnPct: 5.25,
 		});
 		expect(
-			toEnginePosition(positionRow({ annualRealReturnPct: null })).annualRealReturnPct,
+			toEnginePosition(positionRow({ annualRealReturnPct: null }))
+				.annualRealReturnPct,
 		).toBeNull();
 	});
 });
@@ -235,7 +252,10 @@ describe("toSettingsInput", () => {
 	it("converts the stored settings to input units", () => {
 		expect(
 			toSettingsInput(
-				settingsRow({ plannedContribution: "1500.00", ipcaForecastPct: "4.50" }),
+				settingsRow({
+					plannedContribution: "1500.00",
+					ipcaForecastPct: "4.50",
+				}),
 			),
 		).toMatchObject({
 			plannedContribution: 150_000,
@@ -246,7 +266,8 @@ describe("toSettingsInput", () => {
 
 	it("returns settings that pass the input schema when the user has no row", () => {
 		expect(
-			planningSettingsFieldsSchema.safeParse(toSettingsInput(undefined)).success,
+			planningSettingsFieldsSchema.safeParse(toSettingsInput(undefined))
+				.success,
 		).toBe(true);
 	});
 });

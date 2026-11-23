@@ -16,7 +16,12 @@ export type ProjectionSummary = {
 		{ month: Period; planName: string } | null
 	>;
 	minSlack: Record<ModelScenario, Cents>;
-	plans: { id: string; name: string; health: PlanHealth; shortfallBase: Cents }[];
+	plans: {
+		id: string;
+		name: string;
+		health: PlanHealth;
+		shortfallBase: Cents;
+	}[];
 };
 
 export type ProposalDiff = {

@@ -88,7 +88,12 @@ describe("summarizeProjection", () => {
 			},
 			minSlack: { base: 200, pessimistic: -100 },
 			plans: [
-				{ id: "plan-1", name: "Carro", health: "off-track", shortfallBase: 4_000 },
+				{
+					id: "plan-1",
+					name: "Carro",
+					health: "off-track",
+					shortfallBase: 4_000,
+				},
 			],
 		});
 	});

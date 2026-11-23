@@ -242,7 +242,9 @@ export async function arePotsEarmarked(
 			),
 		);
 
-	return new Set(rows.map((row) => row.id)).size === new Set(potAccountIds).size;
+	return (
+		new Set(rows.map((row) => row.id)).size === new Set(potAccountIds).size
+	);
 }
 
 export async function assertOwnedInvestmentAccount(

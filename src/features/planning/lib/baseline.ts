@@ -104,7 +104,8 @@ export function buildBaselines(
 		} else if (kind === "mapped") {
 			const planId = ctx.mappedCategoryPlan.get(row.categoryId ?? "");
 			if (planId) {
-				mappedTotalByPlan[planId] = (mappedTotalByPlan[planId] ?? 0) - row.amount;
+				mappedTotalByPlan[planId] =
+					(mappedTotalByPlan[planId] ?? 0) - row.amount;
 			}
 		}
 	}

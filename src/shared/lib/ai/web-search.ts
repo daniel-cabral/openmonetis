@@ -21,7 +21,8 @@ export function resolveWebSearchTools(modelId: string): ToolSet {
 	}
 }
 
-const WEB_SEARCH_ERROR = /web[ _-]?search|google[ _-]?search|search[ _-]?grounding|\btools?\b/i;
+const WEB_SEARCH_ERROR =
+	/web[ _-]?search|google[ _-]?search|search[ _-]?grounding|\btools?\b/i;
 
 export function isWebSearchToolError(error: unknown): boolean {
 	if (!(error instanceof Error)) return false;

@@ -1,6 +1,13 @@
 import { addMonthsToPeriod, comparePeriods } from "@/shared/utils/period";
 import { inflateToMonth } from "../money";
-import type { AmountRange, Cents, EnginePlan, ExpandedEvent, GoalFields, Period } from "../types";
+import type {
+	AmountRange,
+	Cents,
+	EnginePlan,
+	ExpandedEvent,
+	GoalFields,
+	Period,
+} from "../types";
 import type { ExpandContext } from "./context";
 
 export function expandGoalEvents(
@@ -18,7 +25,12 @@ export function expandGoalEvents(
 
 	const inflate = (value: Cents): Cents =>
 		plan.basis === "today"
-			? inflateToMonth(value, ctx.indexForecastPct[plan.index], ctx.start, plan.targetMonth)
+			? inflateToMonth(
+					value,
+					ctx.indexForecastPct[plan.index],
+					ctx.start,
+					plan.targetMonth,
+				)
 			: value;
 	const paid = payments.length * plan.mappedMonthlyOutflow;
 	const reduce = (value: Cents): Cents => Math.max(0, inflate(value) - paid);
@@ -31,13 +43,15 @@ export function expandGoalEvents(
 	};
 	const events: ExpandedEvent[] =
 		plan.mappedMonthlyOutflow > 0
-			? payments.map((month): ExpandedEvent => ({
-					planId: plan.id,
-					month,
-					direction: "outflow",
-					amount: mappedAmount,
-					label: "mapped",
-				}))
+			? payments.map(
+					(month): ExpandedEvent => ({
+						planId: plan.id,
+						month,
+						direction: "outflow",
+						amount: mappedAmount,
+						label: "mapped",
+					}),
+				)
 			: [];
 
 	const amount: AmountRange = {

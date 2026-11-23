@@ -15,7 +15,8 @@ export function planHealth(
 	results: Record<Scenario, ScenarioResult>,
 	planIds: string[],
 ): Record<string, PlanHealth> {
-	const funded = (scenario: Scenario, planId: string) => (results[scenario].shortfallByPlan[planId] ?? 0) === 0;
+	const funded = (scenario: Scenario, planId: string) =>
+		(results[scenario].shortfallByPlan[planId] ?? 0) === 0;
 
 	return Object.fromEntries(
 		planIds.map((planId) => {
@@ -39,9 +40,19 @@ export function runProjection(input: EngineInput): Projection {
 
 	const scenarios = {} as Record<Scenario, ScenarioResult>;
 	for (const scenario of SCENARIOS) {
-		scenarios[scenario] = projectScenario(input, scenario, events, { start, end });
+		scenarios[scenario] = projectScenario(input, scenario, events, {
+			start,
+			end,
+		});
 	}
 
-	const activePlanIds = input.plans.filter((plan) => plan.lifecycle === "active").map((plan) => plan.id);
-	return { start, end, scenarios, health: planHealth(scenarios, activePlanIds) };
+	const activePlanIds = input.plans
+		.filter((plan) => plan.lifecycle === "active")
+		.map((plan) => plan.id);
+	return {
+		start,
+		end,
+		scenarios,
+		health: planHealth(scenarios, activePlanIds),
+	};
 }

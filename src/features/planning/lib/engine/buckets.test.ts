@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { advanceMonth, bucketsTotal, liquidToday, monthlyNominalRate, openBuckets } from "./buckets";
+import {
+	advanceMonth,
+	bucketsTotal,
+	liquidToday,
+	monthlyNominalRate,
+	openBuckets,
+} from "./buckets";
 import type { EnginePosition } from "./types";
 
 const position = (over: Partial<EnginePosition>): EnginePosition => ({
@@ -14,8 +20,18 @@ const position = (over: Partial<EnginePosition>): EnginePosition => ({
 
 const positions: EnginePosition[] = [
 	position({ id: "daily", amount: 10_000 }),
-	position({ id: "matured", amount: 3_000, liquidity: "maturity", maturityMonth: "2026-12" }),
-	position({ id: "future", amount: 20_000, liquidity: "maturity", maturityMonth: "2027-03" }),
+	position({
+		id: "matured",
+		amount: 3_000,
+		liquidity: "maturity",
+		maturityMonth: "2026-12",
+	}),
+	position({
+		id: "future",
+		amount: 20_000,
+		liquidity: "maturity",
+		maturityMonth: "2027-03",
+	}),
 	position({ id: "locked", amount: 50_000, liquidity: "locked" }),
 	position({ id: "pot", accountId: "P", amount: 5_000 }),
 ];

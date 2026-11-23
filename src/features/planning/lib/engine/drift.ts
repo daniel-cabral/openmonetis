@@ -27,7 +27,10 @@ export function detectDrift(input: DriftInput): DriftSignal[] {
 	}
 
 	if (input.liquidNow < input.reserveFloor) {
-		signals.push({ kind: "reserve-below-floor", shortfall: input.reserveFloor - input.liquidNow });
+		signals.push({
+			kind: "reserve-below-floor",
+			shortfall: input.reserveFloor - input.liquidNow,
+		});
 	}
 
 	const lastTwo = input.contributionsByMonth.slice(-2);
@@ -36,7 +39,10 @@ export function detectDrift(input: DriftInput): DriftSignal[] {
 		lastTwo.length === 2 &&
 		lastTwo.every((entry) => entry.amount < input.plannedContribution);
 	if (belowPlan) {
-		signals.push({ kind: "contribution-below-plan", months: lastTwo.map((entry) => entry.month) });
+		signals.push({
+			kind: "contribution-below-plan",
+			months: lastTwo.map((entry) => entry.month),
+		});
 	}
 
 	return signals;

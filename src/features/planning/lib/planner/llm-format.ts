@@ -82,7 +82,10 @@ export function toLlmLeverResult(result: LeverResult): LlmLeverResult {
 function toLlmLever(lever: Lever): LlmLeverResult["lever"] {
 	switch (lever.kind) {
 		case "cut":
-			return { ...lever, monthlyAmount: formatCentsForLlm(lever.monthlyAmount) };
+			return {
+				...lever,
+				monthlyAmount: formatCentsForLlm(lever.monthlyAmount),
+			};
 		case "contribution":
 			return { ...lever, deltaMonthly: formatCentsForLlm(lever.deltaMonthly) };
 		case "redirect-pot":

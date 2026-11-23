@@ -71,7 +71,9 @@ function planRows(plan: Partial<PlanInput>): Row[] {
 		plan.lifecycle === undefined
 			? null
 			: ["Situação", LIFECYCLE_LABEL[plan.lifecycle]],
-		plan.basis === undefined ? null : ["Base de valores", BASIS_LABEL[plan.basis]],
+		plan.basis === undefined
+			? null
+			: ["Base de valores", BASIS_LABEL[plan.basis]],
 		plan.index === undefined ? null : ["Índice", plan.index],
 		plan.targetMonth === undefined
 			? null
@@ -111,7 +113,9 @@ function eventRows(event: EventChange): Row[] {
 }
 
 const toLine = ([label, value]: Row, previous?: string) =>
-	previous === undefined ? `${label}: ${value}` : `${label}: ${previous} → ${value}`;
+	previous === undefined
+		? `${label}: ${value}`
+		: `${label}: ${previous} → ${value}`;
 
 function diffLines(next: Row[], previous: Row[]): string[] {
 	const before = new Map(previous);
@@ -182,7 +186,9 @@ export function describeChange(
 			return {
 				title: `Registrar premissa: ${change.assumption.summary}`,
 				lines: change.assumption.reviewByMonth
-					? [`Revisar em: ${formatShortPeriodLabel(change.assumption.reviewByMonth)}`]
+					? [
+							`Revisar em: ${formatShortPeriodLabel(change.assumption.reviewByMonth)}`,
+						]
 					: [],
 			};
 	}

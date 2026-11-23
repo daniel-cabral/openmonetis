@@ -102,7 +102,9 @@ export async function fetchPlanningSnapshot(
 	const irregular = detectIrregularExpenses(rows, irregularMonths);
 	const ctx = {
 		mappedCategoryPlan: new Map(
-			mappingRows.map((mapping) => [mapping.categoryId, mapping.planId] as const),
+			mappingRows.map(
+				(mapping) => [mapping.categoryId, mapping.planId] as const,
+			),
 		),
 		irregularCategoryIds: irregular.categoryIds,
 	};

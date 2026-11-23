@@ -1,6 +1,17 @@
-import type { AmountRange, EngineInput, EnginePlan, EnginePosition, Period } from "./types";
+import type {
+	AmountRange,
+	EngineInput,
+	EnginePlan,
+	EnginePosition,
+	Period,
+} from "./types";
 
-export const goalPlan = (id: string, targetMonth: Period, target: AmountRange, over: Partial<EnginePlan> = {}): EnginePlan => ({
+export const goalPlan = (
+	id: string,
+	targetMonth: Period,
+	target: AmountRange,
+	over: Partial<EnginePlan> = {},
+): EnginePlan => ({
 	id,
 	name: id,
 	priority: 1,

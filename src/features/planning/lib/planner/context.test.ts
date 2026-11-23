@@ -27,20 +27,25 @@ const settings: PlanningSettingsInput = {
 };
 
 const plan: PlanView = {
-	...goalPlan("G", "2028-06", { min: 100_000, base: 100_000, max: 100_000 }, {
-		potAccountIds: ["P"],
-		events: [
-			{
-				id: "e1",
-				label: "Entrada",
-				direction: "outflow",
-				amount: { min: 1_000, base: 2_000, max: 3_000 },
-				basis: "today",
-				startMonth: "2027-03",
-				endMonth: null,
-			},
-		],
-	}),
+	...goalPlan(
+		"G",
+		"2028-06",
+		{ min: 100_000, base: 100_000, max: 100_000 },
+		{
+			potAccountIds: ["P"],
+			events: [
+				{
+					id: "e1",
+					label: "Entrada",
+					direction: "outflow",
+					amount: { min: 1_000, base: 2_000, max: 3_000 },
+					basis: "today",
+					startMonth: "2027-03",
+					endMonth: null,
+				},
+			],
+		},
+	),
 	type: "goal",
 	categoryIds: [],
 };
@@ -123,12 +128,20 @@ describe("buildPlannerContext", () => {
 			potAccountIds: ["P"],
 			fields: {
 				type: "goal",
-				target: { min: "R$\u00a01.000,00", base: "R$\u00a01.000,00", max: "R$\u00a01.000,00" },
+				target: {
+					min: "R$\u00a01.000,00",
+					base: "R$\u00a01.000,00",
+					max: "R$\u00a01.000,00",
+				},
 			},
 			events: [
 				{
 					label: "Entrada",
-					amount: { min: "R$\u00a010,00", base: "R$\u00a020,00", max: "R$\u00a030,00" },
+					amount: {
+						min: "R$\u00a010,00",
+						base: "R$\u00a020,00",
+						max: "R$\u00a030,00",
+					},
 					endMonth: null,
 				},
 			],

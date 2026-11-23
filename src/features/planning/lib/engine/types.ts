@@ -1,13 +1,22 @@
 export type Period = string; // "YYYY-MM"
 export type Cents = number; // integer centavos
 export type Scenario = "pessimistic" | "base" | "optimistic";
-export const SCENARIOS: readonly Scenario[] = ["pessimistic", "base", "optimistic"];
+export const SCENARIOS: readonly Scenario[] = [
+	"pessimistic",
+	"base",
+	"optimistic",
+];
 export type Direction = "outflow" | "inflow";
 export type AmountRange = { min: Cents; base: Cents; max: Cents };
 export type PriceIndex = "IPCA" | "INCC";
 export type MoneyBasis = "today" | "nominal";
 export type LiquidityKind = "daily" | "maturity" | "locked";
-export type PlanLifecycle = "draft" | "active" | "paused" | "done" | "abandoned";
+export type PlanLifecycle =
+	| "draft"
+	| "active"
+	| "paused"
+	| "done"
+	| "abandoned";
 
 export type EnginePosition = {
 	id: string;
@@ -53,7 +62,11 @@ export type EnginePlan = {
 	bidHistory: BidPoint[];
 	mappedMonthlyOutflow: Cents;
 };
-export type IrregularExpense = { calendarMonth: number; amount: Cents; label: string }; // 1..12
+export type IrregularExpense = {
+	calendarMonth: number;
+	amount: Cents;
+	label: string;
+}; // 1..12
 export type StressToggles = {
 	contributionCap?: Cents;
 	incomeLossMonths?: number;

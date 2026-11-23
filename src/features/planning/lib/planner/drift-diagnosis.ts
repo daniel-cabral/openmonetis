@@ -10,7 +10,9 @@ export function buildDriftDiagnosis(
 ): string {
 	if (signals.length === 0) return "";
 
-	const bullets = driftMessages(signals, planNames).map((message) => `- ${message}`);
+	const bullets = driftMessages(signals, planNames).map(
+		(message) => `- ${message}`,
+	);
 	return [
 		`Diagnóstico de ${formatShortPeriodLabel(month)}:`,
 		...bullets,

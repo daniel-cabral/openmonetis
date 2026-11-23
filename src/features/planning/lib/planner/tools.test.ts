@@ -12,13 +12,25 @@ import { buildPlannerTools, type PlannerToolDeps } from "./tools";
 const PLAN_ID = "123e4567-e89b-12d3-a456-426614174000";
 
 type Callable = {
-	execute: (input: unknown, options: { toolCallId: string; messages: [] }) => unknown;
-	toModelOutput: (options: { toolCallId: string; input: unknown; output: unknown }) => unknown;
+	execute: (
+		input: unknown,
+		options: { toolCallId: string; messages: [] },
+	) => unknown;
+	toModelOutput: (options: {
+		toolCallId: string;
+		input: unknown;
+		output: unknown;
+	}) => unknown;
 };
 
-const named = (tools: ToolSet, name: string) => tools[name] as unknown as Callable;
+const named = (tools: ToolSet, name: string) =>
+	tools[name] as unknown as Callable;
 
-const total = (categoryId: string, categoryName: string, amount: number): CategoryTotal => ({
+const total = (
+	categoryId: string,
+	categoryName: string,
+	amount: number,
+): CategoryTotal => ({
 	categoryId,
 	categoryName,
 	month: "2026-03",
@@ -120,7 +132,9 @@ describe("buildPlannerTools", () => {
 			{
 				title: "Ajuste",
 				rationale: "",
-				changes: [{ op: "update-plan", planId: PLAN_ID, patch: { name: "Outro" } }],
+				changes: [
+					{ op: "update-plan", planId: PLAN_ID, patch: { name: "Outro" } },
+				],
 			},
 			{ toolCallId: "call-2", messages: [] },
 		);
@@ -133,9 +147,14 @@ describe("buildPlannerTools", () => {
 			startMonth: "2026-01",
 			horizonEnd: "2026-03",
 			plans: [
-				goalPlan(PLAN_ID, "2026-02", { min: 300, base: 300, max: 300 }, {
-					window: { earliest: "2026-01", latest: "2026-02" },
-				}),
+				goalPlan(
+					PLAN_ID,
+					"2026-02",
+					{ min: 300, base: 300, max: 300 },
+					{
+						window: { earliest: "2026-01", latest: "2026-02" },
+					},
+				),
 			],
 		});
 		const tools = buildPlannerTools(deps({ input }));

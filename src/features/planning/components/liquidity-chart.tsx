@@ -53,7 +53,9 @@ export function LiquidityChart({
 		<Card>
 			<CardHeader>
 				<CardTitle>Liquidez projetada</CardTitle>
-				{previewLabel ? <CardDescription>{previewLabel}</CardDescription> : null}
+				{previewLabel ? (
+					<CardDescription>{previewLabel}</CardDescription>
+				) : null}
 			</CardHeader>
 			<CardContent>
 				<ChartContainer

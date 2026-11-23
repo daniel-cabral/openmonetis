@@ -23,20 +23,48 @@ const fields: ConsorcioFields = {
 
 describe("buildBidPreview", () => {
 	it("previews both bases at the target month with the INCC-inflated letter", () => {
-		const preview = buildBidPreview(fields, history, 10, "2027-01", "2028-01", "today");
+		const preview = buildBidPreview(
+			fields,
+			history,
+			10,
+			"2027-01",
+			"2028-01",
+			"today",
+		);
 
-		expect(preview.letter).toEqual({ min: 352_000, base: 418_000, max: 418_000 });
-		expect(preview.outstanding).toEqual({ min: 256_000, base: 304_000, max: 304_000 });
+		expect(preview.letter).toEqual({
+			min: 352_000,
+			base: 418_000,
+			max: 418_000,
+		});
+		expect(preview.outstanding).toEqual({
+			min: 256_000,
+			base: 304_000,
+			max: 304_000,
+		});
 	});
 
 	it("keeps the letter value nominal when the plan is not in today's money", () => {
-		const preview = buildBidPreview(fields, history, 10, "2027-01", "2028-01", "nominal");
+		const preview = buildBidPreview(
+			fields,
+			history,
+			10,
+			"2027-01",
+			"2028-01",
+			"nominal",
+		);
 
-		expect(preview.letter).toEqual({ min: 320_000, base: 380_000, max: 380_000 });
+		expect(preview.letter).toEqual({
+			min: 320_000,
+			base: 380_000,
+			max: 380_000,
+		});
 	});
 
 	it("returns no preview without bid history", () => {
-		expect(buildBidPreview(fields, [], 10, "2027-01", "2028-01", "today")).toEqual({
+		expect(
+			buildBidPreview(fields, [], 10, "2027-01", "2028-01", "today"),
+		).toEqual({
 			pct: null,
 			letter: null,
 			outstanding: null,

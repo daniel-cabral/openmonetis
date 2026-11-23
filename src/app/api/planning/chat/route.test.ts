@@ -114,7 +114,9 @@ describe("POST /api/planning/chat", () => {
 	it("keeps the contribution category out of the cut candidates", async () => {
 		mocks.getOptionalUserSession.mockResolvedValue({ user: { id: "user-1" } });
 		mocks.select
-			.mockReturnValueOnce(selectReturning([{ id: CONVERSATION_ID, title: "Plano" }]))
+			.mockReturnValueOnce(
+				selectReturning([{ id: CONVERSATION_ID, title: "Plano" }]),
+			)
 			.mockReturnValueOnce(selectReturning([]));
 		mocks.resolveLanguageModel.mockReturnValue({ success: true, model: {} });
 		mocks.fetchPlanningSnapshot.mockResolvedValue({
@@ -124,8 +126,18 @@ describe("POST /api/planning/chat", () => {
 		mocks.buildPlannerContext.mockReturnValue({});
 		mocks.getAdminPayerId.mockResolvedValue("payer-1");
 		mocks.fetchCategoryTotals.mockResolvedValue([
-			{ categoryId: "cat-invest", categoryName: "Investimentos", month: "2026-10", amount: 50_000 },
-			{ categoryId: "cat-food", categoryName: "Alimentação", month: "2026-10", amount: 30_000 },
+			{
+				categoryId: "cat-invest",
+				categoryName: "Investimentos",
+				month: "2026-10",
+				amount: 50_000,
+			},
+			{
+				categoryId: "cat-food",
+				categoryName: "Alimentação",
+				month: "2026-10",
+				amount: 30_000,
+			},
 		]);
 		mocks.createPlannerResponse.mockResolvedValue(new Response(null));
 
@@ -133,10 +145,15 @@ describe("POST /api/planning/chat", () => {
 
 		const { tools } = mocks.createPlannerResponse.mock.calls[0][0];
 		const listCutCandidates = tools.list_cut_candidates as unknown as {
-			execute: (input: unknown, options: unknown) => Promise<{ categoryName: string }[]>;
+			execute: (
+				input: unknown,
+				options: unknown,
+			) => Promise<{ categoryName: string }[]>;
 		};
 		const candidates = await listCutCandidates.execute({ months: 1 }, {});
 
-		expect(candidates.map((candidate) => candidate.categoryName)).toEqual(["Alimentação"]);
+		expect(candidates.map((candidate) => candidate.categoryName)).toEqual([
+			"Alimentação",
+		]);
 	});
 });

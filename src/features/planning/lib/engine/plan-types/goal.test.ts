@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { AmountRange, Cents, EnginePlan, GoalFields, Period } from "../types";
+import type {
+	AmountRange,
+	Cents,
+	EnginePlan,
+	GoalFields,
+	Period,
+} from "../types";
 import type { ExpandContext } from "./context";
 import { expandGoalEvents } from "./goal";
 
@@ -61,6 +67,10 @@ describe("expandGoalEvents", () => {
 		);
 
 		expect(events.filter((e) => e.label === "mapped")).toHaveLength(12);
-		expect(events.at(-1)?.amount).toEqual({ min: 88_800, base: 100_000, max: 122_400 });
+		expect(events.at(-1)?.amount).toEqual({
+			min: 88_800,
+			base: 100_000,
+			max: 122_400,
+		});
 	});
 });

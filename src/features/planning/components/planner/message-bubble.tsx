@@ -17,7 +17,12 @@ export function MessageBubble({
 	const isUser = message.role === "user";
 
 	return (
-		<div className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}>
+		<div
+			className={cn(
+				"flex flex-col gap-2",
+				isUser ? "items-end" : "items-start",
+			)}
+		>
 			{message.parts.map((part, index) => {
 				const key = `${message.id}-${index}`;
 
@@ -56,7 +61,10 @@ export function MessageBubble({
 					if (toolName === "propose_change" && done && renderProposal) {
 						return (
 							<div key={key} className="w-full">
-								{renderProposal(part.output as ProposalToolOutput, part.toolCallId)}
+								{renderProposal(
+									part.output as ProposalToolOutput,
+									part.toolCallId,
+								)}
 							</div>
 						);
 					}

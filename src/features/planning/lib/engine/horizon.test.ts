@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { resolveHorizon } from "./horizon";
 import type { EnginePlan, PlanEventInput } from "./types";
 
-function plan(over: Partial<EnginePlan> & { events?: PlanEventInput[] }): EnginePlan {
+function plan(
+	over: Partial<EnginePlan> & { events?: PlanEventInput[] },
+): EnginePlan {
 	return {
 		id: "p",
 		name: "p",
@@ -69,7 +71,9 @@ describe("resolveHorizon", () => {
 			end: "2028-01",
 		},
 	])("$label", ({ plans, horizonEnd, end }) => {
-		expect(resolveHorizon({ startMonth: "2027-01", horizonEnd, plans })).toEqual({
+		expect(
+			resolveHorizon({ startMonth: "2027-01", horizonEnd, plans }),
+		).toEqual({
 			start: "2027-01",
 			end,
 		});

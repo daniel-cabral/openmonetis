@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { BidPoint, ConsorcioFields, EnginePlan } from "../types";
-import { bidPctRange, consorcioOwnCash, expandConsorcioEvents } from "./consorcio";
+import {
+	bidPctRange,
+	consorcioOwnCash,
+	expandConsorcioEvents,
+} from "./consorcio";
 import type { ExpandContext } from "./context";
 
 const history = [
@@ -39,7 +43,11 @@ describe("consorcioOwnCash", () => {
 		["both", { min: 256_000, base: 380_000, max: 380_000 }],
 	] as const)("applies the bid to the %s base", (bidBase, expected) => {
 		expect(
-			consorcioOwnCash(fields({ bidBase }), { min: 32, base: 38, max: 38 }, 1_000_000),
+			consorcioOwnCash(
+				fields({ bidBase }),
+				{ min: 32, base: 38, max: 38 },
+				1_000_000,
+			),
 		).toEqual(expected);
 	});
 
@@ -105,7 +113,10 @@ describe("expandConsorcioEvents", () => {
 
 	it("bids at the range max under the bidAtRangeMax stress", () => {
 		expect(
-			expandConsorcioEvents(consorcioPlan({}), { ...ctx, stress: { bidAtRangeMax: true } }),
+			expandConsorcioEvents(consorcioPlan({}), {
+				...ctx,
+				stress: { bidAtRangeMax: true },
+			}),
 		).toEqual([
 			{
 				planId: "c",

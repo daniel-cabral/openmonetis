@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	type LlmProposalChange,
-	parseLlmProposal,
-	toLever,
-} from "./llm-input";
+import { type LlmProposalChange, parseLlmProposal, toLever } from "./llm-input";
 
 const PLAN_ID = "123e4567-e89b-12d3-a456-426614174000";
 
@@ -99,7 +95,9 @@ describe("parseLlmProposal", () => {
 		});
 	});
 
-	it.each(rejectedCases)("returns an error for %s", (_label, change, message) => {
+	it.each(
+		rejectedCases,
+	)("returns an error for %s", (_label, change, message) => {
 		expect(parseLlmProposal(proposalWith(change))).toEqual({ error: message });
 	});
 });

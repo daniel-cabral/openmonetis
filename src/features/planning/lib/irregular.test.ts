@@ -63,10 +63,7 @@ describe("detectIrregularExpenses", () => {
 	});
 
 	it.each([
-		[
-			"paid in every month",
-			groceries,
-		],
+		["paid in every month", groceries],
 		[
 			"paid in three distinct months",
 			[
@@ -81,6 +78,8 @@ describe("detectIrregularExpenses", () => {
 			[...groceries, expense(MONTHS[3], "cat-taxa", "Taxa", -1_000)],
 		],
 	])("does not flag a category %s", (_label, rows) => {
-		expect(detectIrregularExpenses(rows, MONTHS).categoryIds).toEqual(new Set());
+		expect(detectIrregularExpenses(rows, MONTHS).categoryIds).toEqual(
+			new Set(),
+		);
 	});
 });

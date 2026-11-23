@@ -12,7 +12,10 @@ import type { ExpandContext } from "./context";
 
 export const BID_HISTORY_MONTHS = 6;
 
-export function bidPctRange(history: BidPoint[], marginPp: number): AmountRange | null {
+export function bidPctRange(
+	history: BidPoint[],
+	marginPp: number,
+): AmountRange | null {
 	if (history.length === 0) {
 		return null;
 	}
@@ -37,7 +40,11 @@ export function consorcioOwnCash(
 		bidBase === "letter"
 			? { min: letterAtBid, base: letterAtBid, max: letterAtBid }
 			: bidBase === "outstanding"
-				? { min: outstandingBalance, base: outstandingBalance, max: outstandingBalance }
+				? {
+						min: outstandingBalance,
+						base: outstandingBalance,
+						max: outstandingBalance,
+					}
 				: {
 						min: Math.min(letterAtBid, outstandingBalance),
 						base: Math.max(letterAtBid, outstandingBalance),

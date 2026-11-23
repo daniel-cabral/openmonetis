@@ -1,7 +1,11 @@
 import { comparePeriods } from "@/shared/utils/period";
 import type { Cents, EnginePosition, LiquidityKind, Period } from "./types";
 
-export const DEFAULT_REAL_RETURN_PCT: Record<LiquidityKind, number> = { daily: 2, maturity: 4, locked: 4 };
+export const DEFAULT_REAL_RETURN_PCT: Record<LiquidityKind, number> = {
+	daily: 2,
+	maturity: 4,
+	locked: 4,
+};
 
 export function monthlyNominalRate(realPct: number, ipcaPct: number): number {
 	return ((1 + realPct / 100) * (1 + ipcaPct / 100)) ** (1 / 12) - 1;
@@ -11,14 +15,21 @@ export type Buckets = {
 	general: Cents;
 	pots: Record<string, Cents>;
 	potRates: Record<string, number>;
-	pending: { accountId: string; amount: Cents; maturityMonth: Period; rate: number }[];
+	pending: {
+		accountId: string;
+		amount: Cents;
+		maturityMonth: Period;
+		rate: number;
+	}[];
 	locked: Cents;
 	generalRate: number;
 	lockedRate: number;
 };
 
 function realPctOf(position: EnginePosition): number {
-	return position.annualRealReturnPct ?? DEFAULT_REAL_RETURN_PCT[position.liquidity];
+	return (
+		position.annualRealReturnPct ?? DEFAULT_REAL_RETURN_PCT[position.liquidity]
+	);
 }
 
 function sumAmounts(positions: EnginePosition[]): Cents {
@@ -30,7 +41,11 @@ function rateOf(positions: EnginePosition[], ipcaPct: number): number {
 	if (total === 0) {
 		return 0;
 	}
-	const weightedRealPct = positions.reduce((sum, position) => sum + position.amount * realPctOf(position), 0) / total;
+	const weightedRealPct =
+		positions.reduce(
+			(sum, position) => sum + position.amount * realPctOf(position),
+			0,
+		) / total;
 	return monthlyNominalRate(weightedRealPct, ipcaPct);
 }
 
@@ -96,7 +111,10 @@ export function advanceMonth(b: Buckets, month: Period): Buckets {
 
 	const pending: Buckets["pending"] = [];
 	for (const item of b.pending) {
-		const grown = { ...item, amount: Math.round(item.amount * (1 + item.rate)) };
+		const grown = {
+			...item,
+			amount: Math.round(item.amount * (1 + item.rate)),
+		};
 		if (grown.maturityMonth !== month) {
 			pending.push(grown);
 		} else if (grown.accountId in pots) {
@@ -116,11 +134,21 @@ export function advanceMonth(b: Buckets, month: Period): Buckets {
 }
 
 export function bucketsTotal(b: Buckets): Cents {
-	const potTotal = Object.values(b.pots).reduce((total, amount) => total + amount, 0);
-	const pendingTotal = b.pending.reduce((total, item) => total + item.amount, 0);
+	const potTotal = Object.values(b.pots).reduce(
+		(total, amount) => total + amount,
+		0,
+	);
+	const pendingTotal = b.pending.reduce(
+		(total, item) => total + item.amount,
+		0,
+	);
 	return b.general + potTotal + pendingTotal + b.locked;
 }
 
-export function liquidToday(positions: EnginePosition[], potAccountIds: string[], start: Period): Cents {
+export function liquidToday(
+	positions: EnginePosition[],
+	potAccountIds: string[],
+	start: Period,
+): Cents {
 	return openBuckets(positions, potAccountIds, start, 0).general;
 }

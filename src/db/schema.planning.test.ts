@@ -118,14 +118,7 @@ describe("planning schema", () => {
 		{
 			table: assumptionLog,
 			name: "planejamento_premissas",
-			required: [
-				"id",
-				"user_id",
-				"tipo",
-				"resumo",
-				"origem",
-				"created_at",
-			],
+			required: ["id", "user_id", "tipo", "resumo", "origem", "created_at"],
 			nullable: ["proposta_id", "revisar_em"],
 		},
 		{
@@ -147,7 +140,12 @@ describe("planning schema", () => {
 			],
 			nullable: [],
 		},
-	])("$name mapeia as colunas do contrato", ({ table, name, required, nullable }) => {
+	])("$name mapeia as colunas do contrato", ({
+		table,
+		name,
+		required,
+		nullable,
+	}) => {
 		const config = getTableConfig(table);
 		expect(config.name).toBe(name);
 

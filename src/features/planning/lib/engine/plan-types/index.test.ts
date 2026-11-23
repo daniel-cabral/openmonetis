@@ -31,12 +31,14 @@ function plan(over: Partial<EnginePlan>): EnginePlan {
 }
 
 describe("expandPlanEvents", () => {
-	it.each(["draft", "paused", "done", "abandoned"] as PlanLifecycle[])(
-		"emits no events for a %s plan",
-		(lifecycle) => {
-			expect(expandPlanEvents(plan({ lifecycle }), ctx)).toEqual([]);
-		},
-	);
+	it.each([
+		"draft",
+		"paused",
+		"done",
+		"abandoned",
+	] as PlanLifecycle[])("emits no events for a %s plan", (lifecycle) => {
+		expect(expandPlanEvents(plan({ lifecycle }), ctx)).toEqual([]);
+	});
 
 	it("clips manual events to the horizon", () => {
 		const events = expandPlanEvents(
@@ -86,10 +88,22 @@ describe("expandPlanEvents", () => {
 		const baseAmounts = (p: EnginePlan) =>
 			expandPlanEvents(p, inflatedCtx).map((e) => e.amount.base);
 		expect(
-			baseAmounts(plan({ basis: "today", events: [oneOff("nominal")], targetMonth: "2026-01" })),
+			baseAmounts(
+				plan({
+					basis: "today",
+					events: [oneOff("nominal")],
+					targetMonth: "2026-01",
+				}),
+			),
 		).toEqual([100_000]);
 		expect(
-			baseAmounts(plan({ basis: "nominal", events: [oneOff("today")], targetMonth: "2026-01" })),
+			baseAmounts(
+				plan({
+					basis: "nominal",
+					events: [oneOff("today")],
+					targetMonth: "2026-01",
+				}),
+			),
 		).toEqual([112_000]);
 	});
 

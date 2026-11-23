@@ -16,7 +16,9 @@ const cases: [string, string[]][] = [
 ];
 
 describe("resolveWebSearchTools", () => {
-	it.each(cases)("exposes the provider's search tool for %s", (modelId, keys) => {
+	it.each(
+		cases,
+	)("exposes the provider's search tool for %s", (modelId, keys) => {
 		expect(Object.keys(resolveWebSearchTools(modelId))).toEqual(keys);
 	});
 });
@@ -26,7 +28,12 @@ describe("withWebSearchFallback", () => {
 		prompt: [],
 		tools: [
 			{ type: "function" as const, name: "plan", inputSchema: {} },
-			{ type: "provider" as const, id: "anthropic.web_search_20250305", name: "web_search", args: {} },
+			{
+				type: "provider" as const,
+				id: "anthropic.web_search_20250305",
+				name: "web_search",
+				args: {},
+			},
 		],
 	};
 
@@ -35,7 +42,8 @@ describe("withWebSearchFallback", () => {
 		const model = new MockLanguageModelV3({
 			doStream: async (options) => {
 				seen.push((options.tools ?? []).map((tool) => tool.name));
-				if (seen.length === 1) throw new Error("web_search tool is not supported");
+				if (seen.length === 1)
+					throw new Error("web_search tool is not supported");
 				return { stream: new ReadableStream() };
 			},
 		});

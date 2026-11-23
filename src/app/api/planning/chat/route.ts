@@ -54,7 +54,10 @@ export async function POST(request: Request) {
 		}
 
 		if (conversation.messages.some((stored) => stored.id === message.id)) {
-			return NextResponse.json({ error: "Requisição inválida" }, { status: 400 });
+			return NextResponse.json(
+				{ error: "Requisição inválida" },
+				{ status: 400 },
+			);
 		}
 
 		const model = resolveLanguageModel(modelId);
@@ -84,7 +87,8 @@ export async function POST(request: Request) {
 						? fetchCategoryTotals(userId, adminPayerId, from, to).then(
 								(totals) =>
 									totals.filter(
-										(total) => total.categoryName !== CONTRIBUTION_CATEGORY_NAME,
+										(total) =>
+											total.categoryName !== CONTRIBUTION_CATEGORY_NAME,
 									),
 							)
 						: Promise.resolve([]),

@@ -12,13 +12,17 @@ describe("runProjection", () => {
 	] as const)("general %i gives %s when the claim is funded in base and pessimistic", (general, health, firstPessimistic) => {
 		const result = runProjection(
 			engineInput({
-				positions: [position({ id: "cash", accountId: "cash", amount: general })],
+				positions: [
+					position({ id: "cash", accountId: "cash", amount: general }),
+				],
 				plans: [goalPlan("p", "2027-02", claim)],
 			}),
 		);
 
 		expect(result.health.p).toBe(health);
-		expect(result.scenarios.pessimistic.firstUnfunded).toEqual(firstPessimistic);
+		expect(result.scenarios.pessimistic.firstUnfunded).toEqual(
+			firstPessimistic,
+		);
 	});
 
 	it("gives no health to draft plans", () => {

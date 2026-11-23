@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { ContributionRow, PositionView } from "@/features/planning/lib/snapshot-types";
+import type {
+	ContributionRow,
+	PositionView,
+} from "@/features/planning/lib/snapshot-types";
 import {
 	type ContributionAssignment,
 	defaultAssignment,
@@ -17,7 +20,11 @@ const position = (over: Partial<PositionView>): PositionView => ({
 	...over,
 });
 
-const contribution = (id: string, date: string, amount: number): ContributionRow => ({
+const contribution = (
+	id: string,
+	date: string,
+	amount: number,
+): ContributionRow => ({
 	id,
 	name: "Aporte",
 	date,
@@ -27,7 +34,11 @@ const contribution = (id: string, date: string, amount: number): ContributionRow
 describe("prefillPositionLines", () => {
 	it("adds this account's assignments to matching buckets and appends new ones", () => {
 		const current = [
-			position({ description: "Liquidez", amount: 100_000, liquidity: "daily" }),
+			position({
+				description: "Liquidez",
+				amount: 100_000,
+				liquidity: "daily",
+			}),
 			position({
 				description: "Tesouro 2028",
 				amount: 50_000,
@@ -81,7 +92,11 @@ describe("prefillPositionLines", () => {
 
 	it("skips contributions dated on or before the base balance's asOf", () => {
 		const current = [
-			position({ description: "Liquidez", amount: 100_000, asOf: "2026-11-10" }),
+			position({
+				description: "Liquidez",
+				amount: 100_000,
+				asOf: "2026-11-10",
+			}),
 		];
 		const assignments: ContributionAssignment[] = [
 			defaultAssignment(contribution("c1", "2026-11-03", 10_000), "acc-1"),

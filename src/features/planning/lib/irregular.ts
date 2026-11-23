@@ -44,7 +44,10 @@ export function detectIrregularExpenses(
 			byPeriod: new Map<Period, Cents>(),
 		};
 		category.total += cost;
-		category.byPeriod.set(row.period, (category.byPeriod.get(row.period) ?? 0) + cost);
+		category.byPeriod.set(
+			row.period,
+			(category.byPeriod.get(row.period) ?? 0) + cost,
+		);
 		byCategory.set(row.categoryId, category);
 	}
 

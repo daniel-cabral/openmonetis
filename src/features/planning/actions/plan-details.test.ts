@@ -113,12 +113,7 @@ vi.mock("next/cache", () => ({
 	revalidateTag: revalidateTagMock,
 }));
 
-import {
-	bidRecords,
-	categories,
-	planEvents,
-	plans,
-} from "@/db/schema";
+import { bidRecords, categories, planEvents, plans } from "@/db/schema";
 import type { PlanEventInputData } from "@/features/planning/lib/schemas";
 import {
 	deletePlanEventAction,
@@ -164,7 +159,11 @@ describe("planning plan detail actions", () => {
 			{ id: FOREIGN_CATEGORY_ID, userId: FOREIGN_USER_ID },
 		]);
 		stored.set(planEvents, [
-			{ id: FOREIGN_EVENT_ID, userId: FOREIGN_USER_ID, planId: FOREIGN_PLAN_ID },
+			{
+				id: FOREIGN_EVENT_ID,
+				userId: FOREIGN_USER_ID,
+				planId: FOREIGN_PLAN_ID,
+			},
 		]);
 	});
 
