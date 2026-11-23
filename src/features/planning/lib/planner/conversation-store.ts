@@ -20,11 +20,19 @@ export async function createConversation(
 	return row.id;
 }
 
-async function readMessages(conversationId: string): Promise<UIMessage[]> {
+async function readMessages(
+	userId: string,
+	conversationId: string,
+): Promise<UIMessage[]> {
 	const rows = await db
 		.select()
 		.from(plannerMessages)
-		.where(eq(plannerMessages.conversationId, conversationId))
+		.where(
+			and(
+				eq(plannerMessages.conversationId, conversationId),
+				eq(plannerMessages.userId, userId),
+			),
+		)
 		.orderBy(asc(plannerMessages.createdAt));
 	return rows.map((row) => ({
 		id: row.id,
@@ -48,7 +56,7 @@ export async function loadConversation(
 		)
 		.limit(1);
 	if (!row) return null;
-	return { ...row, messages: await readMessages(row.id) };
+	return { ...row, messages: await readMessages(userId, row.id) };
 }
 
 export async function fetchLatestConversation(
@@ -61,7 +69,7 @@ export async function fetchLatestConversation(
 		.orderBy(desc(plannerConversations.updatedAt))
 		.limit(1);
 	if (!row) return null;
-	return { ...row, messages: await readMessages(row.id) };
+	return { ...row, messages: await readMessages(userId, row.id) };
 }
 
 export async function saveMessages(
@@ -88,8 +96,9 @@ export async function saveMessages(
 			.onConflictDoUpdate({
 				target: plannerMessages.id,
 				set: { parts: sql`excluded.${sql.identifier(plannerMessages.parts.name)}` },
-				// a message id belonging to another user is never overwritten
+				// another user's id and stored user messages are never overwritten
 				setWhere: and(
+					eq(plannerMessages.role, "assistant"),
 					eq(plannerMessages.userId, userId),
 					eq(plannerMessages.conversationId, conversationId),
 				),

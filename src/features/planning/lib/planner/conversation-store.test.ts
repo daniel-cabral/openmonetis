@@ -90,6 +90,16 @@ describe("conversation store", () => {
 		);
 	});
 
+	it("lê mensagens filtrando por usuário além da conversa", async () => {
+		mocks.selectResults.push([{ id: CONVERSATION_ID, title: "t" }], []);
+
+		await loadConversation(USER_ID, CONVERSATION_ID);
+
+		expect(params(mocks.selects[1].where)).toEqual(
+			expect.arrayContaining([USER_ID, CONVERSATION_ID]),
+		);
+	});
+
 	it("grava as mensagens em um insert e não sobrescreve linha de outro usuário", async () => {
 		await saveMessages(USER_ID, CONVERSATION_ID, [
 			message("msg-1"),
@@ -104,6 +114,8 @@ describe("conversation store", () => {
 		expect(
 			new PgDialect().sqlToQuery(write.conflict?.set.parts as SQL).sql,
 		).toBe('excluded."partes"');
-		expect(params(write.conflict?.setWhere)).toContain(USER_ID);
+		expect(params(write.conflict?.setWhere)).toEqual(
+			expect.arrayContaining([USER_ID, "assistant"]),
+		);
 	});
 });

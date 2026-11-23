@@ -1,4 +1,3 @@
-import type { UIMessage } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CONTRIBUTION_CATEGORY_NAME } from "@/features/planning/lib/baseline";
@@ -23,9 +22,13 @@ export const maxDuration = 60;
 const chatBodySchema = z.object({
 	conversationId: z.uuid(),
 	modelId: z.string().min(1),
-	message: z.custom<UIMessage>(
-		(value) => typeof value === "object" && value !== null,
-	),
+	message: z.object({
+		id: z.string().min(1),
+		role: z.literal("user"),
+		parts: z
+			.array(z.object({ type: z.literal("text"), text: z.string() }))
+			.min(1),
+	}),
 });
 
 export async function POST(request: Request) {
@@ -48,6 +51,10 @@ export async function POST(request: Request) {
 				{ error: "Conversa não encontrada" },
 				{ status: 404 },
 			);
+		}
+
+		if (conversation.messages.some((stored) => stored.id === message.id)) {
+			return NextResponse.json({ error: "Requisição inválida" }, { status: 400 });
 		}
 
 		const model = resolveLanguageModel(modelId);

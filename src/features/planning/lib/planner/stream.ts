@@ -8,6 +8,7 @@ import {
 	type UIMessage,
 	validateUIMessages,
 } from "ai";
+import { withWebSearchFallback } from "@/shared/lib/ai/web-search";
 
 export const PLANNER_MAX_STEPS = 8;
 
@@ -23,7 +24,7 @@ export async function createPlannerResponse(args: {
 		tools: args.tools as Parameters<typeof validateUIMessages>[0]["tools"],
 	});
 	const result = streamText({
-		model: args.model,
+		model: withWebSearchFallback(args.model),
 		system: args.system,
 		// { tools } routes replayed tool outputs through each tool's toModelOutput
 		messages: await convertToModelMessages(validated, { tools: args.tools }),
