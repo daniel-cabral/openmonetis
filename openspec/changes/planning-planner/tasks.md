@@ -129,11 +129,11 @@ Test (`llm-input.test.ts`): new, because distinct contract (LLM boundary).
 
 Test: new, because distinct contract (summary, diff and their LLM view share the same fixtures in `summary.test.ts`).
 
-- [ ] **Step 1: Write the failing test**: two hand-built `Projection` objects (literal months and literal cents) → summary fields literal; diff of at-risk → on-track and a new plan → `healthChanges` with both entries, `minSlackBaseDelta` literal; `formatCentsForLlm(10_000_000)` → `"R$\u00a0100.000,00"`; `toLlmSummary(summary).minSlack.base` and `toLlmDiff(diff).minSlackBaseDelta` → literal BRL strings.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/summary.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): resumo, diferenca de projecoes e formatacao para o modelo"`.
+- [x] **Step 1: Write the failing test**: two hand-built `Projection` objects (literal months and literal cents) → summary fields literal; diff of at-risk → on-track and a new plan → `healthChanges` with both entries, `minSlackBaseDelta` literal; `formatCentsForLlm(10_000_000)` → `"R$\u00a0100.000,00"`; `toLlmSummary(summary).minSlack.base` and `toLlmDiff(diff).minSlackBaseDelta` → literal BRL strings.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/summary.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): resumo, diferenca de projecoes e formatacao para o modelo"`.
 
 ### Task 5: Planner tools
 
