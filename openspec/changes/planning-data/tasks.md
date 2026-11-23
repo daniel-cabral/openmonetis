@@ -227,13 +227,13 @@ export type PlanningSnapshot = {
 
 Test: new, because the query is a distinct contract (db mocked as in `src/features/trips/queries.test.ts`).
 
-- [ ] **Step 1: Write the failing tests**:
+- [x] **Step 1: Write the failing tests**:
   - "filters baseline rows by user, admin payer and periods": render the captured where with `PgDialect`; params include `"user-1"`, `"admin"`, `"2026-10"`.
   - "returns an empty snapshot for a user without admin payer": `getAdminPayerId` → `null`, every select → `[]`; expect `input.incomeBaseline 0`, `input.costOfLiving 0`, `plans []`, `accounts []`, `settings.reserveMonths 3`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/queries.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** the files.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): snapshot do planejamento a partir do banco"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/queries.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** the files.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): snapshot do planejamento a partir do banco"`.
 
 ### Task 10: Write helpers, revalidation entity and settings action
 
