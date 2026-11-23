@@ -15,8 +15,11 @@ import {
 	toLlmSummary,
 } from "./llm-format";
 import { summarizeProjection } from "./summary";
+import { capUntrusted } from "./untrusted";
 
 const MAX_ASSUMPTIONS = 20;
+const MAX_NAME = 80;
+const MAX_SUMMARY = 300;
 
 export type LlmMoney = string;
 
@@ -158,14 +161,14 @@ export function buildPlannerContext(
 				.filter((account) => account.isEarmarkedPot)
 				.map((account) => ({
 					accountId: account.id,
-					accountName: account.name,
+					accountName: capUntrusted(account.name, MAX_NAME),
 					amount: formatCentsForLlm(
 						sumCents(account.positions.map((p) => p.amount)),
 					),
 				})),
 			accounts: snapshot.accounts.map((account) => ({
 				accountId: account.id,
-				accountName: account.name,
+				accountName: capUntrusted(account.name, MAX_NAME),
 				asOf: account.lastAsOf,
 				stale:
 					account.lastAsOf === null ||
@@ -182,7 +185,7 @@ export function buildPlannerContext(
 		},
 		plans: snapshot.plans.map((plan) => ({
 			id: plan.id,
-			name: plan.name,
+			name: capUntrusted(plan.name, MAX_NAME),
 			type: plan.type,
 			priority: plan.priority,
 			nonNegotiable: plan.nonNegotiable,
@@ -194,7 +197,7 @@ export function buildPlannerContext(
 			potAccountIds: plan.potAccountIds,
 			fields: toLlmFields(plan.fields),
 			events: plan.events.map((event) => ({
-				label: event.label,
+				label: capUntrusted(event.label, MAX_NAME),
 				direction: event.direction,
 				basis: event.basis,
 				amount: toLlmRange(event.amount),
@@ -211,7 +214,7 @@ export function buildPlannerContext(
 			return latest
 				? [
 						{
-							planName: plan.name,
+							planName: capUntrusted(plan.name, MAX_NAME),
 							month: latest.month,
 							winningBidPct: latest.winningBidPct,
 						},
@@ -224,7 +227,7 @@ export function buildPlannerContext(
 			.map((assumption) => ({
 				date: assumption.createdAt.slice(0, 10),
 				kind: assumption.kind,
-				summary: assumption.summary,
+				summary: capUntrusted(assumption.summary, MAX_SUMMARY),
 				source: assumption.source,
 			})),
 	};
