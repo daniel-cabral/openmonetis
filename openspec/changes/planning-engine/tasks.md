@@ -212,7 +212,7 @@ it("pays mapped outflows toward the target", () => {
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 const history = [["2026-06", 50], ["2026-07", 30], ["2026-08", 32], ["2026-09", 35], ["2026-10", 33], ["2026-11", 34], ["2026-12", 36]]
@@ -235,10 +235,10 @@ it("embedded bid reduces own cash and floors at zero", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/consorcio.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** both functions.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit** both files; `git commit -m "feat(planning): faixa de lance e caixa proprio do consorcio"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/consorcio.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** both functions.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit** both files; `git commit -m "feat(planning): faixa de lance e caixa proprio do consorcio"`.
 
 ### Task 5: Consórcio events and the plan-type dispatcher
 
