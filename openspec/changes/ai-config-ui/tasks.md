@@ -350,11 +350,11 @@ Test: extends `proposal.test.ts` with a new `it`, because it is a distinct contr
 
 Test: new, because `buildSystemPrompt` has no test and the prompt is the contract with the model.
 
-- [ ] **Step 1: Failing test** `"prompt carries glossary, tool-number rules and the answer discipline"`: with a minimal `PlannerContext` fixture (reuse `context.test.ts` builder), `buildSystemPrompt(ctx, { webSearch: false })` contains each of `"locked"`, `"nonNegotiable"`, `"marginPp"`, `"71%"`, `"reais de hoje"`, `"no máximo 3"`, `"resposta em texto"` (exact wording chosen in Step 3, assert the same literals), does not contain the old sentence `"Nunca calcule nem estime números. Todo valor"` unqualified (assert the new sentence about external facts instead), and ends with the JSON context.
-- [ ] **Step 2:** `pnpm exec vitest run src/features/planning/lib/planner/system-prompt.test.ts` -> FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Test -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `feat(planning): glossário e regras no prompt do planejador`
+- [x] **Step 1: Failing test** `"prompt carries glossary, tool-number rules and the answer discipline"`: with a minimal `PlannerContext` fixture (reuse `context.test.ts` builder), `buildSystemPrompt(ctx, { webSearch: false })` contains each of `"locked"`, `"nonNegotiable"`, `"marginPp"`, `"71%"`, `"reais de hoje"`, `"no máximo 3"`, `"resposta em texto"` (exact wording chosen in Step 3, assert the same literals), does not contain the old sentence `"Nunca calcule nem estime números. Todo valor"` unqualified (assert the new sentence about external facts instead), and ends with the JSON context.
+- [x] **Step 2:** `pnpm exec vitest run src/features/planning/lib/planner/system-prompt.test.ts` -> FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Test -> PASS; lint touched files.
+- [x] **Step 5: Commit** `feat(planning): glossário e regras no prompt do planejador`
 
 ### Task 18: Planner context: index forecast and stale positions
 
