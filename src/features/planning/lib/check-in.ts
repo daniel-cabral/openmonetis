@@ -60,8 +60,12 @@ export function prefillPositionLines(
 		}),
 	);
 
+	// Contributions dated on or before the base balance's asOf are already inside it.
+	const baseAsOf = current.reduce((max, item) => (item.asOf > max ? item.asOf : max), "");
+
 	for (const assignment of assignments) {
 		if (assignment.accountId !== accountId) continue;
+		if (assignment.date <= baseAsOf) continue;
 		const line = lines.find(
 			(item) =>
 				item.liquidity === assignment.liquidity &&

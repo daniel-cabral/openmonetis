@@ -78,4 +78,25 @@ describe("prefillPositionLines", () => {
 			},
 		]);
 	});
+
+	it("skips contributions dated on or before the base balance's asOf", () => {
+		const current = [
+			position({ description: "Liquidez", amount: 100_000, asOf: "2026-11-10" }),
+		];
+		const assignments: ContributionAssignment[] = [
+			defaultAssignment(contribution("c1", "2026-11-03", 10_000), "acc-1"),
+			defaultAssignment(contribution("c2", "2026-11-10", 4_000), "acc-1"),
+			defaultAssignment(contribution("c3", "2026-11-15", 5_000), "acc-1"),
+		];
+
+		expect(prefillPositionLines(current, assignments, "acc-1")).toEqual([
+			{
+				description: "Liquidez",
+				amount: 105_000,
+				liquidity: "daily",
+				maturityMonth: null,
+				annualRealReturnPct: null,
+			},
+		]);
+	});
 });
