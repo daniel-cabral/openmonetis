@@ -1,0 +1,9 @@
+export const CHATGPT_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
+export const CHATGPT_ISSUER = "https://auth.openai.com";
+export const CHATGPT_API_BASE = "https://chatgpt.com/backend-api/codex";
+export const CHATGPT_ORIGINATOR = "openmonetis";
+export const CHATGPT_REFRESH_MARGIN_MS = 24 * 60 * 60 * 1000;
+export const CHATGPT_PENDING_TTL_MS = 15 * 60 * 1000;
+export const CHATGPT_MIN_POLL_INTERVAL_SECONDS = 3;
+export const CHATGPT_MODELS_TIMEOUT_MS = 3000;
+export const CHATGPT_MODELS_CACHE_MS = 5 * 60 * 1000;

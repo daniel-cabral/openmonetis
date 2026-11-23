@@ -105,11 +105,11 @@ Test: new, because distinct setup (fake `database` at the DB boundary, as `src/f
 
 Test: new, because distinct contract (HTTP client against a fake `fetch` at the external boundary). Port the relevant cases of cockpit `codex-oauth.test.ts`.
 
-- [ ] **Step 1: Failing tests** (one per endpoint contract): `"device code clamps the poll interval to 3 seconds"` (`interval: "1"` -> `pollIntervalSeconds: 3`, `verificationUrl: "https://auth.openai.com/codex/device"`, body `client_id` = constant); `"poll treats 403 and 404 as pending"` (`it.each([403, 404])`); `"refresh maps 400/401 to reconnect and 429/503 to temporary"` (`it.each`); `"claims read account, e-mail, plan and expiry"` with a hand-built unsigned JWT literal.
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Port.
-- [ ] **Step 4:** Run -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): fluxo device-code da assinatura do ChatGPT`
+- [x] **Step 1: Failing tests** (one per endpoint contract): `"device code clamps the poll interval to 3 seconds"` (`interval: "1"` -> `pollIntervalSeconds: 3`, `verificationUrl: "https://auth.openai.com/codex/device"`, body `client_id` = constant); `"poll treats 403 and 404 as pending"` (`it.each([403, 404])`); `"refresh maps 400/401 to reconnect and 429/503 to temporary"` (`it.each`); `"claims read account, e-mail, plan and expiry"` with a hand-built unsigned JWT literal.
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Port.
+- [x] **Step 4:** Run -> PASS.
+- [x] **Step 5: Commit** `feat(ia): fluxo device-code da assinatura do ChatGPT`
 
 ### Task 5: ChatGPT token store with locked refresh
 
