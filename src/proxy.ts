@@ -18,6 +18,7 @@ const PROTECTED_ROUTES = [
 	"/inbox",
 	"/reports",
 	"/trips",
+	"/planning",
 ];
 
 // Rotas públicas (não requerem autenticação)
@@ -144,6 +145,7 @@ export const config = {
 		"/inbox/:path*",
 		"/reports/:path*",
 		"/trips/:path*",
+		"/planning/:path*",
 		"/login",
 		"/signup",
 	],
