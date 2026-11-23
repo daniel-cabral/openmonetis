@@ -37,6 +37,7 @@
 		"@ai-sdk/google": "^3.0.85",
 		"@ai-sdk/openai": "^3.0.76",
 		"@ai-sdk/openai-compatible": "^2.0.53",
+		"@ai-sdk/react": "3.0.215",
 		"@aws-sdk/client-s3": "^3.1075.0",
 		"@aws-sdk/s3-request-presigner": "^3.1075.0",
 		"@better-auth/passkey": "^1.6.22",

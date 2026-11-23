@@ -285,11 +285,11 @@ Test: new, because distinct actor (approved writes).
 
 Test: none, because UI wiring (the server contract is locked by Tasks 9 and 10).
 
-- [ ] **Step 1:** Add the dependency; `git diff package.json` shows only `@ai-sdk/react`.
-- [ ] **Step 2:** Implement the components and wire the page.
-- [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 1:** Add the dependency; `git diff package.json` shows only `@ai-sdk/react`.
+- [x] **Step 2:** Implement the components and wire the page.
+- [x] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Manual check (best-effort)** with a configured provider: send a question, see streaming text and a tool chip; reload and see the thread persisted.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): chat do planejador acoplado a pagina"`.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): chat do planejador acoplado a pagina"`.
 
 ### Task 13: Proposal card with preview and apply
 

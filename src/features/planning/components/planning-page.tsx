@@ -16,6 +16,7 @@ import {
 	type StressToggles,
 	stressEffects,
 } from "@/features/planning/lib/engine";
+import type { StoredConversation } from "@/features/planning/lib/planner/conversation-store";
 import type { PlanningSettingsInput } from "@/features/planning/lib/schemas";
 import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
 import {
@@ -31,6 +32,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { DEFAULT_MODEL } from "@/shared/lib/ai/models";
 import { MONTH_NAMES, parsePeriod } from "@/shared/utils/period";
 import { AssumptionLogCard } from "./assumption-log-card";
 import { CheckInDialog } from "./check-in/check-in-dialog";
@@ -38,7 +40,7 @@ import { DriftBanner } from "./drift-banner";
 import { KpiRow } from "./kpi-row";
 import { LiquidityChart } from "./liquidity-chart";
 import { PlanDialog } from "./plan-dialog/plan-dialog";
-import { PlannerPlaceholder } from "./planner-placeholder";
+import { PlannerPanel } from "./planner/planner-panel";
 import { PlansTable } from "./plans-table";
 import { SettingsDialog } from "./settings-dialog";
 import { StressCard } from "./stress-card";
@@ -63,10 +65,12 @@ export function PlanningPage({
 	snapshot,
 	today,
 	expenseCategories,
+	plannerConversation,
 }: {
 	snapshot: PlanningSnapshot;
 	today: string;
 	expenseCategories: { id: string; name: string }[];
+	plannerConversation: StoredConversation | null;
 }) {
 	const [activeStress, setActiveStress] = useState<StressToggles>({});
 	const configured = useMemo(
@@ -145,7 +149,11 @@ export function PlanningPage({
 			<KpiRow kpis={kpis} />
 			<div className="grid gap-6 lg:grid-cols-5">
 				<div className="space-y-6 lg:col-span-2">
-					<PlannerPlaceholder />
+					<PlannerPanel
+						conversation={plannerConversation}
+						modelId={snapshot.settings.plannerModelId ?? DEFAULT_MODEL}
+						settings={snapshot.settings}
+					/>
 					<StressCard
 						configured={configured}
 						effects={effects}

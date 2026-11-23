@@ -1,15 +1,17 @@
 import { connection } from "next/server";
 import { fetchCategoriesForUser } from "@/features/categories/queries";
 import { PlanningPage } from "@/features/planning/components/planning-page";
+import { fetchLatestConversation } from "@/features/planning/lib/planner/conversation-store";
 import { fetchPlanningSnapshot } from "@/features/planning/queries";
 import { getUserId } from "@/shared/lib/auth/server";
 
 export default async function Page() {
 	await connection();
 	const userId = await getUserId();
-	const [snapshot, categoryRows] = await Promise.all([
+	const [snapshot, categoryRows, plannerConversation] = await Promise.all([
 		fetchPlanningSnapshot(userId),
 		fetchCategoriesForUser(userId),
+		fetchLatestConversation(userId),
 	]);
 	const expenseCategories = categoryRows
 		.filter((category) => category.type === "despesa")
@@ -22,6 +24,7 @@ export default async function Page() {
 				snapshot={snapshot}
 				today={today}
 				expenseCategories={expenseCategories}
+				plannerConversation={plannerConversation}
 			/>
 		</main>
 	);
