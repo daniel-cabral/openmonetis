@@ -15,7 +15,7 @@ export type PlanningKpis = {
 	firstUnfunded: { month: Period; planName: string } | null;
 };
 
-function ageInDays(asOf: string, today: Date): number {
+export function ageInDays(asOf: string, today: Date): number {
 	const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 	return Math.round((todayUtc - Date.parse(`${asOf}T00:00:00Z`)) / DAY_MS);
 }

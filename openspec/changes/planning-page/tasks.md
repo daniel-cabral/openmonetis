@@ -83,7 +83,7 @@ Test: none, because thin route and layout (no logic beyond Tasks 1 and 2); verif
 
 - [x] **Step 1:** Write the page (`await connection()`, `getUserId()`, `fetchPlanningSnapshot(userId)`).
 - [x] **Step 2:** Write `PlanningPage` shell and `PlannerPlaceholder`; add the navbar item.
-- [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Manual check (best-effort)**: `pnpm run dev` (one heavy process at a time), open `/planning` logged in. Expected: header, placeholder and empty slots render with no console error.
 - [ ] **Step 5: Commit**; `git commit -m "feat(planning): rota /planning com layout da pagina"`.
 
@@ -102,7 +102,7 @@ Test: none, because presentational over Tasks 1 and 2 view models.
 
 - [x] **Step 1:** Implement the four components following the preview variant c structure.
 - [x] **Step 2:** Wire them into `PlanningPage`.
-- [ ] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 3: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 4: Manual check (best-effort)** with dev server: chart lines and table render with at least one plan created via Task 6 later, or with seeded test data in a local db only.
 - [x] **Step 5: Commit**; `git commit -m "feat(planning): indicadores, grafico de liquidez e tabela de planos"`.
 
@@ -212,10 +212,10 @@ Test: new, because distinct contract.
 
 Test: none, because prefill logic is locked by Task 9 and persistence by `planning-data` Tasks 11 and 13.
 
-- [ ] **Step 1:** Implement the dialog and steps.
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 1:** Implement the dialog and steps.
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 3: Manual check (best-effort)**: assign a contribution, save an account, record a bid; KPIs and chart update after refresh.
-- [ ] **Step 4: Commit**; `git commit -m "feat(planning): check-in mensal"`.
+- [x] **Step 4: Commit**; `git commit -m "feat(planning): check-in mensal"`.
 
 ### Task 11: Settings dialog and assumption log card
 
@@ -229,10 +229,10 @@ Test: none, because prefill logic is locked by Task 9 and persistence by `planni
 
 Test: none, because presentational; persistence locked by `planning-data` Tasks 10 and 13.
 
-- [ ] **Step 1:** Implement both components and labels.
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 1:** Implement both components and labels.
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
 - [ ] **Step 3: Manual check (best-effort)**: change IPCA forecast; a new `"Índice"` entry appears in the log.
-- [ ] **Step 4: Commit**; `git commit -m "feat(planning): ajustes e registro de premissas na pagina"`.
+- [x] **Step 4: Commit**; `git commit -m "feat(planning): ajustes e registro de premissas na pagina"`.
 
 ### Task 12: Stress card and drift banner
 
@@ -247,11 +247,11 @@ Test: none, because presentational; persistence locked by `planning-data` Tasks 
 
 Test: new, because `driftMessages` is a distinct contract (assert each kind produces a message containing the plan name or formatted amount, not the full sentence).
 
-- [ ] **Step 1: Write the failing test** with one `it.each` over the four signal kinds.
-- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/drift-view.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** helper and both components; wire into the page.
-- [ ] **Step 4: Run** the test (PASS) and `pnpm exec tsc --noEmit` (exit 0).
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): cenarios de estresse e alerta de desvio na pagina"`.
+- [x] **Step 1: Write the failing test** with one `it.each` over the four signal kinds.
+- [x] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/drift-view.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** helper and both components; wire into the page.
+- [x] **Step 4: Run** the test (PASS) and `pnpm exec tsc --noEmit` (exit 0).
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): cenarios de estresse e alerta de desvio na pagina"`.
 
 ### Task 13: Remove preview, version and closing checks
 
@@ -261,9 +261,9 @@ Test: new, because `driftMessages` is a distinct contract (assert each kind prod
 
 Test: none, because no behaviour change in tested code; the existing changelog/version coherence test covers the bump.
 
-- [ ] **Step 1:** Delete the preview folder; `git grep -n "preview-planning"` returns nothing.
-- [ ] **Step 2:** Bump to the next minor of the current `package.json` version; add the `CHANGELOG.md` entry with the introductory paragraph (AGENTS.md rule 6) and `### Adicionado`; update the README badge.
-- [ ] **Step 3: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning src/features/settings/lib/parse-changelog.test.ts`. Expected: PASS.
-- [ ] **Step 4: Run** `pnpm exec tsc --noEmit` and `pnpm exec biome check --formatter-enabled=false src/features/planning 'src/app/(dashboard)/planning' src/shared/components/navigation`. Expected: clean.
-- [ ] **Step 5: Run** the full suite once: `pnpm exec vitest run --maxWorkers=4`. Expected: PASS.
-- [ ] **Step 6: Commit** `git add` the changed paths and the deletion by path (`git rm -r --cached` not needed: the folder was never tracked); `git commit -m "feat(planning): pagina de planejamento e versao X.Y.0"`. Do not tag.
+- [x] **Step 1:** Delete the preview folder; `git grep -n "preview-planning"` returns nothing.
+- [x] **Step 2:** Bump to the next minor of the current `package.json` version; add the `CHANGELOG.md` entry with the introductory paragraph (AGENTS.md rule 6) and `### Adicionado`; update the README badge.
+- [x] **Step 3: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning src/features/settings/lib/parse-changelog.test.ts`. Expected: PASS.
+- [x] **Step 4: Run** `pnpm exec tsc --noEmit` and `pnpm exec biome check --formatter-enabled=false src/features/planning 'src/app/(dashboard)/planning' src/shared/components/navigation`. Expected: clean.
+- [x] **Step 5: Run** the full suite once: `pnpm exec vitest run --maxWorkers=4`. Expected: PASS.
+- [x] **Step 6: Commit** `git add` the changed paths and the deletion by path (`git rm -r --cached` not needed: the folder was never tracked); `git commit -m "feat(planning): pagina de planejamento e versao X.Y.0"`. Do not tag.
