@@ -45,7 +45,10 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { type ModelGroup, pickAvailableModel } from "@/shared/lib/ai/model-groups";
+import {
+	type ModelGroup,
+	pickAvailableModel,
+} from "@/shared/lib/ai/model-groups";
 import { DEFAULT_MODEL } from "@/shared/lib/ai/models";
 import { MONTH_NAMES, parsePeriod } from "@/shared/utils/period";
 import { AssumptionLogCard } from "./assumption-log-card";

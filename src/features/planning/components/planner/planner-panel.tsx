@@ -154,29 +154,29 @@ export function PlannerPanel({
 						</Link>
 					</p>
 				) : (
-				<Select value={modelId} onValueChange={changeModel}>
-					<SelectTrigger
-						size="sm"
-						className="w-full"
-						aria-label="Modelo do planejador"
-					>
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						{modelGroups
-							.filter((group) => group.models.length > 0)
-							.map((group) => (
-								<SelectGroup key={group.provider}>
-									<SelectLabel>{group.label}</SelectLabel>
-									{group.models.map((model) => (
-										<SelectItem key={model.id} value={model.id}>
-											{model.name}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							))}
-					</SelectContent>
-				</Select>
+					<Select value={modelId} onValueChange={changeModel}>
+						<SelectTrigger
+							size="sm"
+							className="w-full"
+							aria-label="Modelo do planejador"
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{modelGroups
+								.filter((group) => group.models.length > 0)
+								.map((group) => (
+									<SelectGroup key={group.provider}>
+										<SelectLabel>{group.label}</SelectLabel>
+										{group.models.map((model) => (
+											<SelectItem key={model.id} value={model.id}>
+												{model.name}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								))}
+						</SelectContent>
+					</Select>
 				)}
 				<div
 					ref={scrollRef}

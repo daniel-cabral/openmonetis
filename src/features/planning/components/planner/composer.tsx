@@ -42,7 +42,10 @@ export function Composer({
 						Parar
 					</Button>
 				) : null}
-				<Button type="submit" disabled={disabled || busy || value.trim().length === 0}>
+				<Button
+					type="submit"
+					disabled={disabled || busy || value.trim().length === 0}
+				>
 					Enviar
 				</Button>
 			</div>

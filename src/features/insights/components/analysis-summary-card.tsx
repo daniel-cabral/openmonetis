@@ -9,7 +9,6 @@ import {
 } from "@remixicon/react";
 import type React from "react";
 import type { AiProviderId } from "@/features/insights/constants";
-import { providerLabel } from "@/shared/lib/ai/model-groups";
 import { USER_INSTRUCTIONS_MAX_LENGTH } from "@/features/insights/lib/user-instructions";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -25,6 +24,7 @@ import {
 	DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { providerLabel } from "@/shared/lib/ai/model-groups";
 import { displayPeriod } from "@/shared/utils/period";
 import { cn } from "@/shared/utils/ui";
 import { ProviderIcon } from "./provider-icon";

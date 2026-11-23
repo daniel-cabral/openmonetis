@@ -1,7 +1,7 @@
 import { RiCheckLine } from "@remixicon/react";
 import type { AiProviderId } from "@/features/insights/constants";
-import { providerLabel } from "@/shared/lib/ai/model-groups";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { providerLabel } from "@/shared/lib/ai/model-groups";
 import { cn } from "@/shared/utils/ui";
 import { ProviderIcon } from "./provider-icon";
 

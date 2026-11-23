@@ -1,11 +1,11 @@
 import { connection } from "next/server";
 import { InsightsPage } from "@/features/insights/components/insights-page";
+import { ContentErrorBoundary } from "@/shared/components/feedback/content-error-boundary";
+import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { listChatGptModels } from "@/shared/lib/ai/chatgpt/models-list";
 import { fetchConnectedAiProviders } from "@/shared/lib/ai/connected-providers";
 import { buildModelGroups } from "@/shared/lib/ai/model-groups";
 import { getUserId } from "@/shared/lib/auth/server";
-import { ContentErrorBoundary } from "@/shared/components/feedback/content-error-boundary";
-import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { parsePeriodParam } from "@/shared/utils/period";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;

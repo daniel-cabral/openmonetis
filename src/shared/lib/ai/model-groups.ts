@@ -1,6 +1,6 @@
 import {
-	AVAILABLE_MODELS,
 	type AiProviderId,
+	AVAILABLE_MODELS,
 	type ChatGptModel,
 	PROVIDERS,
 } from "./models";
