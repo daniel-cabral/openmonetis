@@ -3,8 +3,13 @@ import { createHash } from "node:crypto";
 export const TEMP_DATABASE = "openmonetis_baseline_check";
 
 export const SNAPSHOT_QUERIES = {
-	columns: `SELECT table_name || '.' || column_name || '|' || data_type || '|' || is_nullable || '|' || coalesce(column_default, '') AS line
-		FROM information_schema.columns WHERE table_schema = 'public'`,
+	columns: `SELECT rel.relname || '.' || att.attname || '|' || format_type(att.atttypid, att.atttypmod) || '|'
+			|| CASE WHEN att.attnotnull THEN 'NO' ELSE 'YES' END || '|' || coalesce(pg_get_expr(def.adbin, def.adrelid), '') AS line
+		FROM pg_attribute att
+		JOIN pg_class rel ON rel.oid = att.attrelid AND rel.relkind = 'r'
+		JOIN pg_namespace ns ON ns.oid = rel.relnamespace AND ns.nspname = 'public'
+		LEFT JOIN pg_attrdef def ON def.adrelid = att.attrelid AND def.adnum = att.attnum
+		WHERE att.attnum > 0 AND NOT att.attisdropped`,
 	constraints: `SELECT rel.relname || '|' || pg_get_constraintdef(con.oid) AS line
 		FROM pg_constraint con JOIN pg_class rel ON rel.oid = con.conrelid JOIN pg_namespace ns ON ns.oid = rel.relnamespace
 		WHERE ns.nspname = 'public'`,

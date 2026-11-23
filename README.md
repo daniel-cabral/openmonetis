@@ -175,14 +175,15 @@ docker compose pull && docker compose up -d
 
 As migrations versionadas em `drizzle/` são aplicadas automaticamente no startup. Se alguma falhar, o container não sobe.
 
-> **Atualizando da 2.15.x ou anterior:** até a 2.15 o startup usava `drizzle-kit push`, que não registra histórico. Antes de subir a 2.16, rode uma vez no container do app (ainda na versão antiga, desde que já contenha o script) ou numa imagem 2.16 com o entrypoint sobrescrito:
+> **Atualizando da 2.15.x ou anterior:** até a 2.15 o startup usava `drizzle-kit push`, que não registra histórico, e a 2.16 recusa subir num banco assim. Depois de baixar a 2.16, rode o baseline uma vez com o entrypoint sobrescrito, antes de subir o app:
 >
 > ```bash
-> NODE_PATH=/app/migrate/node_modules node /app/scripts/db-baseline/run.mjs          # confere o schema
-> NODE_PATH=/app/migrate/node_modules node /app/scripts/db-baseline/run.mjs --apply  # registra o histórico
+> docker compose run --rm --entrypoint "" app sh -c "NODE_PATH=/app/migrate/node_modules node /app/scripts/db-baseline/run.mjs"          # confere o schema
+> docker compose run --rm --entrypoint "" app sh -c "NODE_PATH=/app/migrate/node_modules node /app/scripts/db-baseline/run.mjs --apply"  # registra o histórico
+> docker compose up -d
 > ```
 >
-> O script compara o schema do banco com o resultado das migrations e só registra se forem idênticos. Sem esse passo, a 2.16 recusa subir e mostra o comando.
+> O script compara o schema do banco com o resultado das migrations e só registra se forem idênticos.
 
 ---
 
