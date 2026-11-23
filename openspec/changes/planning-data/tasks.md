@@ -152,11 +152,11 @@ Test: new, because distinct contract.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: one `it.each` over D4 rows → class (transfer into investment account → contribution; transfer elsewhere → ignored; `AUTO_FATURA:` note → ignored; `"Ajuste de saldo"` → ignored; Despesa `Investimentos` → contribution; Receita `Investimentos` → ignored; Receita `Rendimentos` → ignored; refund note → cost; mapped Despesa → mapped; plain Despesa → cost; plain Receita → income). Then `buildBaselines` over two months with income `500_000` and `520_000`, cost `-300_000` and `-340_000`, one `AUTO_FATURA:` `-340_000`, mapped `-20_000` each month for plan `"p"` → `{ incomeBaseline: 510_000, costOfLiving: 320_000, mappedMonthlyByPlan: { p: 20_000 } }`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/baseline.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): classificacao de lancamentos e linhas de base"`.
+- [x] **Step 1: Write the failing test**: one `it.each` over D4 rows → class (transfer into investment account → contribution; transfer elsewhere → ignored; `AUTO_FATURA:` note → ignored; `"Ajuste de saldo"` → ignored; Despesa `Investimentos` → contribution; Receita `Investimentos` → ignored; Receita `Rendimentos` → ignored; refund note → cost; mapped Despesa → mapped; plain Despesa → cost; plain Receita → income). Then `buildBaselines` over two months with income `500_000` and `520_000`, cost `-300_000` and `-340_000`, one `AUTO_FATURA:` `-340_000`, mapped `-20_000` each month for plan `"p"` → `{ incomeBaseline: 510_000, costOfLiving: 320_000, mappedMonthlyByPlan: { p: 20_000 } }`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/baseline.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): classificacao de lancamentos e linhas de base"`.
 
 ### Task 7: Irregular annual expenses
 
