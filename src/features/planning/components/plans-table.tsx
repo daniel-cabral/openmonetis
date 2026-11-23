@@ -61,8 +61,11 @@ export function PlansTable({
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
 	const [pendingDelete, setPendingDelete] = useState<PlanRow | null>(null);
+	// Plans that exist only in the planner preview have nothing saved to edit or reorder.
+	const isPreviewRow = (row: PlanRow) =>
+		row.kind !== "reserve" && !plans.some((plan) => plan.id === row.id);
 	const visibleIds = rows
-		.filter((row) => row.kind !== "reserve")
+		.filter((row) => row.kind !== "reserve" && !isPreviewRow(row))
 		.map((row) => row.id);
 
 	// Reorder works on every plan, including paused and done ones that the
@@ -136,7 +139,7 @@ export function PlansTable({
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-2">
-											{row.kind !== "reserve" ? (
+											{row.kind !== "reserve" && !isPreviewRow(row) ? (
 												<button
 													type="button"
 													className="text-left font-medium hover:underline"
@@ -149,6 +152,9 @@ export function PlansTable({
 											)}
 											{row.nonNegotiable ? (
 												<Badge variant="outline">Inegociável</Badge>
+											) : null}
+											{isPreviewRow(row) ? (
+												<Badge variant="outline">Novo</Badge>
 											) : null}
 										</div>
 									</TableCell>
@@ -168,7 +174,7 @@ export function PlansTable({
 										<HealthBadge health={row.health} />
 									</TableCell>
 									<TableCell>
-										{row.kind === "reserve" ? null : (
+										{row.kind === "reserve" || isPreviewRow(row) ? null : (
 											<div className="flex items-center justify-end gap-1">
 												<Button
 													type="button"

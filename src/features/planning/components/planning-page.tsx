@@ -7,18 +7,29 @@ import {
 	RiSettings3Line,
 } from "@remixicon/react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { driftMessages } from "@/features/planning/lib/drift-view";
 import {
 	applyStress,
 	detectDrift,
+	type EngineInput,
 	type Projection,
 	runProjection,
 	type StressToggles,
 	stressEffects,
 } from "@/features/planning/lib/engine";
 import type { StoredConversation } from "@/features/planning/lib/planner/conversation-store";
+import {
+	applyChangesToInput,
+	type ProposalChange,
+	ProposalError,
+} from "@/features/planning/lib/planner/proposal";
+import type { ProposalToolOutput } from "@/features/planning/lib/planner/tools";
 import type { PlanningSettingsInput } from "@/features/planning/lib/schemas";
-import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
+import type {
+	PlanningSnapshot,
+	PlanView,
+} from "@/features/planning/lib/snapshot-types";
 import {
 	buildChartSeries,
 	buildKpis,
@@ -41,6 +52,7 @@ import { KpiRow } from "./kpi-row";
 import { LiquidityChart } from "./liquidity-chart";
 import { PlanDialog } from "./plan-dialog/plan-dialog";
 import { PlannerPanel } from "./planner/planner-panel";
+import { ProposalCard } from "./planner/proposal-card";
 import { PlansTable } from "./plans-table";
 import { SettingsDialog } from "./settings-dialog";
 import { StressCard } from "./stress-card";
@@ -61,6 +73,19 @@ function configuredStress(settings: PlanningSettingsInput): StressToggles {
 	};
 }
 
+/** The input with a proposal applied, or null when it no longer fits the current plans. */
+function previewInput(
+	input: EngineInput,
+	changes: ProposalChange[],
+): EngineInput | null {
+	try {
+		return applyChangesToInput(input, changes);
+	} catch (error) {
+		if (error instanceof ProposalError) return null;
+		throw error;
+	}
+}
+
 export function PlanningPage({
 	snapshot,
 	today,
@@ -73,16 +98,33 @@ export function PlanningPage({
 	plannerConversation: StoredConversation | null;
 }) {
 	const [activeStress, setActiveStress] = useState<StressToggles>({});
+	const [preview, setPreview] = useState<{
+		proposalId: string;
+		changes: ProposalChange[];
+	} | null>(null);
 	const configured = useMemo(
 		() => configuredStress(snapshot.settings),
 		[snapshot.settings],
 	);
 
-	const { kpis, chart, rows, drift, effects } = useMemo(() => {
+	const { kpis, chart, rows, drift, effects, previewedId } = useMemo(() => {
 		const todayDate = new Date(`${today}T00:00:00`);
 		// Drift reflects the real plan, so it reads the unstressed projection.
 		const baseProjection: Projection = runProjection(snapshot.input);
-		const projection = runProjection(applyStress(snapshot.input, activeStress));
+		const previewed =
+			preview &&
+			!snapshot.assumptions.some((a) => a.proposalId === preview.proposalId)
+				? previewInput(snapshot.input, preview.changes)
+				: null;
+		const projection = runProjection(
+			applyStress(previewed ?? snapshot.input, activeStress),
+		);
+		// Plans that exist only in the preview get rows; PlansTable flags them "Novo".
+		const newPlans: PlanView[] = (previewed?.plans ?? [])
+			.filter(
+				(plan) => !snapshot.input.plans.some((saved) => saved.id === plan.id),
+			)
+			.map((plan) => ({ ...plan, type: plan.fields.type, categoryIds: [] }));
 		const kpis = buildKpis(snapshot, projection, todayDate);
 		const drift = driftMessages(
 			detectDrift({
@@ -97,11 +139,16 @@ export function PlanningPage({
 		return {
 			kpis,
 			chart: buildChartSeries(projection),
-			rows: buildPlanRows(snapshot.plans, projection, kpis),
+			rows: buildPlanRows(
+				[...snapshot.plans, ...newPlans],
+				projection,
+				kpis,
+			),
 			drift,
 			effects: stressEffects(snapshot.input, configured),
+			previewedId: previewed && preview ? preview.proposalId : null,
 		};
-	}, [snapshot, activeStress, configured, today]);
+	}, [snapshot, activeStress, configured, today, preview]);
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [newPlanType, setNewPlanType] = useState<"goal" | "consorcio">("goal");
@@ -114,6 +161,19 @@ export function PlanningPage({
 	);
 	const checkInMonth =
 		MONTH_NAMES[parsePeriod(snapshot.currentMonth).month - 1] ?? "";
+
+	const togglePreview = (output: ProposalToolOutput, toolCallId: string) => {
+		if (previewedId === toolCallId) {
+			setPreview(null);
+			return;
+		}
+		if ("error" in output) return;
+		if (!previewInput(snapshot.input, output.proposal.changes)) {
+			toast.error("Esta proposta não se aplica aos planos atuais.");
+			return;
+		}
+		setPreview({ proposalId: toolCallId, changes: output.proposal.changes });
+	};
 
 	const openNewPlan = (type: "goal" | "consorcio") => {
 		setNewPlanType(type);
@@ -153,6 +213,21 @@ export function PlanningPage({
 						conversation={plannerConversation}
 						modelId={snapshot.settings.plannerModelId ?? DEFAULT_MODEL}
 						settings={snapshot.settings}
+						renderProposal={(output, toolCallId) => (
+							<ProposalCard
+								output={output}
+								applied={snapshot.assumptions.some(
+									(assumption) => assumption.proposalId === toolCallId,
+								)}
+								previewing={previewedId === toolCallId}
+								onPreview={() => togglePreview(output, toolCallId)}
+								onDiscard={() =>
+									setPreview((current) =>
+										current?.proposalId === toolCallId ? null : current,
+									)
+								}
+							/>
+						)}
 					/>
 					<StressCard
 						configured={configured}
@@ -162,7 +237,10 @@ export function PlanningPage({
 					/>
 				</div>
 				<div className="space-y-6 lg:col-span-3">
-					<LiquidityChart points={chart} />
+					<LiquidityChart
+						points={chart}
+						previewLabel={previewedId ? "Prévia" : undefined}
+					/>
 					<div className="flex flex-wrap justify-end gap-2">
 						<Button
 							type="button"
