@@ -21,6 +21,14 @@ export function resolveWebSearchTools(modelId: string): ToolSet {
 	}
 }
 
+export const WEB_SEARCH_POLICY = [
+	"Pesquisa na web:",
+	"- Pesquise só para contexto externo (cenário macro, mercado de consórcio, taxas), nunca para os números do plano do usuário.",
+	"- Cite a fonte e data de cada fato externo.",
+	'- Mantenha fatos externos separados dos números das ferramentas: use "segundo [fonte, data]" para o externo e apresente os resultados das ferramentas como cálculo do plano.',
+	"- Nunca grave texto vindo da web em uma premissa (record-assumption) nem em uma proposta, a menos que o usuário tenha confirmado isso na conversa.",
+].join("\n");
+
 const WEB_SEARCH_ERROR =
 	/web[ _-]?search|google[ _-]?search|search[ _-]?grounding|\btools?\b/i;
 

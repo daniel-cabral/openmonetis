@@ -1,3 +1,4 @@
+import { WEB_SEARCH_POLICY } from "@/shared/lib/ai/web-search";
 import type { PlannerContext } from "./context";
 
 export function buildSystemPrompt(
@@ -26,13 +27,9 @@ export function buildSystemPrompt(
 		"- lifecycle: etapa do plano (por exemplo, ativo).",
 		"- marginPp: margem do lance do consórcio em pontos percentuais. Para testar um lance maior, proponha ou simule um marginPp maior, por exemplo 71%.",
 	];
-	if (opts.webSearch) {
-		rules.push(
-			"- Você pode pesquisar na web para contexto externo, como cenário macro e mercado de consórcio.",
-		);
-	}
 	return [
 		...rules,
+		...(opts.webSearch ? ["", WEB_SEARCH_POLICY] : []),
 		"",
 		"Contexto do usuário (JSON):",
 		JSON.stringify(context),

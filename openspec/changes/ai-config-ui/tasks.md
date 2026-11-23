@@ -385,11 +385,11 @@ Test: extends `context.test.ts` with a new `it`, because new context fields are 
 
 Test: extends `system-prompt.test.ts` with a new `it`, because the web-on/off branch is a distinct contract.
 
-- [ ] **Step 1: Failing test** `"web search policy appears only when web search is enabled"`: with `webSearch: true` the prompt contains `WEB_SEARCH_POLICY` and the literals `"fonte e data"` and `"confirm"`; with `false` it contains neither the policy nor the word `"pesquis"`.
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Run -> PASS; lint touched files.
-- [ ] **Step 5: Commit** `feat(planning): política de pesquisa na web no prompt do planejador`
+- [x] **Step 1: Failing test** `"web search policy appears only when web search is enabled"`: with `webSearch: true` the prompt contains `WEB_SEARCH_POLICY` and the literals `"fonte e data"` and `"confirm"`; with `false` it contains neither the policy nor the word `"pesquis"`.
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Run -> PASS; lint touched files.
+- [x] **Step 5: Commit** `feat(planning): política de pesquisa na web no prompt do planejador`
 
 ### Task 20: Prompt-injection hardening for user-entered strings
 
