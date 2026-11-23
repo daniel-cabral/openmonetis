@@ -176,11 +176,11 @@ Test: new, because distinct contract.
 
 Test: extends `plan-form.test.ts` (same form-mapping contract).
 
-- [ ] **Step 1: Add failing assertions** for `eventFormToInput` (one-off and open recurring).
-- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** the helper and both components.
+- [x] **Step 1: Add failing assertions** for `eventFormToInput` (one-off and open recurring).
+- [x] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** the helper and both components.
 - [ ] **Step 4: Run** again (PASS) and `pnpm exec tsc --noEmit` (exit 0).
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): eventos do plano e categorias mapeadas"`.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): eventos do plano e categorias mapeadas"`.
 
 ### Task 9: Check-in contribution assignment
 

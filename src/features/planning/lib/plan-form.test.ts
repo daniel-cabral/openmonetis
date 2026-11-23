@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { PlanView } from "@/features/planning/lib/snapshot-types";
-import { emptyPlanForm, formToPlanInput, planToForm } from "./plan-form";
+import {
+	emptyEventForm,
+	emptyPlanForm,
+	eventFormToInput,
+	formToPlanInput,
+	planToForm,
+} from "./plan-form";
 
 describe("formToPlanInput", () => {
 	it("collapses the target to the typed base when the range is off", () => {
@@ -17,6 +23,47 @@ describe("formToPlanInput", () => {
 		expect(formToPlanInput(form).fields).toEqual({
 			type: "goal",
 			target: { min: 150_000, base: 150_000, max: 150_000 },
+		});
+	});
+});
+
+describe("eventFormToInput", () => {
+	it("pins a one-off event's end to its start month", () => {
+		const form = {
+			...emptyEventForm("2027-03"),
+			kind: "one-off" as const,
+			startMonth: "2027-03",
+			hasEnd: true,
+			endMonth: "2027-09",
+		};
+
+		expect(eventFormToInput(form, "plan-1").endMonth).toBe("2027-03");
+	});
+
+	it("leaves a recurring event open-ended when no end month is set", () => {
+		const form = {
+			...emptyEventForm("2027-03"),
+			kind: "recurring" as const,
+			startMonth: "2027-03",
+			hasEnd: false,
+		};
+
+		expect(eventFormToInput(form, "plan-1").endMonth).toBeNull();
+	});
+
+	it("collapses the event amount to the typed base when the range is off", () => {
+		const form = {
+			...emptyEventForm("2027-03"),
+			amountBase: "1500.00",
+			amountMin: "100",
+			amountMax: "9999",
+			hasRange: false,
+		};
+
+		expect(eventFormToInput(form, "plan-1").amount).toEqual({
+			min: 150_000,
+			base: 150_000,
+			max: 150_000,
 		});
 	});
 });

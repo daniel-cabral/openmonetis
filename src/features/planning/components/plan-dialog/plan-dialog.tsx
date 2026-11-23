@@ -27,9 +27,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { CategoryMappingField } from "./category-mapping-field";
 import { CommonFields } from "./common-fields";
 import { ConsorcioFields } from "./consorcio-fields";
 import { GoalFields } from "./goal-fields";
+import { PlanEventsEditor } from "./plan-events-editor";
 
 type PlanDialogProps = {
 	open: boolean;
@@ -39,6 +41,7 @@ type PlanDialogProps = {
 	potAccounts: InvestmentAccountView[];
 	currentMonth: Period;
 	inccForecastPct: number;
+	expenseCategories: { id: string; name: string }[];
 };
 
 export function PlanDialog({
@@ -49,6 +52,7 @@ export function PlanDialog({
 	potAccounts,
 	currentMonth,
 	inccForecastPct,
+	expenseCategories,
 }: PlanDialogProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
@@ -110,6 +114,15 @@ export function PlanDialog({
 							startMonth={currentMonth}
 						/>
 					)}
+					{plan ? (
+						<>
+							<PlanEventsEditor plan={plan} currentMonth={currentMonth} />
+							<CategoryMappingField
+								plan={plan}
+								categories={expenseCategories}
+							/>
+						</>
+					) : null}
 				</div>
 				<DialogFooter>
 					<Button

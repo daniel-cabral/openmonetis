@@ -20,9 +20,11 @@ import { PlansTable } from "./plans-table";
 export function PlanningPage({
 	snapshot,
 	today,
+	expenseCategories,
 }: {
 	snapshot: PlanningSnapshot;
 	today: string;
+	expenseCategories: { id: string; name: string }[];
 }) {
 	const { kpis, chart, rows } = useMemo(() => {
 		const projection = runProjection(snapshot.input);
@@ -85,6 +87,7 @@ export function PlanningPage({
 				potAccounts={potAccounts}
 				currentMonth={snapshot.currentMonth}
 				inccForecastPct={snapshot.input.indexForecastPct.INCC}
+				expenseCategories={expenseCategories}
 			/>
 		</section>
 	);

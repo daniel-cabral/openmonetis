@@ -37,7 +37,7 @@ const LIFECYCLE_OPTIONS: { value: PlanLifecycle; label: string }[] = [
 	{ value: "abandoned", label: "Abandonado" },
 ];
 
-function MonthField({
+export function MonthField({
 	id,
 	value,
 	onChange,

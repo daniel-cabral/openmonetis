@@ -1,11 +1,16 @@
 import type {
+	Direction,
 	MoneyBasis,
 	Period,
+	PlanEventInput,
 	PlanLifecycle,
 	PriceIndex,
 } from "@/features/planning/lib/engine";
 import { centsToDecimal, toCents } from "@/features/planning/lib/cents";
-import type { PlanInput } from "@/features/planning/lib/schemas";
+import type {
+	PlanEventInputData,
+	PlanInput,
+} from "@/features/planning/lib/schemas";
 import type { PlanView } from "@/features/planning/lib/snapshot-types";
 import { normalizeDecimalInput } from "@/shared/utils/currency";
 
@@ -144,5 +149,82 @@ export function formToPlanInput(values: PlanFormValues): PlanInput {
 			: null,
 		potAccountIds: values.potAccountIds,
 		fields,
+	};
+}
+
+export type PlanEventFormValues = {
+	id: string | null;
+	kind: "one-off" | "recurring";
+	direction: Direction;
+	label: string;
+	basis: MoneyBasis;
+	hasRange: boolean;
+	amountMin: string;
+	amountBase: string;
+	amountMax: string;
+	startMonth: Period;
+	hasEnd: boolean;
+	endMonth: Period;
+};
+
+export function emptyEventForm(currentMonth: Period): PlanEventFormValues {
+	return {
+		id: null,
+		kind: "one-off",
+		direction: "outflow",
+		label: "",
+		basis: "today",
+		hasRange: false,
+		amountMin: "",
+		amountBase: "",
+		amountMax: "",
+		startMonth: currentMonth,
+		hasEnd: false,
+		endMonth: currentMonth,
+	};
+}
+
+export function eventToForm(event: PlanEventInput): PlanEventFormValues {
+	const { amount } = event;
+	return {
+		id: event.id,
+		kind: event.endMonth === event.startMonth ? "one-off" : "recurring",
+		direction: event.direction,
+		label: event.label,
+		basis: event.basis,
+		hasRange: amount.min !== amount.base || amount.base !== amount.max,
+		amountMin: centsToDecimal(amount.min),
+		amountBase: centsToDecimal(amount.base),
+		amountMax: centsToDecimal(amount.max),
+		startMonth: event.startMonth,
+		hasEnd: event.endMonth !== null,
+		endMonth: event.endMonth ?? event.startMonth,
+	};
+}
+
+export function eventFormToInput(
+	values: PlanEventFormValues,
+	planId: string,
+): PlanEventInputData {
+	const base = toAmount(values.amountBase);
+	const amount = values.hasRange
+		? { min: toAmount(values.amountMin), base, max: toAmount(values.amountMax) }
+		: { min: base, base, max: base };
+	const endMonth =
+		values.kind === "one-off"
+			? values.startMonth
+			: values.hasEnd
+				? values.endMonth
+				: null;
+
+	return {
+		id: values.id ?? undefined,
+		planId,
+		label: values.label,
+		direction: values.direction,
+		basis: values.basis,
+		amount,
+		startMonth: values.startMonth,
+		endMonth,
 	};
 }
