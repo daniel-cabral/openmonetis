@@ -143,11 +143,11 @@ Test: new, because distinct setup (fake transactional DB + fake refresh).
 
 Test: new, because distinct contract (outgoing request shape and generate-over-stream). One workflow test per path.
 
-- [ ] **Step 1: Failing tests:** `"generateText goes through the streaming endpoint with subscription headers and store false"`: fake fetch returns the SSE fixture; `generateText({ model, prompt: "hi" })` resolves text `"Hello, hope you're doing well."`; `"generateObject works through the streaming endpoint"` (Insights path): fake fetch returns `responses-json.sse`; `generateObject({ model, schema: z.object({ ok: z.boolean() }), prompt: "x" })` resolves `{ ok: true }` and the request body has `stream: true`. Captured request in the first test has `authorization: "Bearer at"`, `chatgpt-account-id: "acc"`, `originator: "openmonetis"`, URL ending `/responses`, JSON body `stream: true` and `store: false`. `"a 401 marks the session expired"`: fake fetch returns 401 `{"error":{"code":"token_expired"}}` -> rejects, reconnect spy called with `"u1"`.
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement. If the fixture shows the backend needs `instructions`, map system content to `providerOptions.openai.instructions` in the same `transformParams` (design Risks).
-- [ ] **Step 4:** Run -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): modelo da assinatura do ChatGPT via backend Codex`
+- [x] **Step 1: Failing tests:** `"generateText goes through the streaming endpoint with subscription headers and store false"`: fake fetch returns the SSE fixture; `generateText({ model, prompt: "hi" })` resolves text `"Hello, hope you're doing well."`; `"generateObject works through the streaming endpoint"` (Insights path): fake fetch returns `responses-json.sse`; `generateObject({ model, schema: z.object({ ok: z.boolean() }), prompt: "x" })` resolves `{ ok: true }` and the request body has `stream: true`. Captured request in the first test has `authorization: "Bearer at"`, `chatgpt-account-id: "acc"`, `originator: "openmonetis"`, URL ending `/responses`, JSON body `stream: true` and `store: false`. `"a 401 marks the session expired"`: fake fetch returns 401 `{"error":{"code":"token_expired"}}` -> rejects, reconnect spy called with `"u1"`.
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement. If the fixture shows the backend needs `instructions`, map system content to `providerOptions.openai.instructions` in the same `transformParams` (design Risks).
+- [x] **Step 4:** Run -> PASS.
+- [x] **Step 5: Commit** `feat(ia): modelo da assinatura do ChatGPT via backend Codex`
 
 ### Task 6a: ChatGPT model list fetched from the Codex backend
 
