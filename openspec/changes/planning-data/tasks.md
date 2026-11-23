@@ -170,11 +170,11 @@ Test: new, because distinct contract.
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: 12 months of `-40_000` "Mercado"; "Impostos" `-30_000` only in `2026-02` → `expenses` `[{ calendarMonth: 2, amount: 30_000, label: "Impostos" }]`; "Presentes" in 3 distinct months → not irregular; "Taxa" `-1_000` once → not irregular (below share).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/irregular.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): deteccao de despesas anuais irregulares"`.
+- [x] **Step 1: Write the failing test**: 12 months of `-40_000` "Mercado"; "Impostos" `-30_000` only in `2026-02` → `expenses` `[{ calendarMonth: 2, amount: 30_000, label: "Impostos" }]`; "Presentes" in 3 distinct months → not irregular; "Taxa" `-1_000` once → not irregular (below share).
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/irregular.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): deteccao de despesas anuais irregulares"`.
 
 ### Task 8: Row-to-engine mappers
 
