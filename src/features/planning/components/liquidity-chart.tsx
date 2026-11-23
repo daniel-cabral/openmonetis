@@ -13,6 +13,7 @@ import type { ChartPoint } from "@/features/planning/lib/view-model";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "@/shared/components/ui/card";
@@ -41,11 +42,18 @@ const chartConfig = {
 	},
 } satisfies ChartConfig;
 
-export function LiquidityChart({ points }: { points: ChartPoint[] }) {
+export function LiquidityChart({
+	points,
+	previewLabel,
+}: {
+	points: ChartPoint[];
+	previewLabel?: string;
+}) {
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Liquidez projetada</CardTitle>
+				{previewLabel ? <CardDescription>{previewLabel}</CardDescription> : null}
 			</CardHeader>
 			<CardContent>
 				<ChartContainer

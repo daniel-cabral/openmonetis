@@ -63,12 +63,14 @@ export function KpiRow({ kpis }: { kpis: PlanningKpis }) {
 			<KpiCard
 				title="Primeiro mês descoberto"
 				value={
-					firstUnfunded ? formatShortPeriodLabel(firstUnfunded.month) : "—"
+					firstUnfunded
+						? formatShortPeriodLabel(firstUnfunded.month)
+						: "Sem furo no horizonte"
 				}
 				detail={
 					firstUnfunded
-						? `${firstUnfunded.planName} cede`
-						: "Sem furo no horizonte"
+						? `${formatShortPeriodLabel(firstUnfunded.month)} · ${firstUnfunded.planName} cede`
+						: undefined
 				}
 			/>
 		</div>
