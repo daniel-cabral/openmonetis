@@ -1,12 +1,16 @@
 import Image from "next/image";
-import { type AIProvider, PROVIDERS } from "@/features/insights/constants";
+import { type AiProviderId, PROVIDERS } from "@/features/insights/constants";
 
 const PROVIDER_ICON_PATHS: Partial<
 	Record<
-		AIProvider,
+		AiProviderId,
 		{ light: string; dark?: string; width?: number; height?: number }
 	>
 > = {
+	chatgpt: {
+		light: "/providers/chatgpt.svg",
+		dark: "/providers/chatgpt_dark_mode.svg",
+	},
 	openai: {
 		light: "/providers/chatgpt.svg",
 		dark: "/providers/chatgpt_dark_mode.svg",
@@ -32,7 +36,7 @@ const PROVIDER_ICON_PATHS: Partial<
 	},
 };
 
-export function ProviderIcon({ provider }: { provider: AIProvider }) {
+export function ProviderIcon({ provider }: { provider: AiProviderId }) {
 	const iconPaths = PROVIDER_ICON_PATHS[provider];
 	if (!iconPaths) return null;
 

@@ -1,5 +1,9 @@
 import { connection } from "next/server";
 import { InsightsPage } from "@/features/insights/components/insights-page";
+import { listChatGptModels } from "@/shared/lib/ai/chatgpt/models-list";
+import { fetchConnectedAiProviders } from "@/shared/lib/ai/connected-providers";
+import { buildModelGroups } from "@/shared/lib/ai/model-groups";
+import { getUserId } from "@/shared/lib/auth/server";
 import { ContentErrorBoundary } from "@/shared/components/feedback/content-error-boundary";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { parsePeriodParam } from "@/shared/utils/period";
@@ -35,11 +39,17 @@ async function InsightsContent({ searchParams }: PageProps) {
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");
 	const { period: selectedPeriod } = parsePeriodParam(periodoParam);
+	const userId = await getUserId();
+	const connectedProviders = await fetchConnectedAiProviders(userId);
+	const chatgptModels = connectedProviders.includes("chatgpt")
+		? await listChatGptModels(userId)
+		: [];
+	const modelGroups = buildModelGroups(connectedProviders, chatgptModels);
 
 	return (
 		<main className="flex flex-col gap-6">
 			<MonthNavigation />
-			<InsightsPage period={selectedPeriod} />
+			<InsightsPage period={selectedPeriod} modelGroups={modelGroups} />
 		</main>
 	);
 }

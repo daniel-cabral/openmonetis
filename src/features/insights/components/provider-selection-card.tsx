@@ -1,10 +1,14 @@
 import { RiCheckLine } from "@remixicon/react";
-import { type AIProvider, PROVIDERS } from "@/features/insights/constants";
+import type { AiProviderId } from "@/features/insights/constants";
+import { providerLabel } from "@/shared/lib/ai/model-groups";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { cn } from "@/shared/utils/ui";
 import { ProviderIcon } from "./provider-icon";
 
-const PROVIDER_DETAILS: Record<AIProvider, { description: string }> = {
+const PROVIDER_DETAILS: Record<AiProviderId, { description: string }> = {
+	chatgpt: {
+		description: "Usa sua assinatura do ChatGPT, sem custo por token.",
+	},
 	openai: {
 		description: "Qualidade e equilíbrio entre análise e custo.",
 	},
@@ -26,13 +30,15 @@ const PROVIDER_DETAILS: Record<AIProvider, { description: string }> = {
 };
 
 interface ProviderSelectionCardProps {
-	currentProvider: AIProvider;
+	currentProvider: AiProviderId;
+	providers: AiProviderId[];
 	disabled?: boolean;
-	onProviderChange: (provider: AIProvider) => void;
+	onProviderChange: (provider: AiProviderId) => void;
 }
 
 export function ProviderSelectionCard({
 	currentProvider,
+	providers,
 	disabled,
 	onProviderChange,
 }: ProviderSelectionCardProps) {
@@ -59,8 +65,7 @@ export function ProviderSelectionCard({
 					</div>
 
 					<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-						{(Object.keys(PROVIDERS) as AIProvider[]).map((providerId) => {
-							const provider = PROVIDERS[providerId];
+						{providers.map((providerId) => {
 							const details = PROVIDER_DETAILS[providerId];
 							const isSelected = currentProvider === providerId;
 
@@ -91,7 +96,7 @@ export function ProviderSelectionCard({
 
 										<div className="min-w-0 flex-1 space-y-2">
 											<span className="font-semibold text-sm leading-none">
-												{provider.name}
+												{providerLabel(providerId)}
 											</span>
 											<p className="text-muted-foreground text-xs leading-relaxed">
 												{details.description}

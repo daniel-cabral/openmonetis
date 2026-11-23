@@ -1,4 +1,5 @@
 export {
+	type AiProviderId,
 	type AIProvider,
 	AVAILABLE_MODELS,
 	DEFAULT_MODEL,

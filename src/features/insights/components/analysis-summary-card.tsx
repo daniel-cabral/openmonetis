@@ -8,7 +8,8 @@ import {
 	RiSparklingLine,
 } from "@remixicon/react";
 import type React from "react";
-import { type AIProvider, PROVIDERS } from "@/features/insights/constants";
+import type { AiProviderId } from "@/features/insights/constants";
+import { providerLabel } from "@/shared/lib/ai/model-groups";
 import { USER_INSTRUCTIONS_MAX_LENGTH } from "@/features/insights/lib/user-instructions";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -30,7 +31,7 @@ import { ProviderIcon } from "./provider-icon";
 
 interface AnalysisSummaryCardProps {
 	period: string;
-	currentProvider: AIProvider;
+	currentProvider: AiProviderId;
 	selectedModelLabel: string;
 	userInstructions: string;
 	onUserInstructionsChange: (value: string) => void;
@@ -175,7 +176,7 @@ export function AnalysisSummaryCard({
 							<ProviderIcon provider={currentProvider} />
 							<div className="min-w-0 flex-1">
 								<p className="font-semibold text-sm">
-									{PROVIDERS[currentProvider].name}
+									{providerLabel(currentProvider)}
 								</p>
 								<p className="truncate text-muted-foreground text-xs">
 									{selectedModelLabel || "Nenhum modelo selecionado"}

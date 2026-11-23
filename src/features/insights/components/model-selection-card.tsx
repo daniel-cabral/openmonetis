@@ -1,9 +1,6 @@
 import { RiExternalLinkLine, RiSparklingLine } from "@remixicon/react";
 import Link from "next/link";
-import type {
-	AIProvider,
-	AVAILABLE_MODELS,
-} from "@/features/insights/constants";
+import type { AiProviderId } from "@/features/insights/constants";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
@@ -16,8 +13,8 @@ import {
 } from "@/shared/components/ui/select";
 
 interface ModelSelectionCardProps {
-	currentProvider: AIProvider;
-	providerModels: Array<(typeof AVAILABLE_MODELS)[number]>;
+	currentProvider: AiProviderId;
+	providerModels: Array<{ id: string; name: string }>;
 	selectValue: string;
 	customModel: string;
 	isCustomModelActive: boolean;

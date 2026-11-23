@@ -290,9 +290,9 @@ Test: new, because `model-groups.ts` is a new pure contract.
 
 Test: none, because the rules are locked by Task 12's `model-groups.test.ts`; this task is wiring.
 
-- [ ] **Step 1:** Implement.
-- [ ] **Step 2:** Lint touched files; manual check on `/insights` with zero, one and several providers.
-- [ ] **Step 3: Commit** `feat(ia): insights listam só provedores conectados`
+- [x] **Step 1:** Implement.
+- [x] **Step 2:** Lint touched files; manual check on `/insights` with zero, one and several providers.
+- [x] **Step 3: Commit** `feat(ia): insights listam só provedores conectados`
 
 ### Task 14: Remove AI env vars from docs
 

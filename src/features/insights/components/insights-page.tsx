@@ -27,16 +27,25 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import {
+	type ModelGroup,
+	pickAvailableModel,
+} from "@/shared/lib/ai/model-groups";
 import type { InsightsResponse } from "@/shared/lib/schemas/insights";
 import { InsightsGrid } from "./insights-grid";
 import { ModelSelector } from "./model-selector";
 
 interface InsightsPageProps {
 	period: string;
+	modelGroups: ModelGroup[];
 	onAnalyze?: () => void;
 }
 
-export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
+export function InsightsPage({
+	period,
+	modelGroups,
+	onAnalyze,
+}: InsightsPageProps) {
 	const queryClient = useQueryClient();
 	const savedInsightsQuery = useSavedInsights(period);
 	const [isPending, startTransition] = useTransition();
@@ -53,8 +62,10 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 	const analysisAreaRef = useRef<HTMLDivElement>(null);
 	const savedInsights = savedInsightsQuery.data ?? null;
 	const insights = draftInsights ?? savedInsights?.insights ?? null;
-	const selectedModel =
-		selectedModelOverride ?? savedInsights?.modelId ?? DEFAULT_MODEL;
+	const selectedModel = pickAvailableModel(
+		selectedModelOverride ?? savedInsights?.modelId ?? DEFAULT_MODEL,
+		modelGroups,
+	);
 	const isSaved = draftInsights === null && savedInsights !== null;
 	const savedDate = isSaved ? (savedInsights?.createdAt ?? null) : null;
 	const isLoadingSavedInsights =
@@ -92,6 +103,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 	}, [shouldScrollToAnalysis, shouldShowAnalysisArea]);
 
 	const handleAnalyze = () => {
+		if (!selectedModel) return;
 		setError(null);
 		setShouldScrollToAnalysis(true);
 		onAnalyze?.();
@@ -121,7 +133,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 	};
 
 	const handleSave = () => {
-		if (!insights) return;
+		if (!insights || !selectedModel) return;
 
 		startSaveTransition(async () => {
 			try {
@@ -151,7 +163,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 	};
 
 	const handleDelete = () => {
-		if (!insights) return;
+		if (!insights || !selectedModel) return;
 
 		startSaveTransition(async () => {
 			try {
@@ -176,6 +188,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 		<div className="flex flex-col gap-6">
 			<ModelSelector
 				value={selectedModel}
+				modelGroups={modelGroups}
 				onValueChange={setSelectedModelOverride}
 				period={period}
 				onAnalyze={handleAnalyze}
