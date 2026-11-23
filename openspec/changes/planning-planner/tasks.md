@@ -193,11 +193,11 @@ Test: new, because `buildPlannerContext` is a distinct contract. The prompt text
 
 Test: new, because distinct contract (db mocked as in `src/features/trips/queries.test.ts`).
 
-- [ ] **Step 1: Write the failing tests**: `loadConversation` where renders `user_id` and `id` params and returns null when the conversation select is empty (messages not queried); `saveMessages` issues one insert with two rows and `onConflictDoUpdate`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/conversation-store.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): persistencia das conversas do planejador"`.
+- [x] **Step 1: Write the failing tests**: `loadConversation` where renders `user_id` and `id` params and returns null when the conversation select is empty (messages not queried); `saveMessages` issues one insert with two rows and `onConflictDoUpdate`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/conversation-store.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): persistencia das conversas do planejador"`.
 
 ### Task 8: Drift diagnosis prefill
 
