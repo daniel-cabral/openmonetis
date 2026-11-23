@@ -45,6 +45,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { type ModelGroup, pickAvailableModel } from "@/shared/lib/ai/model-groups";
 import { DEFAULT_MODEL } from "@/shared/lib/ai/models";
 import { MONTH_NAMES, parsePeriod } from "@/shared/utils/period";
 import { AssumptionLogCard } from "./assumption-log-card";
@@ -94,11 +95,13 @@ export function PlanningPage({
 	today,
 	expenseCategories,
 	plannerConversation,
+	modelGroups,
 }: {
 	snapshot: PlanningSnapshot;
 	today: string;
 	expenseCategories: { id: string; name: string }[];
 	plannerConversation: StoredConversation | null;
+	modelGroups: ModelGroup[];
 }) {
 	const [activeStress, setActiveStress] = useState<StressToggles>({});
 	const [preview, setPreview] = useState<{
@@ -235,7 +238,11 @@ export function PlanningPage({
 				<div className="space-y-6 lg:col-span-2">
 					<PlannerPanel
 						conversation={plannerConversation}
-						modelId={snapshot.settings.plannerModelId ?? DEFAULT_MODEL}
+						modelId={pickAvailableModel(
+							snapshot.settings.plannerModelId ?? DEFAULT_MODEL,
+							modelGroups,
+						)}
+						modelGroups={modelGroups}
 						settings={snapshot.settings}
 						prefill={prefill}
 						onPrefillConsumed={() => setPrefill(null)}

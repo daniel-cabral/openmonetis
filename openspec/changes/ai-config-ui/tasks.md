@@ -273,11 +273,11 @@ Test: none, because UI wiring only (Task 9 locks the flow).
 
 Test: new, because `model-groups.ts` is a new pure contract.
 
-- [ ] **Step 1: Failing tests:** `"groups only connected providers with the subscription first"`: `buildModelGroups(["anthropic", "chatgpt"], models)` -> labels `["ChatGPT (assinatura)", "Claude AI"]`, first group ids equal the `chatgptModels` passed in (e.g. `["chatgpt:gpt-5.5", "chatgpt:gpt-5.4-mini"]`); OpenAI group label is `"OpenAI (API)"`; `buildModelGroups([], [])` -> `[]`. `"falls back when the saved model's provider is gone"` (Review Focus 4): `pickAvailableModel("gpt-5.5", buildModelGroups(["anthropic"], []))` -> `"claude-opus-4-8"`; `pickAvailableModel("x", [])` -> `null`.
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement helpers and wire the Planner.
-- [ ] **Step 4:** Run -> PASS; lint touched files; manual check on `/planning` with zero and one provider.
-- [ ] **Step 5: Commit** `feat(ia): seletor do planejador mostra só provedores conectados`
+- [x] **Step 1: Failing tests:** `"groups only connected providers with the subscription first"`: `buildModelGroups(["anthropic", "chatgpt"], models)` -> labels `["ChatGPT (assinatura)", "Claude AI"]`, first group ids equal the `chatgptModels` passed in (e.g. `["chatgpt:gpt-5.5", "chatgpt:gpt-5.4-mini"]`); OpenAI group label is `"OpenAI (API)"`; `buildModelGroups([], [])` -> `[]`. `"falls back when the saved model's provider is gone"` (Review Focus 4): `pickAvailableModel("gpt-5.5", buildModelGroups(["anthropic"], []))` -> `"claude-opus-4-8"`; `pickAvailableModel("x", [])` -> `null`.
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement helpers and wire the Planner.
+- [x] **Step 4:** Run -> PASS; lint touched files; manual check on `/planning` with zero and one provider.
+- [x] **Step 5: Commit** `feat(ia): seletor do planejador mostra só provedores conectados`
 
 ### Task 13: Insights selector filtered
 

@@ -2,6 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -22,17 +23,20 @@ import {
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
+	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from "@/shared/components/ui/select";
-import { AVAILABLE_MODELS } from "@/shared/lib/ai/models";
+import type { ModelGroup } from "@/shared/lib/ai/model-groups";
 import { Composer } from "./composer";
 import { MessageBubble } from "./message-bubble";
 
 export type PlannerPanelProps = {
 	conversation: { id: string; messages: UIMessage[] } | null;
-	modelId: string;
+	modelId: string | null;
+	modelGroups: ModelGroup[];
 	settings: PlanningSettingsInput;
 	prefill?: string | null;
 	onPrefillConsumed?: () => void;
@@ -45,6 +49,7 @@ export type PlannerPanelProps = {
 export function PlannerPanel({
 	conversation,
 	modelId: initialModelId,
+	modelGroups,
 	settings,
 	prefill,
 	onPrefillConsumed,
@@ -54,7 +59,7 @@ export function PlannerPanel({
 	const [conversationId, setConversationId] = useState(
 		conversation?.id ?? null,
 	);
-	const [modelId, setModelId] = useState(initialModelId);
+	const [modelId, setModelId] = useState<string | null>(initialModelId);
 	const [input, setInput] = useState("");
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const scrollRef = useRef<HTMLDivElement>(null);
@@ -90,7 +95,7 @@ export function PlannerPanel({
 
 	const send = async () => {
 		const text = input.trim();
-		if (!text || busy) return;
+		if (!text || busy || !modelId) return;
 		setInput("");
 
 		let activeId = conversationId;
@@ -141,6 +146,14 @@ export function PlannerPanel({
 				</CardAction>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
+				{modelId === null ? (
+					<p className="text-muted-foreground text-sm">
+						Nenhum provedor de IA configurado.{" "}
+						<Link href="/settings?tab=ia" className="underline">
+							Configurar em Ajustes &gt; IA
+						</Link>
+					</p>
+				) : (
 				<Select value={modelId} onValueChange={changeModel}>
 					<SelectTrigger
 						size="sm"
@@ -150,13 +163,21 @@ export function PlannerPanel({
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
-						{AVAILABLE_MODELS.map((model) => (
-							<SelectItem key={model.id} value={model.id}>
-								{model.name}
-							</SelectItem>
-						))}
+						{modelGroups
+							.filter((group) => group.models.length > 0)
+							.map((group) => (
+								<SelectGroup key={group.provider}>
+									<SelectLabel>{group.label}</SelectLabel>
+									{group.models.map((model) => (
+										<SelectItem key={model.id} value={model.id}>
+											{model.name}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							))}
 					</SelectContent>
 				</Select>
+				)}
 				<div
 					ref={scrollRef}
 					className="flex max-h-[420px] min-h-40 flex-col gap-3 overflow-y-auto"
@@ -188,6 +209,7 @@ export function PlannerPanel({
 					onSubmit={send}
 					onStop={stop}
 					busy={busy}
+					disabled={modelId === null}
 				/>
 				<p className="text-muted-foreground text-xs">
 					Os dados financeiros desta página são enviados ao provedor do modelo

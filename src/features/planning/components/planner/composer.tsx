@@ -9,6 +9,7 @@ export function Composer({
 	onSubmit,
 	onStop,
 	busy,
+	disabled = false,
 }: {
 	ref: Ref<HTMLTextAreaElement>;
 	value: string;
@@ -16,6 +17,7 @@ export function Composer({
 	onSubmit: () => void;
 	onStop: () => void;
 	busy: boolean;
+	disabled?: boolean;
 }) {
 	return (
 		<form
@@ -29,6 +31,7 @@ export function Composer({
 				ref={ref}
 				rows={3}
 				value={value}
+				disabled={disabled}
 				aria-label="Mensagem para o planejador"
 				placeholder="Digite sua pergunta"
 				onChange={(event) => onChange(event.target.value)}
@@ -39,7 +42,7 @@ export function Composer({
 						Parar
 					</Button>
 				) : null}
-				<Button type="submit" disabled={busy || value.trim().length === 0}>
+				<Button type="submit" disabled={disabled || busy || value.trim().length === 0}>
 					Enviar
 				</Button>
 			</div>
