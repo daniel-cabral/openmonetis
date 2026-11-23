@@ -237,10 +237,10 @@ Test: extends `ai.test.ts` with a new `it`, because a distinct setup (fake `fetc
 
 Test: none, because UI wiring only (vitest runs in node without a DOM; behaviours locked by Task 8). Verify manually.
 
-- [ ] **Step 1:** Implement components and page changes.
-- [ ] **Step 2:** `pnpm exec biome check` on the touched files -> clean.
+- [x] **Step 1:** Implement components and page changes.
+- [x] **Step 2:** `pnpm exec biome check` on the touched files -> clean.
 - [ ] **Step 3:** Manual check with `pnpm run dev` at `/settings?tab=ia`: provider list shows "OpenAI (API)"; save/alter/remove an OpenAI key shows the mask, Ollama with `ftp://x` shows the error, layout stacks below `md`. Stop the dev server.
-- [ ] **Step 4: Commit** `feat(ia): aba IA em Ajustes com chaves de API`
+- [x] **Step 4: Commit** `feat(ia): aba IA em Ajustes com chaves de API`
 
 ### Task 11: ChatGPT connection panel
 

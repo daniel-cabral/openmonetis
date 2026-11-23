@@ -1,8 +1,13 @@
-import { RiAndroidLine, RiArrowRightSLine } from "@remixicon/react";
+import {
+	RiAndroidLine,
+	RiArrowRightSLine,
+	RiSparklingLine,
+} from "@remixicon/react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
+import { AiProvidersTab } from "@/features/settings/components/ai/ai-providers-tab";
 import { CompanionTab } from "@/features/settings/components/companion-tab";
 import { DeleteAccountForm } from "@/features/settings/components/delete-account-form";
 import { PasskeysForm } from "@/features/settings/components/passkeys-form";
@@ -21,8 +26,25 @@ import {
 } from "@/shared/components/ui/tabs";
 import { auth } from "@/shared/lib/auth/config";
 
-export default async function Page() {
+const SETTINGS_TABS = [
+	"preferencias",
+	"companion",
+	"ia",
+	"nome",
+	"senha",
+	"passkeys",
+	"email",
+	"deletar",
+];
+
+export default async function Page({
+	searchParams,
+}: {
+	searchParams: Promise<{ tab?: string }>;
+}) {
 	await connection();
+	const { tab } = await searchParams;
+	const defaultTab = SETTINGS_TABS.includes(tab ?? "") ? tab : "preferencias";
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
@@ -34,18 +56,19 @@ export default async function Page() {
 	const userName = session.user.name || "";
 	const userEmail = session.user.email || "";
 
-	const { authProvider, userPreferences, userApiTokens } =
+	const { authProvider, userPreferences, userApiTokens, aiCredentials } =
 		await fetchSettingsPageData(session.user.id);
 
 	return (
 		<div className="w-full">
-			<Tabs defaultValue="preferencias" className="w-full">
+			<Tabs defaultValue={defaultTab} className="w-full">
 				{/* No mobile: rolagem horizontal + seta indicando mais opções à direita */}
 				<div className="relative -mx-6 px-6 md:mx-0 md:px-0">
 					<div className="overflow-x-auto overflow-y-hidden scroll-smooth md:overflow-visible [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 						<TabsList className="inline-flex w-max flex-nowrap md:w-full">
 							<TabsTrigger value="preferencias">Preferências</TabsTrigger>
 							<TabsTrigger value="companion">Companion</TabsTrigger>
+							<TabsTrigger value="ia">IA</TabsTrigger>
 							<TabsTrigger value="nome">Alterar nome</TabsTrigger>
 							<TabsTrigger value="senha">Alterar senha</TabsTrigger>
 							<TabsTrigger value="passkeys">Passkeys</TabsTrigger>
@@ -117,6 +140,30 @@ export default async function Page() {
 							</div>
 							<Separator />
 							<CompanionTab tokens={userApiTokens} />
+						</div>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value="ia" className="mt-4">
+					<Card className="p-6">
+						<div className="space-y-4">
+							<div>
+								<div className="flex items-center gap-2 mb-1">
+									<h2 className="text-xl font-semibold">
+										Inteligência artificial
+									</h2>
+									<span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success dark:bg-success/10">
+										<RiSparklingLine className="h-3 w-3" />
+										IA
+									</span>
+								</div>
+								<p className="text-sm text-muted-foreground">
+									Conecte seus provedores de IA para usar o planejador e os
+									insights.
+								</p>
+							</div>
+							<Separator />
+							<AiProvidersTab credentials={aiCredentials} />
 						</div>
 					</Card>
 				</TabsContent>
