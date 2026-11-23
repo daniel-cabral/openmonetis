@@ -6,6 +6,10 @@ export {
 	setPlanCategoryMappingsAction,
 } from "./actions/plan-details";
 export {
+	applyProposalAction,
+	startPlannerConversationAction,
+} from "./actions/planner";
+export {
 	createPlanAction,
 	deletePlanAction,
 	reorderPlansAction,

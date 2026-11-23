@@ -265,11 +265,11 @@ Test: new, because distinct actor (HTTP boundary). Auth and db mocked as the rep
 
 Test: new, because distinct actor (approved writes).
 
-- [ ] **Step 1: Write the failing tests**: second apply with the same `proposalId` → `"Proposta já aplicada."` and no transaction; update-plan on a foreign plan → `"Registro não encontrado."` and the transaction rolls back (no assumption insert); a create-plan + record-assumption proposal → plan insert, event inserts, two assumption inserts with `source "planner"`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/planner.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): aplicacao de propostas do planejador"`.
+- [x] **Step 1: Write the failing tests**: second apply with the same `proposalId` → `"Proposta já aplicada."` and no transaction; update-plan on a foreign plan → `"Registro não encontrado."` and the transaction rolls back (no assumption insert); a create-plan + record-assumption proposal → plan insert, event inserts, two assumption inserts with `source "planner"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/planner.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): aplicacao de propostas do planejador"`.
 
 ### Task 12: Planner panel (chat UI)
 
