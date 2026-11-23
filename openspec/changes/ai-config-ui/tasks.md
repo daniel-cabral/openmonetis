@@ -254,10 +254,10 @@ Test: none, because UI wiring only (vitest runs in node without a DOM; behaviour
 
 Test: none, because UI wiring only (Task 9 locks the flow).
 
-- [ ] **Step 1:** Implement.
-- [ ] **Step 2:** Lint touched files.
+- [x] **Step 1:** Implement.
+- [x] **Step 2:** Lint touched files.
 - [ ] **Step 3:** Manual check with a real ChatGPT account: connect, disconnect, cancel while pending; list dot and badge follow the state.
-- [ ] **Step 4: Commit** `feat(ia): conexão da assinatura do ChatGPT em Ajustes`
+- [x] **Step 4: Commit** `feat(ia): conexão da assinatura do ChatGPT em Ajustes`
 
 ### Task 12: Model groups and Planner selector
 

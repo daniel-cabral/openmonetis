@@ -1,12 +1,13 @@
 "use client";
 
 import { RiLockLine } from "@remixicon/react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
 import type { AiCredentialStatus } from "@/shared/lib/ai/credentials/store";
 import type { AiProviderId } from "@/shared/lib/ai/models";
 import { ApiKeyForm } from "./api-key-form";
+import { ChatGptConnection } from "./chatgpt-connection";
 import { AI_PROVIDER_LIST } from "./provider-list";
 import {
 	type AiUiStatus,
@@ -26,28 +27,28 @@ const DOT_CLASS: Record<AiUiStatus, string> = {
 	invalid: "bg-destructive",
 };
 
-function ChatGptPlaceholder() {
-	return (
-		<div className="space-y-3">
-			<p className="text-sm text-muted-foreground">
-				Use sua assinatura do ChatGPT, sem precisar de chave de API.
-			</p>
-			<Button size="sm" disabled>
-				Entrar com ChatGPT
-			</Button>
-		</div>
-	);
-}
-
 export function AiProvidersTab({ credentials }: AiProvidersTabProps) {
 	const [selected, setSelected] = useState<AiProviderId>("chatgpt");
 	const current =
 		AI_PROVIDER_LIST.find((provider) => provider.id === selected) ??
 		AI_PROVIDER_LIST[0];
+	const [chatGptLive, setChatGptLive] = useState<AiUiStatus | null>(null);
+	const handleChatGptStatus = useCallback((status: AiUiStatus) => {
+		setChatGptLive(
+			status === "pending" || status === "connected" ? status : null,
+		);
+	}, []);
+	// Fresh server data supersedes the transient client-side status.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on new credentials
+	useEffect(() => setChatGptLive(null), [credentials]);
+	const statusOf = (id: AiProviderId) =>
+		id === "chatgpt" && chatGptLive
+			? chatGptLive
+			: toUiStatus(credentialOf(id));
 	const credentialOf = (id: AiProviderId) =>
 		credentials.find((credential) => credential.provider === id);
 	const currentCredential = credentialOf(current.id);
-	const currentStatus = toUiStatus(currentCredential);
+	const currentStatus = statusOf(current.id);
 
 	return (
 		<div className="grid gap-4 md:grid-cols-[260px_1fr]">
@@ -68,7 +69,7 @@ export function AiProvidersTab({ credentials }: AiProvidersTabProps) {
 							{provider.name}
 						</span>
 						<span
-							className={`size-2 rounded-full ${DOT_CLASS[toUiStatus(credentialOf(provider.id))]}`}
+							className={`size-2 rounded-full ${DOT_CLASS[statusOf(provider.id)]}`}
 						/>
 					</Button>
 				))}
@@ -85,7 +86,10 @@ export function AiProvidersTab({ credentials }: AiProvidersTabProps) {
 				</div>
 				<Separator />
 				{current.id === "chatgpt" ? (
-					<ChatGptPlaceholder />
+					<ChatGptConnection
+						credential={currentCredential}
+						onStatusChange={handleChatGptStatus}
+					/>
 				) : (
 					<ApiKeyForm
 						key={current.id}
