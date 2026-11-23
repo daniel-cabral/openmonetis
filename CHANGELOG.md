@@ -5,25 +5,9 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [2.18.0] - 2026-11-23
-
-Esta versão traz o planejador financeiro: um chat acoplado à página de Planejamento que consulta os seus dados e o motor de projeção, sugere cortes, metas e aportes, e só aplica uma mudança quando você clica em "Aplicar". Quando a realidade foge do plano, o alerta de desvio abre a conversa com o diagnóstico. Os dados financeiros usados pelo planejador são enviados ao provedor do modelo escolhido.
-
-### Adicionado
-
-- Planejador na página de Planejamento, com conversa persistida, respostas em streaming e escolha do modelo
-- Ferramentas de consulta de categorias, cortes sugeridos, projeção, alavancas e propostas, com os números calculados pelo motor e não pelo modelo
-- Cartão de proposta com prévia no gráfico e na tabela, aplicada somente com o clique em "Aplicar"
-- Botão "Discutir com o planejador" no alerta de desvio, que abre a conversa com o diagnóstico
-- Busca na web pelo planejador quando o provedor do modelo oferece essa ferramenta
-
-### Alterado
-
-- Catálogo de modelos e provedores de IA movido de insights para `shared/lib/ai`, para reuso pelo planejador
-
 ## [2.17.0] - 2026-11-23
 
-Esta versão estreia a página de Planejamento, que projeta a liquidez do patrimônio mês a mês contra as metas e os planos futuros. Ela mostra se cada plano cabe no caixa, registra o check-in mensal de aportes, saldos e lances de consórcio, e testa o plano em cenários de estresse. Quando a realidade foge da projeção, a página avisa.
+Esta versão estreia o Planejamento: uma página que projeta a liquidez do patrimônio mês a mês contra as metas e os planos futuros, com check-in mensal de aportes, saldos e lances de consórcio, cenários de estresse e alerta de desvio. Ao lado dela fica o planejador, um chat que consulta os seus dados e o motor de projeção, sugere cortes, metas e aportes, e só aplica uma mudança quando você clica em "Aplicar". Os números vêm sempre do motor, não do modelo, e os dados financeiros usados pelo planejador são enviados ao provedor do modelo escolhido.
 
 ### Adicionado
 
@@ -35,11 +19,18 @@ Esta versão estreia a página de Planejamento, que projeta a liquidez do patrim
 - Cenários de estresse ativáveis na página, com efeito na folga e no primeiro mês descoberto
 - Alerta de desvio quando um plano sai do eixo, a reserva fica abaixo do piso ou os aportes ficam abaixo do planejado
 - Registro de premissas e decisões com mês de revisão
+- Planejador na página de Planejamento, com conversa persistida, respostas em streaming e escolha do modelo
+- Ferramentas de consulta de categorias, cortes sugeridos, projeção, alavancas e propostas, com os números calculados pelo motor e não pelo modelo
+- Cartão de proposta com prévia no gráfico e na tabela, aplicada somente com o clique em "Aplicar"
+- Botão "Discutir com o planejador" no alerta de desvio, que abre a conversa com o diagnóstico
+- Busca na web pelo planejador quando o provedor do modelo oferece essa ferramenta
 
 ### Alterado
 
 - Item "Planejamento" no menu de relatórios, antes de Insights
+- Catálogo de modelos e provedores de IA movido de insights para `shared/lib/ai`, para reuso pelo planejador
 
+## [2.16.0] - 2026-11-23
 
 Esta versão troca a forma como o banco é atualizado no deploy: em vez de comparar o schema e alterar o banco direto, o container aplica as migrations versionadas e revisadas, e se recusa a subir se alguma falhar. Para chegar lá, o histórico de migrations herdado foi corrigido para rodar do zero, e um script de baseline registra esse histórico em bancos criados pelo modelo antigo, depois de conferir que o schema é idêntico.
 
