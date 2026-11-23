@@ -124,11 +124,11 @@ Test: new, because distinct contract (HTTP client against a fake `fetch` at the 
 
 Test: new, because distinct setup (fake transactional DB + fake refresh).
 
-- [ ] **Step 1: Failing tests:** `"returns the stored token without refreshing when it has more than 24h left"` (refresh spy not called, no `.for("update")`); `"refreshes under a row lock once and persists the rotated refresh token"` (Review Focus 2: row stale outside the lock, already fresh inside the lock on the second call -> refresh called exactly once across two sequential calls sharing the fake DB; persisted payload decrypts to the new refresh token); `"marks the connection expired when the refresh is refused"` (refresh throws `AiReconnectRequiredError` -> status update `needs_reconnect`, error rethrown); `"marks the credential invalid, not expired, when the secret no longer decrypts"` (row encrypted with another secret -> `AiCredentialInvalidError`, status update `invalid_secret`, refresh not called).
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Run -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): renovação de token do ChatGPT com lock por linha`
+- [x] **Step 1: Failing tests:** `"returns the stored token without refreshing when it has more than 24h left"` (refresh spy not called, no `.for("update")`); `"refreshes under a row lock once and persists the rotated refresh token"` (Review Focus 2: row stale outside the lock, already fresh inside the lock on the second call -> refresh called exactly once across two sequential calls sharing the fake DB; persisted payload decrypts to the new refresh token); `"marks the connection expired when the refresh is refused"` (refresh throws `AiReconnectRequiredError` -> status update `needs_reconnect`, error rethrown); `"marks the credential invalid, not expired, when the secret no longer decrypts"` (row encrypted with another secret -> `AiCredentialInvalidError`, status update `invalid_secret`, refresh not called).
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Run -> PASS.
+- [x] **Step 5: Commit** `feat(ia): renovação de token do ChatGPT com lock por linha`
 
 ### Task 6: ChatGPT language model (streaming only, store false)
 
