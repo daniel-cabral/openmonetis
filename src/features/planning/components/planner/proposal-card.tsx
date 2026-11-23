@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { applyProposalAction } from "@/features/planning/actions";
 import { formatCents } from "@/features/planning/lib/cents";
 import type { PlanHealth } from "@/features/planning/lib/engine";
-import type { ProposalChange } from "@/features/planning/lib/planner/proposal";
+import { describeChange } from "@/features/planning/lib/planner/describe-change";
 import type { ProposalToolOutput } from "@/features/planning/lib/planner/tools";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -23,24 +23,6 @@ const HEALTH_LABEL: Record<PlanHealth, string> = {
 	"at-risk": "Em risco",
 	"off-track": "Fora do eixo",
 };
-
-function describeChange(
-	change: ProposalChange,
-	planNames: Map<string, string>,
-): string {
-	switch (change.op) {
-		case "create-plan":
-			return `Criar plano "${change.plan.name}"`;
-		case "update-plan":
-			return `Alterar plano "${planNames.get(change.planId) ?? "existente"}"`;
-		case "add-event":
-			return `Adicionar evento a "${planNames.get(change.planId) ?? "plano existente"}"`;
-		case "update-settings":
-			return "Ajustar configurações do planejamento";
-		case "record-assumption":
-			return `Registrar premissa: ${change.assumption.summary}`;
-	}
-}
 
 /**
  * Proposal produced by the planner. Figures come from the deterministic diff
@@ -76,8 +58,7 @@ export function ProposalCard({
 		return <p className="text-muted-foreground text-sm">Proposta descartada.</p>;
 	}
 
-	const { proposalId, proposal, diff } = output;
-	const planNames = new Map(output.before.plans.map((plan) => [plan.id, plan.name]));
+	const { proposalId, proposal, diff, current } = output;
 
 	const apply = () =>
 		startTransition(async () => {
@@ -104,10 +85,22 @@ export function ProposalCard({
 				<CardDescription>{proposal.rationale}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3 text-sm">
-				<ul className="list-disc space-y-1 pl-5">
-					{proposal.changes.map((change, index) => (
-						<li key={index}>{describeChange(change, planNames)}</li>
-					))}
+				<ul className="list-disc space-y-2 pl-5">
+					{proposal.changes.map((change, index) => {
+						const { title, lines } = describeChange(change, current);
+						return (
+							<li key={index}>
+								{title}
+								{lines.length > 0 && (
+									<ul className="mt-1 space-y-0.5 text-muted-foreground text-xs tabular-nums">
+										{lines.map((line) => (
+											<li key={line}>{line}</li>
+										))}
+									</ul>
+								)}
+							</li>
+						);
+					})}
 				</ul>
 				<ul className="space-y-1 text-xs tabular-nums">
 					{diff.healthChanges.map((change, index) => (

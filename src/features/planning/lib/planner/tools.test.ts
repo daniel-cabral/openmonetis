@@ -80,7 +80,12 @@ describe("rankCutCandidates", () => {
 			"Transporte",
 			"Vestuário",
 		]);
-		expect(ranked[0]).toEqual({ categoryName: "Mercado", monthlyAverage: 30_000, lastMonth: 90_000 });
+		expect(ranked[0]).toEqual({
+			categoryId: "mercado",
+			categoryName: "Mercado",
+			monthlyAverage: 30_000,
+			lastMonth: 90_000,
+		});
 	});
 });
 

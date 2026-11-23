@@ -27,7 +27,20 @@ const settings: PlanningSettingsInput = {
 };
 
 const plan: PlanView = {
-	...goalPlan("G", "2028-06", { min: 100_000, base: 100_000, max: 100_000 }),
+	...goalPlan("G", "2028-06", { min: 100_000, base: 100_000, max: 100_000 }, {
+		potAccountIds: ["P"],
+		events: [
+			{
+				id: "e1",
+				label: "Entrada",
+				direction: "outflow",
+				amount: { min: 1_000, base: 2_000, max: 3_000 },
+				basis: "today",
+				startMonth: "2027-03",
+				endMonth: null,
+			},
+		],
+	}),
 	type: "goal",
 	categoryIds: [],
 };
@@ -98,10 +111,27 @@ describe("buildPlannerContext", () => {
 			{ month: "2028-05", amount: "R$\u00a01.500,00" },
 		]);
 		expect(context.patrimony.pots).toEqual([
-			{ accountName: "Caixinha", amount: "R$\u00a01.500,00" },
+			{ accountId: "P", accountName: "Caixinha", amount: "R$\u00a01.500,00" },
 		]);
 		expect(context.assumptions).toHaveLength(20);
 		expect(context.assumptions[0]?.date).toBe("2027-01-25");
 		expect(context.plans[0]?.health).toBe("off-track");
+		expect(context.plans[0]).toMatchObject({
+			lifecycle: "active",
+			basis: "nominal",
+			index: "IPCA",
+			potAccountIds: ["P"],
+			fields: {
+				type: "goal",
+				target: { min: "R$\u00a01.000,00", base: "R$\u00a01.000,00", max: "R$\u00a01.000,00" },
+			},
+			events: [
+				{
+					label: "Entrada",
+					amount: { min: "R$\u00a010,00", base: "R$\u00a020,00", max: "R$\u00a030,00" },
+					endMonth: null,
+				},
+			],
+		});
 	});
 });

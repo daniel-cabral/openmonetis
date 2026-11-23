@@ -12,6 +12,7 @@ import type { CategoryTotal } from "@/features/planning/lib/queries/category-tot
 import { periodSchema } from "@/features/planning/lib/schemas";
 import { addMonthsToPeriod } from "@/shared/utils/period";
 import { type CutCandidate, rankCutCandidates } from "./cut-candidates";
+import type { ChangeBaseline } from "./describe-change";
 import {
 	formatCentsForLlm,
 	toLlmDiff,
@@ -39,6 +40,7 @@ export type ProposalToolOutput =
 	| {
 			proposalId: string;
 			proposal: Proposal;
+			current: ChangeBaseline;
 			before: ProjectionSummary;
 			after: ProjectionSummary;
 			diff: ProposalDiff;
@@ -111,6 +113,7 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 			toModelOutput: ({ output }) => ({
 				type: "json",
 				value: output.map((candidate) => ({
+					categoryId: candidate.categoryId,
 					categoryName: candidate.categoryName,
 					monthlyAverage: formatCentsForLlm(candidate.monthlyAverage),
 					lastMonth: formatCentsForLlm(candidate.lastMonth),
@@ -171,6 +174,11 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 					return {
 						proposalId: toolCallId,
 						proposal: parsed.proposal,
+						current: {
+							plans: input.plans,
+							reserveMonths: input.reserveMonths,
+							indexForecastPct: input.indexForecastPct,
+						},
 						before,
 						after,
 						diff: diffSummaries(before, after),

@@ -2,6 +2,7 @@ import type { Cents, Period } from "@/features/planning/lib/engine";
 import type { CategoryTotal } from "@/features/planning/lib/queries/category-totals";
 
 export type CutCandidate = {
+	categoryId: string;
 	categoryName: string;
 	monthlyAverage: Cents;
 	lastMonth: Cents;
@@ -20,7 +21,7 @@ export function rankCutCandidates(
 	);
 	const byCategory = new Map<
 		string,
-		{ categoryName: string; sum: Cents; lastMonth: Cents }
+		{ categoryId: string; categoryName: string; sum: Cents; lastMonth: Cents }
 	>();
 
 	for (const total of totals) {
@@ -28,6 +29,7 @@ export function rankCutCandidates(
 			continue;
 		}
 		const entry = byCategory.get(total.categoryId) ?? {
+			categoryId: total.categoryId,
 			categoryName: total.categoryName,
 			sum: 0,
 			lastMonth: 0,
@@ -41,6 +43,7 @@ export function rankCutCandidates(
 
 	return [...byCategory.values()]
 		.map((entry) => ({
+			categoryId: entry.categoryId,
 			categoryName: entry.categoryName,
 			monthlyAverage: Math.round(entry.sum / months),
 			lastMonth: entry.lastMonth,
