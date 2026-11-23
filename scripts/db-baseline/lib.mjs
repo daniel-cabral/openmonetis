@@ -5,10 +5,11 @@ export const TEMP_DATABASE = "openmonetis_baseline_check";
 export const SNAPSHOT_QUERIES = {
 	columns: `SELECT table_name || '.' || column_name || '|' || data_type || '|' || is_nullable || '|' || coalesce(column_default, '') AS line
 		FROM information_schema.columns WHERE table_schema = 'public'`,
-	constraints: `SELECT rel.relname || '.' || con.conname || '|' || pg_get_constraintdef(con.oid) AS line
+	constraints: `SELECT rel.relname || '|' || pg_get_constraintdef(con.oid) AS line
 		FROM pg_constraint con JOIN pg_class rel ON rel.oid = con.conrelid JOIN pg_namespace ns ON ns.oid = rel.relnamespace
 		WHERE ns.nspname = 'public'`,
-	indexes: "SELECT indexdef AS line FROM pg_indexes WHERE schemaname = 'public'",
+	indexes: `SELECT regexp_replace(indexdef, '^CREATE (UNIQUE )?INDEX \\S+ ON', 'CREATE \\1INDEX ON') AS line
+		FROM pg_indexes WHERE schemaname = 'public'`,
 };
 
 export function buildBaselineRows(journal, readSql) {
