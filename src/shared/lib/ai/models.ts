@@ -10,6 +10,11 @@ export type AIProvider =
 	| "ollama";
 
 /**
+ * Providers configuráveis em Ajustes > IA (chaves de API + assinatura do ChatGPT)
+ */
+export type AiProviderId = "chatgpt" | AIProvider;
+
+/**
  * Metadados dos providers
  */
 export const PROVIDERS = {

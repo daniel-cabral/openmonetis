@@ -88,11 +88,11 @@ Test: new, because distinct contracts (crypto round trip; mask format).
 
 Test: new, because distinct setup (fake `database` at the DB boundary, as `src/features/planning/actions/settings.test.ts` does with hoisted fakes).
 
-- [ ] **Step 1: Failing test** `"stores a key encrypted with only its mask readable and recovers it for the owner"`: save Anthropic `sk-ant-api03-zzzzzzzzq8Lw` for `u1`; the inserted row's `encryptedSecret` does not contain the key; returned status `{ status: "connected", secretMask: "sk-ant-…q8Lw" }`; `getProviderSecret("u1","anthropic")` -> `{ apiKey: "sk-ant-api03-zzzzzzzzq8Lw" }`; every `where` captured includes `userId = "u1"`. Second test `"marks the row invalid when the secret no longer decrypts"` (Review Focus 1): row encrypted with secret `"old"`, call with `secret: "new"` -> throws `AiCredentialInvalidError` and an update sets `status: "invalid_secret"`.
-- [ ] **Step 2:** Run -> FAIL.
-- [ ] **Step 3:** Implement with optional `deps: { database?; secret? }` (cockpit `CredentialDependencies` style).
-- [ ] **Step 4:** Run -> PASS.
-- [ ] **Step 5: Commit** `feat(ia): armazenamento de chaves de API por usuário`
+- [x] **Step 1: Failing test** `"stores a key encrypted with only its mask readable and recovers it for the owner"`: save Anthropic `sk-ant-api03-zzzzzzzzq8Lw` for `u1`; the inserted row's `encryptedSecret` does not contain the key; returned status `{ status: "connected", secretMask: "sk-ant-…q8Lw" }`; `getProviderSecret("u1","anthropic")` -> `{ apiKey: "sk-ant-api03-zzzzzzzzq8Lw" }`; every `where` captured includes `userId = "u1"`. Second test `"marks the row invalid when the secret no longer decrypts"` (Review Focus 1): row encrypted with secret `"old"`, call with `secret: "new"` -> throws `AiCredentialInvalidError` and an update sets `status: "invalid_secret"`.
+- [x] **Step 2:** Run -> FAIL.
+- [x] **Step 3:** Implement with optional `deps: { database?; secret? }` (cockpit `CredentialDependencies` style).
+- [x] **Step 4:** Run -> PASS.
+- [x] **Step 5: Commit** `feat(ia): armazenamento de chaves de API por usuário`
 
 ### Task 4: ChatGPT OAuth client (port)
 
