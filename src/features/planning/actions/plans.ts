@@ -66,7 +66,11 @@ export async function createPlanAction(
 			return insertPlan(tx, userId, data);
 		});
 
-		if (!planId) return errorResult(INVALID_POT_MESSAGE);
+		if (!planId) {
+			return errorResult(INVALID_POT_MESSAGE) as ActionResult<{
+				planId: string;
+			}>;
+		}
 
 		revalidateForEntity("planning", userId);
 		return { success: true, message: "Plano criado.", data: { planId } };

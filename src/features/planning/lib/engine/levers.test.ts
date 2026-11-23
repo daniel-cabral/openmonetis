@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type Lever, LeverError, applyLever, simulateLever } from "./levers";
+import { applyLever, type Lever, LeverError, simulateLever } from "./levers";
 import { engineInput, goalPlan, position } from "./test-fixtures";
 import type { Cents, EngineInput, EnginePlan, UnfundedAt } from "./types";
 

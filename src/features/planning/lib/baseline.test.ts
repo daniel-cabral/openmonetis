@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+	ACCOUNT_AUTO_INVOICE_NOTE_PREFIX,
+	ACCOUNT_BALANCE_ADJUSTMENT_NAME,
+	INITIAL_BALANCE_CATEGORY_NAME,
+	INVOICE_ADJUSTMENT_NAME,
+	REFUND_NOTE_PREFIX,
+} from "@/shared/lib/accounts/constants";
+import {
 	buildBaselines,
 	CONTRIBUTION_CATEGORY_NAME,
 	classifyTransaction,
@@ -7,13 +14,6 @@ import {
 	type TxRow,
 	YIELD_CATEGORY_NAME,
 } from "./baseline";
-import {
-	ACCOUNT_AUTO_INVOICE_NOTE_PREFIX,
-	ACCOUNT_BALANCE_ADJUSTMENT_NAME,
-	INITIAL_BALANCE_CATEGORY_NAME,
-	INVOICE_ADJUSTMENT_NAME,
-	REFUND_NOTE_PREFIX,
-} from "@/shared/lib/accounts/constants";
 
 const ctx = {
 	mappedCategoryPlan: new Map([["cat-mapped", "plan-1"]]),

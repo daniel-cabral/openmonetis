@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BidPoint, ConsorcioFields, EnginePlan } from "../types";
-import type { ExpandContext } from "./context";
 import { bidPctRange, consorcioOwnCash, expandConsorcioEvents } from "./consorcio";
+import type { ExpandContext } from "./context";
 
 const history = [
 	["2026-06", 50],

@@ -1,8 +1,8 @@
 import { buildPeriodRange, comparePeriods } from "@/shared/utils/period";
 import { inflateToMonth, scaleRange } from "../money";
 import type { EnginePlan, ExpandedEvent, PlanEventInput } from "../types";
-import type { ExpandContext } from "./context";
 import { expandConsorcioEvents } from "./consorcio";
+import type { ExpandContext } from "./context";
 import { expandGoalEvents } from "./goal";
 
 function expandTypedEvents(plan: EnginePlan, ctx: ExpandContext): ExpandedEvent[] {

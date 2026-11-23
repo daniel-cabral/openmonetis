@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { Period } from "@/features/planning/lib/engine";
 import type { TxRow } from "./baseline";
 import { detectIrregularExpenses } from "./irregular";
-import type { Period } from "@/features/planning/lib/engine";
 
 const MONTHS = Array.from(
 	{ length: 12 },

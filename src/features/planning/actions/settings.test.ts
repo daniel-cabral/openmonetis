@@ -24,7 +24,12 @@ const {
 		}),
 		insert: (table: unknown) => ({
 			values: (payload: unknown) => {
-				const write = { kind: "insert", table, payload, config: undefined };
+				const write: (typeof writes)[number] = {
+					kind: "insert",
+					table,
+					payload,
+					config: undefined,
+				};
 				writes.push(write);
 				return Object.assign(Promise.resolve(undefined), {
 					onConflictDoUpdate: (config: unknown) => {

@@ -6,13 +6,13 @@ import type {
 	PlanEventRow,
 	PlanningSettings,
 } from "@/db/schema";
-import { planningSettingsFieldsSchema } from "./schemas";
 import {
 	latestPositionSet,
 	toEnginePlan,
 	toEnginePosition,
 	toSettingsInput,
 } from "./mappers";
+import { planningSettingsFieldsSchema } from "./schemas";
 
 const USER_ID = "user-sintetico";
 const PLAN_ID = "123e4567-e89b-12d3-a456-426614174000";

@@ -33,6 +33,7 @@ const mocks = vi.hoisted(() => {
 				},
 				orderBy: () => chain,
 				limit: () => chain,
+				// biome-ignore lint/suspicious/noThenProperty: mock de query drizzle thenable, o await precisa do then
 				then(resolve, reject) {
 					return Promise.resolve(rowsByTable.get(table) ?? []).then(
 						resolve,

@@ -1,9 +1,9 @@
 import type { InvestmentPosition } from "@/db/schema";
-import type { EngineInput } from "@/features/planning/lib/engine";
 import {
 	buildBaselines,
 	classifyTransaction,
 } from "@/features/planning/lib/baseline";
+import type { EngineInput } from "@/features/planning/lib/engine";
 import { detectIrregularExpenses } from "@/features/planning/lib/irregular";
 import {
 	latestPositionSet,
@@ -18,7 +18,6 @@ import {
 	buildPeriodRange,
 	getCurrentPeriod,
 } from "@/shared/utils/period";
-import { fetchBaselineRows } from "./lib/queries/transactions";
 import {
 	fetchAssumptionRows,
 	fetchBidRows,
@@ -26,9 +25,10 @@ import {
 	fetchInvestmentAccounts,
 	fetchInvestmentPositions,
 	fetchPlanEventRows,
-	fetchPlanRows,
 	fetchPlanningSettingsRow,
+	fetchPlanRows,
 } from "./lib/queries/planning-rows";
+import { fetchBaselineRows } from "./lib/queries/transactions";
 import type {
 	AssumptionView,
 	InvestmentAccountView,

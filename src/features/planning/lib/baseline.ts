@@ -1,3 +1,4 @@
+import type { Cents, Period } from "@/features/planning/lib/engine";
 import {
 	ACCOUNT_AUTO_INVOICE_NOTE_PREFIX,
 	ACCOUNT_BALANCE_ADJUSTMENT_NAME,
@@ -5,7 +6,6 @@ import {
 	INVOICE_ADJUSTMENT_NAME,
 	REFUND_NOTE_PREFIX,
 } from "@/shared/lib/accounts/constants";
-import type { Cents, Period } from "@/features/planning/lib/engine";
 
 export const INVESTMENT_ACCOUNT_TYPE = "Conta Investimento";
 export const CONTRIBUTION_CATEGORY_NAME = "Investimentos";

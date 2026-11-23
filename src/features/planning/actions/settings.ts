@@ -5,8 +5,8 @@ import { planningSettings } from "@/db/schema";
 import { toSettingsInput } from "@/features/planning/lib/mappers";
 import {
 	type AssumptionInput,
-	planningSettingsFieldsSchema,
 	type PlanningSettingsInput,
+	planningSettingsFieldsSchema,
 } from "@/features/planning/lib/schemas";
 import {
 	insertAssumption,

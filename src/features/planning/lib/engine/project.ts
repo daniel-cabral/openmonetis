@@ -1,5 +1,5 @@
 import { buildPeriodRange, parsePeriod } from "@/shared/utils/period";
-import { type Buckets, advanceMonth, bucketsTotal, openBuckets } from "./buckets";
+import { advanceMonth, type Buckets, bucketsTotal, openBuckets } from "./buckets";
 import { pickAmount } from "./money";
 import type { Cents, EngineInput, ExpandedEvent, MonthRow, Period, Scenario, ScenarioResult, UnfundedAt } from "./types";
 

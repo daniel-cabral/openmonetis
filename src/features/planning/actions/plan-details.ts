@@ -63,7 +63,11 @@ export async function savePlanEventAction(
 			return insertPlanEvent(tx, userId, data.planId, data);
 		});
 
-		if (!eventId) return errorResult(NOT_FOUND_MESSAGE);
+		if (!eventId) {
+			return errorResult(NOT_FOUND_MESSAGE) as ActionResult<{
+				eventId: string;
+			}>;
+		}
 
 		revalidateForEntity("planning", userId);
 		return { success: true, message: "Evento salvo.", data: { eventId } };
