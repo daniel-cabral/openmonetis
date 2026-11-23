@@ -272,11 +272,11 @@ Test: new, because distinct contract (db mocked, pattern of `reconciliation-acti
 
 Test: new, because distinct actor (account ownership and type).
 
-- [ ] **Step 1: Write the failing tests**: account of another user or of type `"Conta Corrente"` → `{ success: false, error: "Registro não encontrado." }` and no writes (one `it.each`); valid replace → one delete scoped to `(user_id, conta_id, data_referencia)` and one insert with `valor "1500.00"` for `amount 150_000`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/positions.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): atualizacao de posicoes e pote reservado"`.
+- [x] **Step 1: Write the failing tests**: account of another user or of type `"Conta Corrente"` → `{ success: false, error: "Registro não encontrado." }` and no writes (one `it.each`); valid replace → one delete scoped to `(user_id, conta_id, data_referencia)` and one insert with `valor "1500.00"` for `amount 150_000`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/actions/positions.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): atualizacao de posicoes e pote reservado"`.
 
 ### Task 12: Plan CRUD and reorder actions
 
