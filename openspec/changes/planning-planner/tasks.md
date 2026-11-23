@@ -111,11 +111,11 @@ Test: new, because distinct contract.
 
 Test (`llm-input.test.ts`): new, because distinct contract (LLM boundary).
 
-- [ ] **Step 1: Write the failing tests**: in `proposal.test.ts`, create-plan appends with priority 3 after plans 1 and 2; update-plan moving `targetMonth` out of its window throws `ProposalError`; unknown planId throws; `update-settings { reserveMonths: 6 }` changes only that field; input object unchanged (deep equal to a copy taken before). In `llm-input.test.ts`: `parseLlmProposal` of a goal create-plan with target `{ min: 1234.56, base: 1234.56, max: 1234.56 }` → `proposal.changes[0].plan.fields.target` equals `{ min: 123_456, base: 123_456, max: 123_456 }`; one `it.each` of rejected inputs → exact `{ error }`: event amount `10.005` → `{ error: "Use valores em reais com no máximo 2 casas decimais." }`, `plannedContribution: -1` → `{ error: "Valor não pode ser negativo." }`, consórcio `letterValue: -100` → same negative message; `toLever({ kind: "contribution", deltaMonthly: -50 })` → `deltaMonthly -5_000` (negative allowed there).
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/proposal.test.ts src/features/planning/lib/planner/llm-input.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): schema de proposta, fronteira em reais e aplicacao na entrada do motor"`.
+- [x] **Step 1: Write the failing tests**: in `proposal.test.ts`, create-plan appends with priority 3 after plans 1 and 2; update-plan moving `targetMonth` out of its window throws `ProposalError`; unknown planId throws; `update-settings { reserveMonths: 6 }` changes only that field; input object unchanged (deep equal to a copy taken before). In `llm-input.test.ts`: `parseLlmProposal` of a goal create-plan with target `{ min: 1234.56, base: 1234.56, max: 1234.56 }` → `proposal.changes[0].plan.fields.target` equals `{ min: 123_456, base: 123_456, max: 123_456 }`; one `it.each` of rejected inputs → exact `{ error }`: event amount `10.005` → `{ error: "Use valores em reais com no máximo 2 casas decimais." }`, `plannedContribution: -1` → `{ error: "Valor não pode ser negativo." }`, consórcio `letterValue: -100` → same negative message; `toLever({ kind: "contribution", deltaMonthly: -50 })` → `deltaMonthly -5_000` (negative allowed there).
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/proposal.test.ts src/features/planning/lib/planner/llm-input.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): schema de proposta, fronteira em reais e aplicacao na entrada do motor"`.
 
 ### Task 4: Projection summary, diff and LLM-facing formatting
 
