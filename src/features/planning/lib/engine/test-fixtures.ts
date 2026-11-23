@@ -1,4 +1,22 @@
-import type { EngineInput, EnginePosition } from "./types";
+import type { AmountRange, EngineInput, EnginePlan, EnginePosition, Period } from "./types";
+
+export const goalPlan = (id: string, targetMonth: Period, target: AmountRange, over: Partial<EnginePlan> = {}): EnginePlan => ({
+	id,
+	name: id,
+	priority: 1,
+	nonNegotiable: false,
+	lifecycle: "active",
+	basis: "nominal",
+	index: "IPCA",
+	targetMonth,
+	window: null,
+	potAccountIds: [],
+	fields: { type: "goal", target },
+	events: [],
+	bidHistory: [],
+	mappedMonthlyOutflow: 0,
+	...over,
+});
 
 export const position = (over: Partial<EnginePosition>): EnginePosition => ({
 	id: "position",

@@ -350,7 +350,7 @@ Test: extends `project.test.ts` (same builder), because the waterfall shares the
 
 Test: new, because `runProjection` is the public entry point (distinct contract).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it.each([
@@ -370,10 +370,10 @@ it("ignores draft plans and reports the default horizon", () => {
 ```
 
 (Fixture: income = cost = 0, reserve 0, returns 0, start `2027-01`; `outflowAt` builds a goal plan `"p"` with `basis "nominal"`.)
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/projection.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `runProjection` (expand events once per plan, run `SCENARIOS`) and `planHealth`.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): projecao em tres cenarios e status dos planos"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/projection.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `runProjection` (expand events once per plan, run `SCENARIOS`) and `planHealth`.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): projecao em tres cenarios e status dos planos"`.
 
 ### Task 10: Stress toggles
 
