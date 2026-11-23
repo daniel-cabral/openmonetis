@@ -240,7 +240,7 @@ export function PlanningPage({
 						conversation={plannerConversation}
 						modelId={pickAvailableModel(
 							snapshot.settings.plannerModelId ?? DEFAULT_MODEL,
-							modelGroups,
+							modelGroups.filter((group) => group.models.length > 0),
 						)}
 						modelGroups={modelGroups}
 						settings={snapshot.settings}

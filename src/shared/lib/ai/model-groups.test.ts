@@ -30,5 +30,8 @@ describe("model groups", () => {
 			pickAvailableModel("gpt-5.5", buildModelGroups(["anthropic"], [])),
 		).toBe("claude-opus-4-8");
 		expect(pickAvailableModel("x", [])).toBeNull();
+		expect(
+			pickAvailableModel("gpt-5.5", buildModelGroups(["openrouter"], [])),
+		).toBe("openrouter:");
 	});
 });

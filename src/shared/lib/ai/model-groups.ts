@@ -57,5 +57,11 @@ export function pickAvailableModel(
 		});
 		if (customKept) return saved;
 	}
-	return groups.find((group) => group.models.length > 0)?.models[0]?.id ?? null;
+	const first = groups.find((group) => group.models.length > 0)?.models[0]?.id;
+	if (first) return first;
+	// Only custom-model providers (OpenRouter) connected: open their model input.
+	const custom = groups.find(
+		(group) => CUSTOM_ID_PREFIXES[group.provider] !== undefined,
+	);
+	return custom ? (CUSTOM_ID_PREFIXES[custom.provider] ?? null) : null;
 }
