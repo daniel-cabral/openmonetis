@@ -194,11 +194,11 @@ Test: extends `plan-form.test.ts` (same form-mapping contract).
 
 Test: new, because distinct contract.
 
-- [ ] **Step 1: Write the failing test**: current daily `100_000` and maturity `2028-05` `50_000`; assignments daily `10_000`, maturity `2028-05` `5_000`, maturity `2029-01` `7_000`, one for another account → lines `[daily 110_000, 2028-05 55_000, 2029-01 7_000]`; unassigned (default) contribution adds to daily.
-- [ ] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/check-in.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): atribuicao de aportes no check-in"`.
+- [x] **Step 1: Write the failing test**: current daily `100_000` and maturity `2028-05` `50_000`; assignments daily `10_000`, maturity `2028-05` `5_000`, maturity `2029-01` `7_000`, one for another account → lines `[daily 110_000, 2028-05 55_000, 2029-01 7_000]`; unassigned (default) contribution adds to daily.
+- [x] **Step 2: Run** `pnpm exec vitest run --maxWorkers=4 src/features/planning/lib/check-in.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): atribuicao de aportes no check-in"`.
 
 ### Task 10: Check-in dialog
 
