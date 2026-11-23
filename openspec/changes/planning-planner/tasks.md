@@ -176,11 +176,11 @@ Test: new, because distinct contract (calls each tool's `execute` and `toModelOu
 
 Test: new, because `buildPlannerContext` is a distinct contract. The prompt text gets no test (copy, change detector).
 
-- [ ] **Step 1: Write the failing test**: snapshot fixture with one maturity position of `150_000` cents in `2028-05`, one pot, 25 assumptions → `patrimony.maturities` equals `[{ month: "2028-05", amount: "R$\u00a01.500,00" }]`, `pots[0].accountName`, `assumptions.length 20`, plan health from the projection.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** both files.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): contexto e instrucoes do planejador"`.
+- [x] **Step 1: Write the failing test**: snapshot fixture with one maturity position of `150_000` cents in `2028-05`, one pot, 25 assumptions → `patrimony.maturities` equals `[{ month: "2028-05", amount: "R$\u00a01.500,00" }]`, `pots[0].accountName`, `assumptions.length 20`, plan health from the projection.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** both files.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): contexto e instrucoes do planejador"`.
 
 ### Task 7: Conversation store
 
