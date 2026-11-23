@@ -71,11 +71,11 @@ Test: new, because distinct contract (pattern of `src/db/schema.trips.test.ts`; 
 
 Test: extends `schema.planning.test.ts` table, plus one assertion that both unique constraints exist.
 
-- [ ] **Step 1:** Add the four rows to the `it.each` and the unique-constraint assertion.
-- [ ] **Step 2: Run** the test. Expected: FAIL.
-- [ ] **Step 3: Implement** the tables, relations to `user` like `trips`, and types.
-- [ ] **Step 4: Run** again. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planning): tabelas de planos, eventos, lances e mapeamento de categorias"`.
+- [x] **Step 1:** Add the four rows to the `it.each` and the unique-constraint assertion.
+- [x] **Step 2: Run** the test. Expected: FAIL.
+- [x] **Step 3: Implement** the tables, relations to `user` like `trips`, and types.
+- [x] **Step 4: Run** again. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planning): tabelas de planos, eventos, lances e mapeamento de categorias"`.
 
 ### Task 3: Assumption log and planner conversation tables
 

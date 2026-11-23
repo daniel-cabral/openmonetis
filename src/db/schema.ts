@@ -760,6 +760,131 @@ export const investmentPositions = pgTable(
 	}),
 );
 
+export const plans = pgTable(
+	"planejamento_planos",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		name: text("nome").notNull(),
+		type: text("tipo").notNull(),
+		priority: integer("prioridade").notNull(),
+		nonNegotiable: boolean("inegociavel").notNull().default(false),
+		lifecycle: text("status").notNull().default("draft"),
+		basis: text("base_valor").notNull(),
+		priceIndex: text("indice").notNull(),
+		targetMonth: text("mes_alvo").notNull(),
+		windowEarliest: text("janela_inicio"),
+		windowLatest: text("janela_fim"),
+		potAccountIds: uuid("contas_pote")
+			.array()
+			.notNull()
+			.default(sql`'{}'::uuid[]`),
+		targetMin: numeric("valor_min", { precision: 12, scale: 2 }),
+		targetBase: numeric("valor_alvo", { precision: 12, scale: 2 }),
+		targetMax: numeric("valor_max", { precision: 12, scale: 2 }),
+		letterValue: numeric("valor_carta", { precision: 12, scale: 2 }),
+		outstandingBalance: numeric("saldo_devedor", { precision: 12, scale: 2 }),
+		bidBase: text("base_lance"),
+		bidMarginPp: numeric("margem_lance", { precision: 5, scale: 2 }),
+		embeddedBidEnabled: boolean("lance_embutido").notNull().default(false),
+		embeddedBidPct: numeric("pct_lance_embutido", { precision: 5, scale: 2 })
+			.notNull()
+			.default("0"),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp("updated_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		userPriorityIdx: index("planejamento_planos_user_prioridade_idx").on(
+			table.userId,
+			table.priority,
+		),
+	}),
+);
+
+export const planEvents = pgTable("planejamento_eventos", {
+	id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	planId: uuid("plano_id")
+		.notNull()
+		.references(() => plans.id, { onDelete: "cascade" }),
+	label: text("descricao").notNull(),
+	direction: text("direcao").notNull(),
+	basis: text("base_valor").notNull(),
+	amountMin: numeric("valor_min", { precision: 12, scale: 2 }).notNull(),
+	amountBase: numeric("valor", { precision: 12, scale: 2 }).notNull(),
+	amountMax: numeric("valor_max", { precision: 12, scale: 2 }).notNull(),
+	startMonth: text("mes_inicio").notNull(),
+	endMonth: text("mes_fim"),
+	createdAt: timestamp("created_at", {
+		mode: "date",
+		withTimezone: true,
+	})
+		.notNull()
+		.defaultNow(),
+});
+
+export const bidRecords = pgTable(
+	"planejamento_lances",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		planId: uuid("plano_id")
+			.notNull()
+			.references(() => plans.id, { onDelete: "cascade" }),
+		month: text("mes").notNull(),
+		winningBidPct: numeric("pct_vencedor", { precision: 5, scale: 2 }).notNull(),
+		createdAt: timestamp("created_at", {
+			mode: "date",
+			withTimezone: true,
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		planMonthUnique: uniqueIndex("planejamento_lances_plano_mes_unique").on(
+			table.planId,
+			table.month,
+		),
+	}),
+);
+
+export const planCategoryMappings = pgTable(
+	"planejamento_categorias",
+	{
+		id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		planId: uuid("plano_id")
+			.notNull()
+			.references(() => plans.id, { onDelete: "cascade" }),
+		categoryId: uuid("categoria_id")
+			.notNull()
+			.references(() => categories.id, { onDelete: "cascade" }),
+	},
+	(table) => ({
+		userCategoryUnique: uniqueIndex(
+			"planejamento_categorias_user_categoria_unique",
+		).on(table.userId, table.categoryId),
+	}),
+);
+
 // ===================== TRANSACTIONS =====================
 
 export const transactions = pgTable(
@@ -1342,3 +1467,7 @@ export const importNameMappings = pgTable(
 export type ImportNameMapping = typeof importNameMappings.$inferSelect;
 export type PlanningSettings = typeof planningSettings.$inferSelect;
 export type InvestmentPosition = typeof investmentPositions.$inferSelect;
+export type Plan = typeof plans.$inferSelect;
+export type PlanEventRow = typeof planEvents.$inferSelect;
+export type BidRecord = typeof bidRecords.$inferSelect;
+export type PlanCategoryMapping = typeof planCategoryMappings.$inferSelect;
