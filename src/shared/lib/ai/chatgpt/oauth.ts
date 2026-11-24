@@ -145,10 +145,14 @@ export async function refreshTokens(
 			client_id: CHATGPT_CLIENT_ID,
 		}),
 	});
-	if (response.status === 400 || response.status === 401) {
+	if (
+		response.status === 400 ||
+		response.status === 401 ||
+		response.status === 403
+	) {
 		throw new AiReconnectRequiredError(PROVIDER);
 	}
-	if (response.status === 429 || response.status >= 500) {
+	if (!response.ok) {
 		throw new AiProviderTemporaryError(PROVIDER, response.status);
 	}
 	return toTokens((await response.json()) as TokenResponseBody);

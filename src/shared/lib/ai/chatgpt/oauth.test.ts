@@ -61,6 +61,7 @@ describe("chatgpt oauth client", () => {
 	it.each([
 		[400, AiReconnectRequiredError],
 		[401, AiReconnectRequiredError],
+		[403, AiReconnectRequiredError],
 		[429, AiProviderTemporaryError],
 		[503, AiProviderTemporaryError],
 	])("refresh maps %i to the right error", async (status, errorClass) => {
