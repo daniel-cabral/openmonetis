@@ -1,4 +1,8 @@
-import type { JSONObject } from "@ai-sdk/provider";
+import type { streamText } from "ai";
+
+type ProviderOptions = NonNullable<
+	Parameters<typeof streamText>[0]["providerOptions"]
+>;
 
 export type AiEffort = "low" | "medium" | "high";
 
@@ -21,7 +25,7 @@ const GEMINI_THINKING_LEVEL = /^gemini-(?:[3-9])/;
 export function buildProviderOptions(
 	modelId: string,
 	effort: AiEffort,
-): Record<string, JSONObject> {
+): ProviderOptions {
 	const id = modelId.trim().replace(/^chatgpt:/, "");
 	if (ANTHROPIC_ADAPTIVE.test(id)) {
 		return { anthropic: { thinking: { type: "adaptive" }, effort } };
