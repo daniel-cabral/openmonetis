@@ -153,7 +153,7 @@ function AccountBalance({
 			{lines.map((line, index) => (
 				<div
 					key={index}
-					className="grid items-end gap-2 sm:grid-cols-[1fr_8rem_9rem_8rem_auto]"
+					className="grid items-end gap-2 sm:grid-cols-[1fr_8rem_9rem_8rem_6rem_auto]"
 				>
 					<Input
 						aria-label="Descrição da posição"
@@ -202,6 +202,19 @@ function AccountBalance({
 					) : (
 						<span />
 					)}
+					<Input
+						type="number"
+						step="0.01"
+						aria-label="Retorno real % a.a."
+						placeholder="% a.a."
+						value={line.annualRealReturnPct ?? ""}
+						onChange={(event) =>
+							updateLine(index, {
+								annualRealReturnPct:
+									event.target.value === "" ? null : Number(event.target.value),
+							})
+						}
+					/>
 					<Button
 						type="button"
 						variant="ghost"

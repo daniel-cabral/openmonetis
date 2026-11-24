@@ -5,6 +5,12 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+
+- Campo "Retorno real % a.a." em cada posição do check-in (Saldos por conta); vazio mantém o padrão por liquidez
+
 ## [2.18.0] - 2026-11-23
 
 Esta versão move a configuração de IA para dentro do app: cada usuário conecta os próprios provedores em Ajustes, por chave de API ou pela assinatura do ChatGPT, e Insights e o planejador passam a usar somente essas credenciais. As chaves ficam criptografadas no servidor e nunca voltam para o navegador. Atenção para quem hospeda o app: as variáveis de ambiente de IA deixam de ser lidas, então é preciso cadastrar as chaves em Ajustes > IA depois de atualizar. A versão também afina os prompts do planejador e dos insights e corrige a simulação de propostas de aporte.
