@@ -5,7 +5,13 @@ describe("buildProviderOptions", () => {
 	it.each([
 		[
 			"claude-opus-4-8",
-			{ anthropic: { thinking: { type: "adaptive" }, effort: "high" } },
+			{
+				anthropic: {
+					thinking: { type: "adaptive" },
+					effort: "high",
+					structuredOutputMode: "outputFormat",
+				},
+			},
 		],
 		["gpt-5.5", { openai: { reasoningEffort: "high" } }],
 		["chatgpt:gpt-5.5", { openai: { reasoningEffort: "high" } }],

@@ -28,7 +28,15 @@ export function buildProviderOptions(
 ): ProviderOptions {
 	const id = modelId.trim().replace(/^chatgpt:/, "");
 	if (ANTHROPIC_ADAPTIVE.test(id)) {
-		return { anthropic: { thinking: { type: "adaptive" }, effort } };
+		// Claude 5.x rejects forced tool_choice, so structured output must use
+		// output_config.format; the SDK's "auto" only knows older model ids.
+		return {
+			anthropic: {
+				thinking: { type: "adaptive" },
+				effort,
+				structuredOutputMode: "outputFormat",
+			},
+		};
 	}
 	if (OPENAI_REASONING.test(id)) {
 		return { openai: { reasoningEffort: effort } };
