@@ -2,12 +2,12 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { type LanguageModel, type ToolSet, wrapLanguageModel } from "ai";
-import { AVAILABLE_MODELS } from "./models";
+import { AVAILABLE_MODELS, inferApiProvider } from "./models";
 
 export function resolveWebSearchTools(modelId: string): ToolSet {
-	const provider = AVAILABLE_MODELS.find(
-		(m) => m.id === modelId.trim(),
-	)?.provider;
+	const id = modelId.trim();
+	const provider =
+		AVAILABLE_MODELS.find((m) => m.id === id)?.provider ?? inferApiProvider(id);
 
 	switch (provider) {
 		case "anthropic":

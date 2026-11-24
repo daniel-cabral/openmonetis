@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { InsightsPage } from "@/features/insights/components/insights-page";
 import { ContentErrorBoundary } from "@/shared/components/feedback/content-error-boundary";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
+import { listConnectedApiModels } from "@/shared/lib/ai/api-models-list";
 import { listChatGptModels } from "@/shared/lib/ai/chatgpt/models-list";
 import { fetchConnectedAiProviders } from "@/shared/lib/ai/connected-providers";
 import { buildModelGroups } from "@/shared/lib/ai/model-groups";
@@ -44,7 +45,12 @@ async function InsightsContent({ searchParams }: PageProps) {
 	const chatgptModels = connectedProviders.includes("chatgpt")
 		? await listChatGptModels(userId)
 		: [];
-	const modelGroups = buildModelGroups(connectedProviders, chatgptModels);
+	const apiModels = await listConnectedApiModels(userId, connectedProviders);
+	const modelGroups = buildModelGroups(
+		connectedProviders,
+		chatgptModels,
+		apiModels,
+	);
 
 	return (
 		<main className="flex flex-col gap-6">

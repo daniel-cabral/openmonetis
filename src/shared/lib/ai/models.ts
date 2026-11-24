@@ -61,18 +61,23 @@ export const AVAILABLE_MODELS = [
 
 	// Anthropic
 	{
-		id: "claude-opus-4-8",
-		name: "Claude Opus 4.8",
+		id: "claude-fable-5-2",
+		name: "Claude Fable 5.2",
 		provider: "anthropic" as const,
 	},
 	{
-		id: "claude-sonnet-4-6",
-		name: "Claude Sonnet 4.6",
+		id: "claude-opus-5-5",
+		name: "Claude Opus 5.5",
 		provider: "anthropic" as const,
 	},
 	{
-		id: "claude-haiku-4-5-20251001",
-		name: "Claude Haiku 4.5",
+		id: "claude-sonnet-5-5",
+		name: "Claude Sonnet 5.5",
+		provider: "anthropic" as const,
+	},
+	{
+		id: "claude-haiku-5-5",
+		name: "Claude Haiku 5.5",
 		provider: "anthropic" as const,
 	},
 
@@ -150,6 +155,19 @@ export const CHATGPT_FALLBACK_MODELS: ChatGptModel[] = [
 	{ id: "chatgpt:gpt-5.5", name: "GPT-5.5", provider: "chatgpt" },
 	{ id: "chatgpt:gpt-5.4", name: "GPT-5.4", provider: "chatgpt" },
 ];
+
+/**
+ * Modelos listados ao vivo pela API nem sempre estão em AVAILABLE_MODELS:
+ * o provedor é inferido pelo prefixo do id.
+ */
+export function inferApiProvider(
+	modelId: string,
+): "openai" | "anthropic" | "google" | undefined {
+	if (modelId.startsWith("claude-")) return "anthropic";
+	if (modelId.startsWith("gemini-")) return "google";
+	if (modelId.startsWith("gpt-") || /^o\d/.test(modelId)) return "openai";
+	return undefined;
+}
 
 export const DEFAULT_MODEL = "gpt-5.5";
 export const DEFAULT_PROVIDER = "openai";

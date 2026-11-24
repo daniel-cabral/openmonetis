@@ -28,7 +28,7 @@ describe("model groups", () => {
 	it("falls back when the saved model's provider is gone", () => {
 		expect(
 			pickAvailableModel("gpt-5.5", buildModelGroups(["anthropic"], [])),
-		).toBe("claude-opus-4-8");
+		).toBe("claude-fable-5-2");
 		expect(pickAvailableModel("x", [])).toBeNull();
 		expect(
 			pickAvailableModel("gpt-5.5", buildModelGroups(["openrouter"], [])),

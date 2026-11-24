@@ -3,6 +3,7 @@ import { fetchCategoriesForUser } from "@/features/categories/queries";
 import { PlanningPage } from "@/features/planning/components/planning-page";
 import { fetchLatestConversation } from "@/features/planning/lib/planner/conversation-store";
 import { fetchPlanningSnapshot } from "@/features/planning/queries";
+import { listConnectedApiModels } from "@/shared/lib/ai/api-models-list";
 import { listChatGptModels } from "@/shared/lib/ai/chatgpt/models-list";
 import { fetchConnectedAiProviders } from "@/shared/lib/ai/connected-providers";
 import { buildModelGroups } from "@/shared/lib/ai/model-groups";
@@ -22,7 +23,12 @@ export default async function Page() {
 	const chatgptModels = connectedProviders.includes("chatgpt")
 		? await listChatGptModels(userId)
 		: [];
-	const modelGroups = buildModelGroups(connectedProviders, chatgptModels);
+	const apiModels = await listConnectedApiModels(userId, connectedProviders);
+	const modelGroups = buildModelGroups(
+		connectedProviders,
+		chatgptModels,
+		apiModels,
+	);
 	const expenseCategories = categoryRows
 		.filter((category) => category.type === "despesa")
 		.map(({ id, name }) => ({ id, name }));

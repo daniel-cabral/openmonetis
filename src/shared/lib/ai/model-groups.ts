@@ -27,6 +27,7 @@ export function providerLabel(provider: AiProviderId): string {
 export function buildModelGroups(
 	connected: AiProviderId[],
 	chatgptModels: ChatGptModel[],
+	apiModels: Partial<Record<AiProviderId, { id: string; name: string }[]>> = {},
 ): ModelGroup[] {
 	return (Object.keys(PROVIDERS) as AiProviderId[])
 		.filter((provider) => connected.includes(provider))
@@ -36,9 +37,10 @@ export function buildModelGroups(
 			models:
 				provider === "chatgpt"
 					? chatgptModels.map(({ id, name }) => ({ id, name }))
-					: AVAILABLE_MODELS.filter((model) => model.provider === provider).map(
+					: (apiModels[provider] ??
+						AVAILABLE_MODELS.filter((model) => model.provider === provider).map(
 							({ id, name }) => ({ id, name }),
-						),
+						)),
 		}));
 }
 

@@ -12,7 +12,11 @@ import {
 	AiReconnectRequiredError,
 } from "./credentials/errors";
 import { getProviderSecret } from "./credentials/store";
-import { type AiProviderId, AVAILABLE_MODELS } from "./models";
+import {
+	type AiProviderId,
+	AVAILABLE_MODELS,
+	inferApiProvider,
+} from "./models";
 
 const OPENROUTER_MODEL_REGEX = /^[a-zA-Z0-9_-]+\/[a-zA-Z0-9._:-]+$/;
 
@@ -45,16 +49,18 @@ export async function resolveLanguageModel(
 	const selectedModel = AVAILABLE_MODELS.find(
 		(m) => m.id === normalizedModelId,
 	);
+	const selectedProvider =
+		selectedModel?.provider ?? inferApiProvider(normalizedModelId);
 	const isChatGptModel = normalizedModelId.startsWith("chatgpt:");
 	const isOpenRouterModel =
 		normalizedModelId.startsWith("openrouter:") ||
-		(!selectedModel &&
+		(!selectedProvider &&
 			!isChatGptModel &&
 			OPENROUTER_MODEL_REGEX.test(normalizedModelId));
 	const isOllamaModel = normalizedModelId.startsWith("ollama:");
 
 	if (
-		!selectedModel &&
+		!selectedProvider &&
 		!isOpenRouterModel &&
 		!isOllamaModel &&
 		!isChatGptModel
@@ -79,14 +85,14 @@ export async function resolveLanguageModel(
 				error: "Informe um modelo válido do OpenRouter.",
 			};
 		}
-	} else if (isOllamaModel || selectedModel?.provider === "ollama") {
+	} else if (isOllamaModel || selectedProvider === "ollama") {
 		provider = "ollama";
 		slug = stripProviderPrefix(normalizedModelId, "ollama");
 		if (!slug) {
 			return { success: false, error: "Informe um modelo válido do Ollama." };
 		}
-	} else if (selectedModel) {
-		provider = selectedModel.provider;
+	} else if (selectedProvider) {
+		provider = selectedProvider;
 	} else {
 		return { success: false, error: "Provider de modelo não suportado." };
 	}

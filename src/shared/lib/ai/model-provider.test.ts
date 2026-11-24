@@ -24,7 +24,7 @@ describe("resolveLanguageModel", () => {
 		const createChatGptModel = vi.fn(() => chatGptModel as never);
 		const deps = { getSecret, createChatGptModel } as never;
 
-		expect(await resolveLanguageModel("u1", "claude-sonnet-4-6", deps)).toEqual(
+		expect(await resolveLanguageModel("u1", "claude-sonnet-5-5", deps)).toEqual(
 			{ success: false, error: NOT_CONFIGURED },
 		);
 		expect(
