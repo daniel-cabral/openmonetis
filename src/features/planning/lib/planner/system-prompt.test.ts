@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { runProjection } from "@/features/planning/lib/engine";
 import { engineInput } from "@/features/planning/lib/engine/test-fixtures";
 import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
+import { UNTRUSTED_CLOSE, UNTRUSTED_OPEN } from "@/shared/lib/ai/untrusted";
 import { WEB_SEARCH_POLICY } from "@/shared/lib/ai/web-search";
 import { buildPlannerContext } from "./context";
 import { buildSystemPrompt } from "./system-prompt";
-import { UNTRUSTED_CLOSE, UNTRUSTED_OPEN } from "./untrusted";
 
 const input = engineInput({ startMonth: "2027-01", horizonEnd: "2027-06" });
 

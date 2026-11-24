@@ -1,6 +1,6 @@
+import { UNTRUSTED_CLOSE, UNTRUSTED_OPEN } from "@/shared/lib/ai/untrusted";
 import { WEB_SEARCH_POLICY } from "@/shared/lib/ai/web-search";
 import type { PlannerContext } from "./context";
-import { UNTRUSTED_CLOSE, UNTRUSTED_OPEN } from "./untrusted";
 
 export function buildSystemPrompt(
 	context: PlannerContext,

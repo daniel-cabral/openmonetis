@@ -9,13 +9,13 @@ import type {
 	Projection,
 } from "@/features/planning/lib/engine";
 import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
+import { capUntrusted } from "@/shared/lib/ai/untrusted";
 import {
 	formatCentsForLlm,
 	type LlmProjectionSummary,
 	toLlmSummary,
 } from "./llm-format";
 import { summarizeProjection } from "./summary";
-import { capUntrusted } from "./untrusted";
 
 const MAX_ASSUMPTIONS = 20;
 const MAX_NAME = 80;

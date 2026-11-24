@@ -12,8 +12,8 @@ import type {
 	PlanningSnapshot,
 	PlanView,
 } from "@/features/planning/lib/snapshot-types";
+import { UNTRUSTED_CLOSE } from "@/shared/lib/ai/untrusted";
 import { buildPlannerContext } from "./context";
-import { UNTRUSTED_CLOSE } from "./untrusted";
 
 const settings: PlanningSettingsInput = {
 	plannedContribution: 0,
