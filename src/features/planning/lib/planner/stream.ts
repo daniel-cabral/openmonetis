@@ -8,12 +8,18 @@ import {
 	type UIMessage,
 	validateUIMessages,
 } from "ai";
+import {
+	buildProviderOptions,
+	PLANNER_EFFORT,
+	PLANNER_MAX_OUTPUT_TOKENS,
+} from "@/shared/lib/ai/effort";
 import { withWebSearchFallback } from "@/shared/lib/ai/web-search";
 
 export const PLANNER_MAX_STEPS = 8;
 
 export async function createPlannerResponse(args: {
 	model: LanguageModel;
+	modelId: string;
 	system: string;
 	history: UIMessage[];
 	tools: ToolSet;
@@ -30,6 +36,8 @@ export async function createPlannerResponse(args: {
 		messages: await convertToModelMessages(validated, { tools: args.tools }),
 		tools: args.tools,
 		stopWhen: stepCountIs(PLANNER_MAX_STEPS),
+		maxOutputTokens: PLANNER_MAX_OUTPUT_TOKENS,
+		providerOptions: buildProviderOptions(args.modelId, PLANNER_EFFORT),
 	});
 	// not awaited: onFinish still runs when the client disconnects mid-stream
 	result.consumeStream();

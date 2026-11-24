@@ -73,6 +73,7 @@ export async function POST(request: Request) {
 
 		return await createPlannerResponse({
 			model: model.model,
+			modelId,
 			system: buildSystemPrompt(context, {
 				webSearch: Object.keys(webSearch).length > 0,
 			}),

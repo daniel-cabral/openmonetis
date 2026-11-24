@@ -1,6 +1,11 @@
 "use server";
 
 import { generateObject } from "ai";
+import {
+	buildProviderOptions,
+	INSIGHTS_EFFORT,
+	INSIGHTS_MAX_OUTPUT_TOKENS,
+} from "@/shared/lib/ai/effort";
 import { resolveLanguageModel } from "@/shared/lib/ai/model-provider";
 import { getUser } from "@/shared/lib/auth/server";
 import {
@@ -48,6 +53,8 @@ export async function generateInsightsAction(
 
 		const result = await generateObject({
 			model: resolvedModel.model,
+			maxOutputTokens: INSIGHTS_MAX_OUTPUT_TOKENS,
+			providerOptions: buildProviderOptions(modelId, INSIGHTS_EFFORT),
 			schema: InsightsModelSchema,
 			system: INSIGHTS_SYSTEM_PROMPT,
 			prompt: `Analise os seguintes dados financeiros agregados do período ${period}.

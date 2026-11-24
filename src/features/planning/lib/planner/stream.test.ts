@@ -45,6 +45,7 @@ describe("streaming do planejador", () => {
 		});
 		const response = await createPlannerResponse({
 			model: model(),
+			modelId: "gpt-5.5",
 			system: "",
 			history,
 			tools: {},
@@ -71,6 +72,7 @@ describe("streaming do planejador", () => {
 		});
 		const response = await createPlannerResponse({
 			model: model(),
+			modelId: "gpt-5.5",
 			system: "",
 			history,
 			tools: {},

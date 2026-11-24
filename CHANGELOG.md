@@ -16,6 +16,7 @@ Esta versão move a configuração de IA para dentro do app: cada usuário conec
 - Login com a assinatura do ChatGPT por código de dispositivo, com renovação automática da sessão e lista de modelos obtida do backend
 - Estados de conexão por provedor: Conectado, Aguardando, Sessão expirada e Credencial inválida (quando o segredo da instalação mudou)
 - Resumo do planejamento nos dados agregados dos insights
+- Esforço de raciocínio fixo por uso (planejador alto, insights médio) e limite de tokens de saída, aplicado aos provedores Claude, OpenAI/ChatGPT e Gemini
 - Listas de modelos de Claude AI, OpenAI e Gemini buscadas na API de cada provedor com a chave do usuário (cache de 5 minutos, lista estática como reserva); modelos Claude atualizados para a série 5
 
 ### Alterado
