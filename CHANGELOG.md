@@ -11,6 +11,16 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 - Campo "Retorno real % a.a." em cada posição do check-in (Saldos por conta); vazio mantém o padrão por liquidez
 - Logos de Bitcoin, Ethereum, Tether (USDT), USD Coin (USDC), Precatórios, Imóvel, Previdência, Ouro, Câmbio / Dólar, Consórcio e FGTS
+- Cenários hipotéticos no planejador: `run_projection` e `simulate_lever` aceitam lance vencedor por consórcio, posições adicionadas, removidas ou editadas e entradas/saídas avulsas no caixa, sem gravar nada
+- Calculadora financeira `finance_calc` no planejador (parcela, prazo, valor presente e capital para renda por perpetuidade ou consumo em N meses), com resultado marcado como fora da projeção
+- Entradas e saídas avulsas fora de plano no motor de projeção, somadas ao caixa geral no mês (uma saída pode deixar a folga negativa)
+- Posições com id no contexto do planejador, para editar ou remover no cenário
+
+### Alterado
+
+- Regras do planejador: números do plano só das ferramentas e qualquer outra conta via `finance_calc`; pergunta o dado faltante (no máximo 2 perguntas) em vez de recusar, declara as premissas, separa projeção do plano de cálculo fora da projeção e pode oferecer ajuste via proposta; glossário de `marginPp` corrigido
+- Limite de passos de ferramentas do planejador sobe de 8 para 12
+- Política de busca na web: indicador externo (IPCA projetado, Selic, mercado de consórcio) pode ser premissa de cenário, citando fonte e data, sem ser gravado sem confirmação
 
 ### Corrigido
 
