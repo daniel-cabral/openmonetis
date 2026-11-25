@@ -6,6 +6,7 @@ import { assumptionLog, planningSettings } from "@/db/schema";
 import { toEnginePlan, toSettingsInput } from "@/features/planning/lib/mappers";
 import { createConversation } from "@/features/planning/lib/planner/conversation-store";
 import {
+	mergePlanPatch,
 	type Proposal,
 	type ProposalChange,
 	ProposalError,
@@ -65,10 +66,9 @@ async function applyProposalChange(
 			const stored = await assertOwnedPlan(tx, userId, change.planId);
 			if (!stored) throw new ProposalError(NOT_FOUND_MESSAGE);
 
-			const merged = planInputSchema.safeParse({
-				...toEnginePlan(stored, [], [], 0),
-				...change.patch,
-			});
+			const merged = planInputSchema.safeParse(
+				mergePlanPatch(toEnginePlan(stored, [], [], 0), change.patch),
+			);
 			if (!merged.success) {
 				throw new ProposalError(
 					merged.error.issues[0]?.message ?? "Plano inválido.",

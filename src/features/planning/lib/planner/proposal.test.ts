@@ -70,6 +70,51 @@ describe("applyChangesToInput", () => {
 		);
 	});
 
+	it("keeps the stored consórcio installment when a fields patch omits it", () => {
+		const consorcio = goalPlan("plan-c", "2027-12", range, {
+			priority: 3,
+			fields: {
+				type: "consorcio",
+				letterValue: 80_000_000,
+				outstandingBalance: 81_000_000,
+				bidBase: "both",
+				marginPp: 3,
+				embeddedBid: { enabled: false, pct: 0 },
+				monthlyInstallment: 900_000,
+				lastInstallmentMonth: "2035-06",
+				postBidMode: "reduce-installment",
+			},
+		});
+		const withConsorcio = { ...input, plans: [...input.plans, consorcio] };
+		const changes: ProposalChange[] = [
+			{
+				op: "update-plan",
+				planId: "plan-c",
+				patch: {
+					fields: {
+						type: "consorcio",
+						letterValue: 80_000_000,
+						outstandingBalance: 81_000_000,
+						bidBase: "both",
+						marginPp: 0,
+						embeddedBid: { enabled: false, pct: 0 },
+					},
+				},
+			},
+		];
+
+		const updated = applyChangesToInput(withConsorcio, changes, ctx).plans.find(
+			(plan) => plan.id === "plan-c",
+		);
+
+		expect(updated?.fields).toMatchObject({
+			marginPp: 0,
+			monthlyInstallment: 900_000,
+			lastInstallmentMonth: "2035-06",
+			postBidMode: "reduce-installment",
+		});
+	});
+
 	it("rejects a change to a plan that does not exist", () => {
 		const changes: ProposalChange[] = [
 			{

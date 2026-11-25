@@ -56,6 +56,24 @@ export type Proposal = z.infer<typeof proposalSchema>;
 
 export class ProposalError extends Error {}
 
+type PlanPatch = Extract<ProposalChange, { op: "update-plan" }>["patch"];
+
+/**
+ * Merges a plan patch over the stored plan. A `fields` patch of the same type
+ * is merged key by key, so fields the patch omits (e.g. the consórcio
+ * installment) keep their stored value instead of being dropped.
+ */
+export function mergePlanPatch<T extends { fields: { type: string } }>(
+	stored: T,
+	patch: PlanPatch,
+) {
+	const fields =
+		patch.fields && patch.fields.type === stored.fields.type
+			? { ...stored.fields, ...patch.fields }
+			: (patch.fields ?? stored.fields);
+	return { ...stored, ...patch, fields };
+}
+
 export function applyChangesToInput(
 	input: EngineInput,
 	changes: ProposalChange[],
@@ -93,7 +111,9 @@ function applyChange(
 		}
 		case "update-plan": {
 			const stored = findPlan(input, change.planId);
-			const merged = planInputSchema.safeParse({ ...stored, ...change.patch });
+			const merged = planInputSchema.safeParse(
+				mergePlanPatch(stored, change.patch),
+			);
 			if (!merged.success) {
 				throw new ProposalError(
 					merged.error.issues[0]?.message ?? "Plano inválido.",
