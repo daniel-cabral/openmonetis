@@ -111,10 +111,70 @@ export const llmStressSchema = z.object({
 	planCostPct: z.number().min(0).max(100).optional(),
 });
 
+const liquiditySchema = z.enum(["daily", "maturity", "locked"]);
+
+const requireMaturity = (position: {
+	liquidity?: string;
+	maturityMonth?: string | null;
+}) => position.liquidity !== "maturity" || !!position.maturityMonth;
+const MATURITY_MESSAGE = "Informe o vencimento da posição.";
+
+export const llmScenarioSchema = z.object({
+	winningBidPct: z
+		.array(z.object({ planId: z.uuid(), pct: z.number().min(0).max(100) }))
+		.max(10)
+		.optional(),
+	positions: z
+		.object({
+			add: z
+				.array(
+					z
+						.object({
+							accountId: z.uuid().nullable().default(null),
+							amount: reais,
+							liquidity: liquiditySchema,
+							maturityMonth: periodSchema.nullable().default(null),
+							annualRealReturnPct: z.number().nullable().default(null),
+						})
+						.refine(requireMaturity, { message: MATURITY_MESSAGE }),
+				)
+				.max(10)
+				.optional(),
+			remove: z.array(z.string()).max(10).optional(),
+			edit: z
+				.array(
+					z
+						.object({
+							id: z.string(),
+							amount: reais.optional(),
+							liquidity: liquiditySchema.optional(),
+							maturityMonth: periodSchema.nullable().optional(),
+							annualRealReturnPct: z.number().nullable().optional(),
+						})
+						.refine(requireMaturity, { message: MATURITY_MESSAGE }),
+				)
+				.max(10)
+				.optional(),
+		})
+		.optional(),
+	cashEvents: z
+		.array(
+			z.object({
+				month: periodSchema,
+				direction: z.enum(["in", "out"]),
+				amount: reais,
+				label: z.string().min(1).max(80),
+			}),
+		)
+		.max(10)
+		.optional(),
+});
+
 export type LlmProposal = z.infer<typeof llmProposalSchema>;
 export type LlmProposalChange = z.infer<typeof llmProposalChangeSchema>;
 export type LlmLever = z.infer<typeof llmLeverSchema>;
 export type LlmStress = z.infer<typeof llmStressSchema>;
+export type LlmScenario = z.infer<typeof llmScenarioSchema>;
 
 type LlmPlanInput = z.infer<typeof llmPlanFieldsSchema>;
 type LlmEvent = z.infer<typeof llmEventSchema>;
@@ -246,4 +306,26 @@ export function toStress(input: LlmStress): StressToggles {
 	return contributionCap === undefined
 		? rest
 		: { ...rest, contributionCap: reaisToCents(contributionCap) };
+}
+
+export function toScenario(input: LlmScenario): PlannerScenario {
+	const { positions, cashEvents, winningBidPct } = input;
+	return {
+		winningBidPct,
+		positions: positions && {
+			remove: positions.remove,
+			add: positions.add?.map((position) => ({
+				...position,
+				amount: reaisToCents(position.amount),
+			})),
+			edit: positions.edit?.map(({ amount, ...edit }) =>
+				amount === undefined ? edit : { ...edit, amount: reaisToCents(amount) },
+			),
+		},
+		cashEvents: cashEvents?.map((event) => ({
+			...event,
+			direction: event.direction === "in" ? "inflow" : "outflow",
+			amount: reaisToCents(event.amount),
+		})),
+	};
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { type LlmProposalChange, parseLlmProposal, toLever } from "./llm-input";
+import {
+	type LlmProposalChange,
+	parseLlmProposal,
+	toLever,
+	toScenario,
+} from "./llm-input";
 
 const PLAN_ID = "123e4567-e89b-12d3-a456-426614174000";
 
@@ -108,5 +113,36 @@ describe("toLever", () => {
 			kind: "contribution",
 			deltaMonthly: -5_000,
 		});
+	});
+});
+
+describe("toScenario", () => {
+	it("converts a reais scenario to cents and maps cash directions", () => {
+		const scenario = toScenario({
+			positions: {
+				add: [
+					{
+						accountId: null,
+						amount: 1500.5,
+						liquidity: "daily",
+						maturityMonth: null,
+						annualRealReturnPct: null,
+					},
+				],
+			},
+			cashEvents: [
+				{ month: "2027-02", direction: "out", amount: 2000, label: "reforma" },
+			],
+		});
+
+		expect(scenario.positions?.add?.[0].amount).toBe(150_050);
+		expect(scenario.cashEvents).toEqual([
+			{
+				month: "2027-02",
+				direction: "outflow",
+				amount: 200_000,
+				label: "reforma",
+			},
+		]);
 	});
 });
