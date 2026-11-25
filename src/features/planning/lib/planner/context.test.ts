@@ -119,6 +119,14 @@ describe("buildPlannerContext", () => {
 		expect(context.patrimony.pots).toEqual([
 			{ accountId: "P", accountName: "Caixinha", amount: "R$\u00a01.500,00" },
 		]);
+		expect(context.patrimony.positions[0]).toEqual({
+			id: "m",
+			accountId: "P",
+			amount: "R$ 1.500,00",
+			liquidity: "maturity",
+			maturityMonth: "2028-05",
+			annualRealReturnPct: 0,
+		});
 		expect(context.assumptions).toHaveLength(20);
 		expect(context.assumptions[0]?.date).toBe("2027-01-25");
 		expect(context.plans[0]?.health).toBe("off-track");

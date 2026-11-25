@@ -49,6 +49,14 @@ export type PlannerContext = {
 		daily: LlmMoney;
 		maturities: { month: Period; amount: LlmMoney }[];
 		locked: LlmMoney;
+		positions: {
+			id: string;
+			accountId: string;
+			amount: LlmMoney;
+			liquidity: LiquidityKind;
+			maturityMonth: Period | null;
+			annualRealReturnPct: number | null;
+		}[];
 		pots: { accountId: string; accountName: string; amount: LlmMoney }[];
 		accounts: {
 			accountId: string;
@@ -157,6 +165,14 @@ export function buildPlannerContext(
 					amount: formatCentsForLlm(amount),
 				})),
 			locked: formatCentsForLlm(sumLiquidity("locked")),
+			positions: input.positions.map((position) => ({
+				id: position.id,
+				accountId: position.accountId,
+				amount: formatCentsForLlm(position.amount),
+				liquidity: position.liquidity,
+				maturityMonth: position.maturityMonth,
+				annualRealReturnPct: position.annualRealReturnPct,
+			})),
 			pots: snapshot.accounts
 				.filter((account) => account.isEarmarkedPot)
 				.map((account) => ({
