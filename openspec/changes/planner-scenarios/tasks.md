@@ -228,9 +228,9 @@ Test: extends `system-prompt.test.ts::prompt carries glossary, tool-number rules
 
 Test: none, because no behaviour change.
 
-- [ ] **Step 1:** Edit `CHANGELOG.md` and `README.md`. No version bump, no tag (Grilling 14).
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Run** biome on every touched file: `for f in <touched .ts files>; do tr -d '\r' < "$f" | pnpm exec biome check --stdin-file-path="$f" || echo "FAIL $f"; done`. Expected: no `FAIL`.
-- [ ] **Step 4: Run** the full suite once: `pnpm test`. Expected: PASS.
-- [ ] **Step 5: Commit** `CHANGELOG.md` and `README.md`; `git commit -m "docs: changelog dos cenarios do planejador"`.
+- [x] **Step 1:** Edit `CHANGELOG.md` and `README.md`. No version bump, no tag (Grilling 14).
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 3: Run** biome on every touched file: `for f in <touched .ts files>; do tr -d '\r' < "$f" | pnpm exec biome check --stdin-file-path="$f" || echo "FAIL $f"; done`. Expected: no `FAIL`.
+- [x] **Step 4: Run** the full suite once: `pnpm test`. Expected: PASS.
+- [x] **Step 5: Commit** `CHANGELOG.md` and `README.md`; `git commit -m "docs: changelog dos cenarios do planejador"`.
 - [ ] **Step 6: Manual check (best-effort, production, Chrome):** after deploy, ask the real case ("sem embutido e com lance vencedor de 66%, quanto preciso em caixa para a parcela remanescente ser paga com renda passiva?"): the planner asks for the remaining term and the real rate (at most 2 questions), then answers with `finance_calc` figures labeled outside the projection and lists its assumptions.
