@@ -43,11 +43,11 @@
 
 Test: extends `schemas.test.ts::planInputSchema rejects %s` (`it.each`: two new rows, installment `200_000` without last month, and last month equal to `targetMonth`) and `schemas.test.ts::accepts a goal plan and a consorcio plan` (one more `safeParse` with installment `200_000`, last month after the target, `postBidMode: "reduce-term"` → success).
 
-- [ ] **Step 1: Add the failing cases**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/schemas.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** the three paths; `git commit -m "feat(planejamento): campos de parcela do consorcio com validacao"`.
+- [x] **Step 1: Add the failing cases**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/schemas.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** the three paths; `git commit -m "feat(planejamento): campos de parcela do consorcio com validacao"`.
 
 ### Task 2: Columns, migration, mapping and writes
 

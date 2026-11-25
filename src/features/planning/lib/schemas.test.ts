@@ -69,6 +69,26 @@ describe("planInputSchema", () => {
 			},
 			"O lance embutido vai até 30%.",
 		],
+		[
+			"installment without the last installment month",
+			{
+				...consorcioPlan,
+				fields: { ...consorcioPlan.fields, monthlyInstallment: 200_000 },
+			},
+			"Informe o mês da última parcela.",
+		],
+		[
+			"last installment month equal to the target month",
+			{
+				...consorcioPlan,
+				fields: {
+					...consorcioPlan.fields,
+					monthlyInstallment: 200_000,
+					lastInstallmentMonth: "2027-06",
+				},
+			},
+			"A última parcela deve ser depois do mês alvo.",
+		],
 	])("rejects %s", (_label, input, message) => {
 		const result = planInputSchema.safeParse(input);
 		expect(result.error?.issues.map((issue) => issue.message)).toContain(
@@ -79,6 +99,17 @@ describe("planInputSchema", () => {
 	it("accepts a goal plan and a consorcio plan", () => {
 		expect(planInputSchema.safeParse(goalPlan).success).toBe(true);
 		expect(planInputSchema.safeParse(consorcioPlan).success).toBe(true);
+		expect(
+			planInputSchema.safeParse({
+				...consorcioPlan,
+				fields: {
+					...consorcioPlan.fields,
+					monthlyInstallment: 200_000,
+					lastInstallmentMonth: "2028-12",
+					postBidMode: "reduce-term",
+				},
+			}).success,
+		).toBe(true);
 	});
 });
 

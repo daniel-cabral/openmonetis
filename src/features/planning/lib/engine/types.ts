@@ -37,6 +37,7 @@ export type PlanEventInput = {
 };
 export type BidPoint = { month: Period; winningBidPct: number };
 export type GoalFields = { type: "goal"; target: AmountRange };
+export type PostBidMode = "reduce-installment" | "reduce-term";
 export type ConsorcioFields = {
 	type: "consorcio";
 	letterValue: Cents; // today's money, inflated by the plan index (INCC) to the bid month
@@ -44,6 +45,9 @@ export type ConsorcioFields = {
 	bidBase: "letter" | "outstanding" | "both";
 	marginPp: number; // percentage points added to the winning %
 	embeddedBid: { enabled: boolean; pct: number }; // pct of the letter value, 0..30
+	monthlyInstallment?: Cents | null; // today's money, corrected by the plan index month by month
+	lastInstallmentMonth?: Period | null;
+	postBidMode?: PostBidMode; // absent means "reduce-installment"
 };
 export type PlanTypeFields = GoalFields | ConsorcioFields;
 export type EnginePlan = {

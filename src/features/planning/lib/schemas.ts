@@ -48,6 +48,9 @@ const consorcioFieldsSchema = z.object({
 			.min(0, "O lance embutido não pode ser negativo.")
 			.max(30, "O lance embutido vai até 30%."),
 	}),
+	monthlyInstallment: amountCentsSchema.nullable().optional(),
+	lastInstallmentMonth: periodSchema.nullable().optional(),
+	postBidMode: z.enum(["reduce-installment", "reduce-term"]).optional(),
 });
 
 export const planFieldsSchema = z.object({
@@ -66,6 +69,25 @@ export const planFieldsSchema = z.object({
 });
 
 export const planInputSchema = planFieldsSchema.superRefine((plan, ctx) => {
+	if (
+		plan.fields.type === "consorcio" &&
+		(plan.fields.monthlyInstallment ?? 0) > 0
+	) {
+		const last = plan.fields.lastInstallmentMonth;
+		if (!last) {
+			ctx.addIssue({
+				code: "custom",
+				path: ["fields", "lastInstallmentMonth"],
+				message: "Informe o mês da última parcela.",
+			});
+		} else if (last <= plan.targetMonth) {
+			ctx.addIssue({
+				code: "custom",
+				path: ["fields", "lastInstallmentMonth"],
+				message: "A última parcela deve ser depois do mês alvo.",
+			});
+		}
+	}
 	const { window } = plan;
 	if (!window) {
 		return;
