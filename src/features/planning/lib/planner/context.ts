@@ -5,9 +5,11 @@ import type {
 	Period,
 	PlanHealth,
 	PlanTypeFields,
+	PostBidMode,
 	PriceIndex,
 	Projection,
 } from "@/features/planning/lib/engine";
+import { needsInstallmentMapping } from "@/features/planning/lib/installment-mapping";
 import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
 import { capUntrusted } from "@/shared/lib/ai/untrusted";
 import {
@@ -34,6 +36,9 @@ type LlmPlanFields =
 			bidBase: "letter" | "outstanding" | "both";
 			marginPp: number;
 			embeddedBid: { enabled: boolean; pct: number };
+			monthlyInstallment: LlmMoney | null;
+			lastInstallmentMonth: Period | null;
+			postBidMode: PostBidMode;
 	  };
 
 export type PlannerContext = {
@@ -80,6 +85,7 @@ export type PlannerContext = {
 		window: { earliest: Period; latest: Period } | null;
 		potAccountIds: string[];
 		fields: LlmPlanFields;
+		installmentUnmapped: boolean;
 		events: {
 			label: string;
 			direction: string;
@@ -114,6 +120,11 @@ function toLlmFields(fields: PlanTypeFields): LlmPlanFields {
 		...fields,
 		letterValue: formatCentsForLlm(fields.letterValue),
 		outstandingBalance: formatCentsForLlm(fields.outstandingBalance),
+		monthlyInstallment: fields.monthlyInstallment
+			? formatCentsForLlm(fields.monthlyInstallment)
+			: null,
+		lastInstallmentMonth: fields.lastInstallmentMonth ?? null,
+		postBidMode: fields.postBidMode ?? "reduce-installment",
 	};
 }
 
@@ -212,6 +223,10 @@ export function buildPlannerContext(
 			window: plan.window,
 			potAccountIds: plan.potAccountIds,
 			fields: toLlmFields(plan.fields),
+			installmentUnmapped: needsInstallmentMapping(
+				plan.fields,
+				plan.categoryIds,
+			),
 			events: plan.events.map((event) => ({
 				label: capUntrusted(event.label, MAX_NAME),
 				direction: event.direction,

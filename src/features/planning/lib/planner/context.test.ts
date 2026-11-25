@@ -157,6 +157,46 @@ describe("buildPlannerContext", () => {
 		});
 	});
 
+	it("carries the consórcio installment and flags it when no category is mapped", () => {
+		const consorcio = (categoryIds: string[]): PlanView => ({
+			...plan,
+			type: "consorcio",
+			categoryIds,
+			fields: {
+				type: "consorcio",
+				letterValue: 10_000_000,
+				outstandingBalance: 8_000_000,
+				bidBase: "letter",
+				marginPp: 0,
+				embeddedBid: { enabled: false, pct: 0 },
+				monthlyInstallment: 200_000,
+				lastInstallmentMonth: "2028-12",
+				postBidMode: "reduce-term",
+			},
+		});
+
+		const context = buildPlannerContext(
+			{
+				...snapshot,
+				plans: [
+					consorcio([]),
+					consorcio(["123e4567-e89b-12d3-a456-426614174000"]),
+				],
+			},
+			runProjection(input),
+		);
+
+		expect(context.plans.map((p) => p.installmentUnmapped)).toEqual([
+			true,
+			false,
+		]);
+		expect(context.plans[0]?.fields).toMatchObject({
+			monthlyInstallment: "R$ 2.000,00",
+			lastInstallmentMonth: "2028-12",
+			postBidMode: "reduce-term",
+		});
+	});
+
 	it("context exposes the index forecast and flags accounts not updated for 45+ days", () => {
 		const now = new Date("2027-03-01T00:00:00.000Z");
 		const account = (id: string, lastAsOf: string | null) => ({

@@ -32,6 +32,8 @@ export function buildSystemPrompt(
 		"- direction: in = entrada de dinheiro; out = saída.",
 		"- lifecycle: etapa do plano (por exemplo, ativo).",
 		"- marginPp: margem do lance do consórcio em pontos percentuais. Exemplo: lance 66% + margem 3 = 69%. Lance vencedor hipotético: scenario.winningBidPct. Lance sem margem: changes com marginPp 0.",
+		"- monthlyInstallment: parcela mensal do consórcio em valor de hoje (corrigida pelo índice mês a mês); lastInstallmentMonth: mês da última parcela; postBidMode: após o lance, reduce-installment reduz a parcela e reduce-term reduz o prazo.",
+		"- installmentUnmapped: parcela sem categoria mapeada; pode estar contada duas vezes (custo de vida e plano); avise o usuário.",
 	];
 	return [
 		...rules,

@@ -41,6 +41,7 @@ describe("buildSystemPrompt", () => {
 			"locked",
 			"nonNegotiable",
 			"marginPp",
+			"installmentUnmapped",
 			"66% + margem 3 = 69%",
 			"finance_calc",
 			"op arithmetic",
