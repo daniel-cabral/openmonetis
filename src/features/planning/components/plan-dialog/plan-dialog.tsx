@@ -112,6 +112,7 @@ export function PlanDialog({
 							bidHistory={plan?.bidHistory ?? []}
 							inccForecastPct={inccForecastPct}
 							startMonth={currentMonth}
+							categoryIds={plan?.categoryIds ?? []}
 						/>
 					)}
 					{plan ? (
