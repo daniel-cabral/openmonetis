@@ -19,6 +19,7 @@ import {
 	ProposalError,
 	proposalSchema,
 } from "./proposal";
+import type { PlannerScenario } from "./scenario";
 
 const reais = z.number().describe("em reais");
 
