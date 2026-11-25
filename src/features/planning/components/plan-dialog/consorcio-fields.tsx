@@ -2,6 +2,7 @@
 
 import { formatCents } from "@/features/planning/lib/cents";
 import { buildBidPreview } from "@/features/planning/lib/consorcio-preview";
+import { needsInstallmentMapping } from "@/features/planning/lib/installment-mapping";
 import type {
 	AmountRange,
 	BidPoint,
@@ -30,7 +31,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/shared/components/ui/table";
-import type { PatchPlanForm } from "./common-fields";
+import { MonthField, type PatchPlanForm } from "./common-fields";
 
 type BidRow = {
 	key: "letter" | "outstanding";
@@ -44,12 +45,14 @@ export function ConsorcioFields({
 	bidHistory,
 	inccForecastPct,
 	startMonth,
+	categoryIds,
 }: {
 	values: PlanFormValues;
 	patch: PatchPlanForm;
 	bidHistory: BidPoint[];
 	inccForecastPct: number;
 	startMonth: Period;
+	categoryIds: string[];
 }) {
 	const planFields = formToPlanInput(values).fields;
 	const preview =
@@ -71,6 +74,21 @@ export function ConsorcioFields({
 			row.range != null &&
 			(values.bidBase === "both" || values.bidBase === row.key),
 	);
+
+	const afterBid = preview?.afterBid ?? null;
+	const showMappingWarning = needsInstallmentMapping(planFields, categoryIds);
+	const formatAfterBid = ({
+		amount,
+		months,
+	}: {
+		amount: number;
+		months: number;
+	}) =>
+		months === 0
+			? "Quitado"
+			: values.postBidMode === "reduce-term"
+				? `${formatCents(amount)} × ${months} meses`
+				: formatCents(amount);
 
 	return (
 		<div className="space-y-4">
@@ -96,6 +114,52 @@ export function ConsorcioFields({
 					/>
 				</div>
 			</div>
+
+			<div className="grid gap-4 sm:grid-cols-2">
+				<div className="space-y-2">
+					<Label htmlFor="consorcio-installment">Parcela mensal (hoje)</Label>
+					<CurrencyInput
+						id="consorcio-installment"
+						value={values.monthlyInstallment}
+						onValueChange={(monthlyInstallment) =>
+							patch({ monthlyInstallment })
+						}
+						placeholder="R$ 0,00"
+					/>
+				</div>
+				<div className="space-y-2">
+					<Label htmlFor="consorcio-last-installment">Última parcela</Label>
+					<MonthField
+						id="consorcio-last-installment"
+						value={values.lastInstallmentMonth}
+						onChange={(lastInstallmentMonth) => patch({ lastInstallmentMonth })}
+					/>
+				</div>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="consorcio-post-bid-mode">Depois do lance</Label>
+				<Select
+					value={values.postBidMode}
+					onValueChange={(postBidMode) =>
+						patch({ postBidMode: postBidMode as PlanFormValues["postBidMode"] })
+					}
+				>
+					<SelectTrigger id="consorcio-post-bid-mode" className="w-full">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="reduce-installment">Reduzir parcela</SelectItem>
+						<SelectItem value="reduce-term">Reduzir prazo</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+
+			{showMappingWarning ? (
+				<p className="text-sm text-warning">
+					Mapeie a categoria onde a parcela cai para ela sair do custo de vida.
+				</p>
+			) : null}
 
 			<div className="space-y-2">
 				<Label htmlFor="consorcio-bid-base">Base do lance</Label>
@@ -191,6 +255,20 @@ export function ConsorcioFields({
 									</TableCell>
 								</TableRow>
 							))}
+							{afterBid ? (
+								<TableRow>
+									<TableCell>Parcela após o lance</TableCell>
+									<TableCell className="text-right">
+										{formatAfterBid(afterBid.min)}
+									</TableCell>
+									<TableCell className="text-right">
+										{formatAfterBid(afterBid.base)}
+									</TableCell>
+									<TableCell className="text-right">
+										{formatAfterBid(afterBid.max)}
+									</TableCell>
+								</TableRow>
+							) : null}
 						</TableBody>
 					</Table>
 				) : (
