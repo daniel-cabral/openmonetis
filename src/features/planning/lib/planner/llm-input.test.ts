@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	type LlmProposalChange,
+	llmScenarioSchema,
 	parseLlmProposal,
 	toLever,
 	toScenario,
@@ -113,6 +114,29 @@ describe("toLever", () => {
 			kind: "contribution",
 			deltaMonthly: -5_000,
 		});
+	});
+});
+
+describe("llmScenarioSchema", () => {
+	it.each([
+		[
+			"a zero cash event",
+			{
+				cashEvents: [
+					{ month: "2027-02", direction: "out", amount: 0, label: "x" },
+				],
+			},
+		],
+		[
+			"a negative added position",
+			{
+				positions: {
+					add: [{ amount: -1, liquidity: "daily" }],
+				},
+			},
+		],
+	])("rejects %s", (_label, scenario) => {
+		expect(llmScenarioSchema.safeParse(scenario).success).toBe(false);
 	});
 });
 

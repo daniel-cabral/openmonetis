@@ -132,7 +132,7 @@ export const llmScenarioSchema = z.object({
 					z
 						.object({
 							accountId: z.uuid().nullable().default(null),
-							amount: reais,
+							amount: reais.min(0),
 							liquidity: liquiditySchema,
 							maturityMonth: periodSchema.nullable().default(null),
 							annualRealReturnPct: z.number().nullable().default(null),
@@ -144,15 +144,13 @@ export const llmScenarioSchema = z.object({
 			remove: z.array(z.string()).max(10).optional(),
 			edit: z
 				.array(
-					z
-						.object({
-							id: z.string(),
-							amount: reais.optional(),
-							liquidity: liquiditySchema.optional(),
-							maturityMonth: periodSchema.nullable().optional(),
-							annualRealReturnPct: z.number().nullable().optional(),
-						})
-						.refine(requireMaturity, { message: MATURITY_MESSAGE }),
+					z.object({
+						id: z.string(),
+						amount: reais.optional(),
+						liquidity: liquiditySchema.optional(),
+						maturityMonth: periodSchema.nullable().optional(),
+						annualRealReturnPct: z.number().nullable().optional(),
+					}),
 				)
 				.max(10)
 				.optional(),
@@ -163,7 +161,7 @@ export const llmScenarioSchema = z.object({
 			z.object({
 				month: periodSchema,
 				direction: z.enum(["in", "out"]),
-				amount: reais,
+				amount: reais.positive(),
 				label: z.string().min(1).max(80),
 			}),
 		)

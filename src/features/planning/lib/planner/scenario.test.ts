@@ -100,6 +100,34 @@ describe("applyScenario", () => {
 		expect(input.positions).toHaveLength(2);
 	});
 
+	it("keeps the existing maturity when an edit switches a position to maturity", () => {
+		const input = engineInput({
+			positions: [
+				position({
+					id: "cdb",
+					liquidity: "maturity",
+					maturityMonth: "2028-01",
+				}),
+				position({ id: "conta" }),
+			],
+		});
+
+		const result = applyScenario(input, {
+			positions: { edit: [{ id: "cdb", liquidity: "maturity", amount: 5 }] },
+		});
+
+		expect(result.positions[0]).toMatchObject({
+			liquidity: "maturity",
+			maturityMonth: "2028-01",
+			amount: 5,
+		});
+		expect(() =>
+			applyScenario(input, {
+				positions: { edit: [{ id: "conta", liquidity: "maturity" }] },
+			}),
+		).toThrow("Informe o vencimento da posição.");
+	});
+
 	it("appends cash events without mutating the input", () => {
 		const input = engineInput({});
 		const event = {

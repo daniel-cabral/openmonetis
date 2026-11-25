@@ -93,7 +93,11 @@ function applyPositions(
 		.filter((position) => !removed.has(position.id))
 		.map((position) => {
 			const { id: _id, ...patch } = edits.get(position.id) ?? {};
-			return { ...position, ...patch };
+			const edited = { ...position, ...patch };
+			if (edited.liquidity === "maturity" && !edited.maturityMonth) {
+				throw new ProposalError("Informe o vencimento da posição.");
+			}
+			return edited;
 		});
 	const added = (changes.add ?? []).map(
 		(position, index): EnginePosition => ({
