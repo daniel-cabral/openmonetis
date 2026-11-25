@@ -15,7 +15,7 @@ import {
 } from "@/shared/lib/ai/effort";
 import { withWebSearchFallback } from "@/shared/lib/ai/web-search";
 
-export const PLANNER_MAX_STEPS = 8;
+export const PLANNER_MAX_STEPS = 12;
 
 export async function createPlannerResponse(args: {
 	model: LanguageModel;

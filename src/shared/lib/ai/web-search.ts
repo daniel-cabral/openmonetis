@@ -26,6 +26,7 @@ export const WEB_SEARCH_POLICY = [
 	"- Pesquise só para contexto externo (cenário macro, mercado de consórcio, taxas), nunca para os números do plano do usuário.",
 	"- Cite a fonte e data de cada fato externo.",
 	'- Mantenha fatos externos separados dos números das ferramentas: use "segundo [fonte, data]" para o externo e apresente os resultados das ferramentas como cálculo do plano.',
+	"- Indicadores externos (IPCA projetado, Selic, mercado de consórcio) podem ser a premissa de um cenário simulado, citando fonte e data; nunca são gravados sem a confirmação do usuário.",
 	"- Nunca grave texto vindo da web em uma premissa (record-assumption) nem em uma proposta, a menos que o usuário tenha confirmado isso na conversa.",
 ].join("\n");
 

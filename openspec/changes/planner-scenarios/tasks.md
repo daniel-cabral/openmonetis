@@ -61,13 +61,13 @@ export function runFinanceCalc(request: FinanceRequest): FinanceResult;
 
 Test: new, because distinct contract (new module).
 
-- [ ] **Step 1: Write the failing tests** in `finance.test.ts`:
+- [x] **Step 1: Write the failing tests** in `finance.test.ts`:
   - `it.each` "computes <op>" over `runFinanceCalc` with literal values: installment `{ principal: 10_000_000, months: 12, annualRatePct: 12 }` → `885_621` cents; installment `{ principal: 12_000_000, months: 120, annualRatePct: 0 }` → `100_000`; term `{ principal: 10_000_000, installment: 885_621, annualRatePct: 12 }` → `12` months (locks the `1e-9` ceil); term at 0% `{ principal: 1_000_000, installment: 300_000 }` → `4`; present_value `{ installment: 100_000, months: 12, annualRatePct: 12 }` → `1_129_152`; capital perpetuity `{ monthlyIncome: 500_000, annualRealRatePct: 6 }` → `102_721_070`; capital drawdown 240 months, 6% → `70_692_154`. Each case also asserts `outsideProjection: true` and the `unit`.
   - `it.each` "rejects <case>" over the three error inputs → `toThrow(FinanceError)` with the exact message.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/finance.test.ts`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement** `finance.ts` with the signatures above (standard PMT, NPER, PV annuity formulas; perpetuity = `round(income / r)`).
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** `finance.ts` and its test; `git commit -m "feat(planejamento): calculadora financeira deterministica"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/finance.test.ts`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement** `finance.ts` with the signatures above (standard PMT, NPER, PV annuity formulas; perpetuity = `round(income / r)`).
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** `finance.ts` and its test; `git commit -m "feat(planejamento): calculadora financeira deterministica"`.
 
 ### Task 2: `finance_calc` tool
 
@@ -84,11 +84,11 @@ Test: new, because distinct contract (new module).
 
 Test: extends `tools.test.ts::exposes only the five planner tools when the model has no web search` (now six names, add `"finance_calc"`; rename to "exposes only the six planner tools ..."); new `tools.test.ts::finance_calc returns a reais view marked outside the projection, and an error for a perpetuity at zero rate`, because distinct contract (tool boundary: reais in, cents result, reais view).
 
-- [ ] **Step 1: Write the failing tests**: execute `{ op: "installment", principal: 1000, months: 4 }` → output `toMatchObject({ value: 25_000, unit: "cents", outsideProjection: true })`; `toModelOutput` value `toMatchObject({ op: "installment", result: "R$ 250,00", outsideProjection: true })`; execute `{ op: "capital_for_income", monthlyIncome: 5000, annualRealRatePct: 0, mode: "perpetuity" }` → `{ error: "Perpetuidade exige taxa real maior que zero." }`. Extend the tool-names assertion.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** schema, converter, view and tool.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** the four paths; `git commit -m "feat(planejamento): ferramenta finance_calc no planejador"`.
+- [x] **Step 1: Write the failing tests**: execute `{ op: "installment", principal: 1000, months: 4 }` → output `toMatchObject({ value: 25_000, unit: "cents", outsideProjection: true })`; `toModelOutput` value `toMatchObject({ op: "installment", result: "R$ 250,00", outsideProjection: true })`; execute `{ op: "capital_for_income", monthlyIncome: 5000, annualRealRatePct: 0, mode: "perpetuity" }` → `{ error: "Perpetuidade exige taxa real maior que zero." }`. Extend the tool-names assertion.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** schema, converter, view and tool.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** the four paths; `git commit -m "feat(planejamento): ferramenta finance_calc no planejador"`.
 
 ### Task 3: Ad-hoc cash events in the engine
 
@@ -215,11 +215,11 @@ Test: extends `context.test.ts::formats maturities and pots in reais, keeps the 
 
 Test: extends `system-prompt.test.ts::prompt carries glossary, tool-number rules and the answer discipline` (literal list: drop `"71%"`, add `"66% + margem 3 = 69%"`, `"finance_calc"`, `"scenario"`, `"no máximo 2 perguntas"`, `"premissas"`, `"Cálculo fora da projeção"`, `"propose_change"`, `` `${PLANNER_MAX_STEPS} passos` ``; add `expect(prompt).not.toContain("diga que não sabe")`, the only lock on the refusal regression) and `system-prompt.test.ts::web search policy appears only when web search is enabled` (add `expect(on).toContain("premissa de um cenário")`). `PLANNER_MAX_STEPS = 12`: none, because a constant; the steps literal above reads it.
 
-- [ ] **Step 1: Update the assertions**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/system-prompt.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** the three files.
-- [ ] **Step 4: Run** `pnpm exec vitest run src/features/planning/lib/planner/system-prompt.test.ts src/features/planning/lib/planner/stream.test.ts src/shared/lib/ai/web-search.test.ts`. Expected: PASS.
-- [ ] **Step 5: Commit** the four paths; `git commit -m "feat(planejamento): planejador pergunta, simula e declara premissas"`.
+- [x] **Step 1: Update the assertions**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/system-prompt.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** the three files.
+- [x] **Step 4: Run** `pnpm exec vitest run src/features/planning/lib/planner/system-prompt.test.ts src/features/planning/lib/planner/stream.test.ts src/shared/lib/ai/web-search.test.ts`. Expected: PASS.
+- [x] **Step 5: Commit** the four paths; `git commit -m "feat(planejamento): planejador pergunta, simula e declara premissas"`.
 
 ### Task 9: Closing checks and changelog
 

@@ -5,6 +5,7 @@ import type { PlanningSnapshot } from "@/features/planning/lib/snapshot-types";
 import { UNTRUSTED_CLOSE, UNTRUSTED_OPEN } from "@/shared/lib/ai/untrusted";
 import { WEB_SEARCH_POLICY } from "@/shared/lib/ai/web-search";
 import { buildPlannerContext } from "./context";
+import { PLANNER_MAX_STEPS } from "./stream";
 import { buildSystemPrompt } from "./system-prompt";
 
 const input = engineInput({ startMonth: "2027-01", horizonEnd: "2027-06" });
@@ -40,7 +41,14 @@ describe("buildSystemPrompt", () => {
 			"locked",
 			"nonNegotiable",
 			"marginPp",
-			"71%",
+			"66% + margem 3 = 69%",
+			"finance_calc",
+			"scenario",
+			"no máximo 2 perguntas",
+			"premissas",
+			"Cálculo fora da projeção",
+			"propose_change",
+			`${PLANNER_MAX_STEPS} passos`,
 			"reais de hoje",
 			"no máximo 3",
 			"resposta em texto",
@@ -51,6 +59,7 @@ describe("buildSystemPrompt", () => {
 		expect(prompt).not.toContain(
 			"Nunca calcule nem estime números. Todo valor",
 		);
+		expect(prompt).not.toContain("diga que não sabe");
 		expect(prompt).toContain(JSON.stringify(context));
 	});
 
@@ -61,6 +70,7 @@ describe("buildSystemPrompt", () => {
 		expect(on).toContain(WEB_SEARCH_POLICY);
 		expect(on).toContain("fonte e data");
 		expect(on).toContain("confirm");
+		expect(on).toContain("premissa de um cenário");
 		expect(off).not.toContain(WEB_SEARCH_POLICY);
 		expect(off).not.toContain("pesquis");
 		expect(off).not.toContain("confirm");
