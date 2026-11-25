@@ -7,7 +7,7 @@ import {
 	createPlanAction,
 	updatePlanAction,
 } from "@/features/planning/actions";
-import type { Period } from "@/features/planning/lib/engine";
+import type { Period, PriceIndex } from "@/features/planning/lib/engine";
 import {
 	emptyPlanForm,
 	formToPlanInput,
@@ -40,7 +40,7 @@ type PlanDialogProps = {
 	plan?: PlanView;
 	potAccounts: InvestmentAccountView[];
 	currentMonth: Period;
-	inccForecastPct: number;
+	indexForecastPct: Record<PriceIndex, number>;
 	expenseCategories: { id: string; name: string }[];
 };
 
@@ -51,7 +51,7 @@ export function PlanDialog({
 	plan,
 	potAccounts,
 	currentMonth,
-	inccForecastPct,
+	indexForecastPct,
 	expenseCategories,
 }: PlanDialogProps) {
 	const router = useRouter();
@@ -110,7 +110,7 @@ export function PlanDialog({
 							values={values}
 							patch={patch}
 							bidHistory={plan?.bidHistory ?? []}
-							inccForecastPct={inccForecastPct}
+							indexForecastPct={indexForecastPct}
 							startMonth={currentMonth}
 							categoryIds={plan?.categoryIds ?? []}
 						/>

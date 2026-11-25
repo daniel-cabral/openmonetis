@@ -326,7 +326,7 @@ export function PlanningPage({
 				plan={editingPlan}
 				potAccounts={potAccounts}
 				currentMonth={snapshot.currentMonth}
-				inccForecastPct={snapshot.input.indexForecastPct.INCC}
+				indexForecastPct={snapshot.input.indexForecastPct}
 				expenseCategories={expenseCategories}
 			/>
 			{checkInOpen ? (

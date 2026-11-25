@@ -29,7 +29,7 @@ export type BidPreview = {
 export function buildBidPreview(
 	fields: ConsorcioFields,
 	history: BidPoint[],
-	inccPct: number,
+	indexPct: number,
 	start: Period,
 	targetMonth: Period,
 	basis: MoneyBasis,
@@ -40,7 +40,7 @@ export function buildBidPreview(
 	}
 	const letterAtBid =
 		basis === "today"
-			? inflateToMonth(fields.letterValue, inccPct, start, targetMonth)
+			? inflateToMonth(fields.letterValue, indexPct, start, targetMonth)
 			: fields.letterValue;
 	return {
 		pct,
@@ -48,7 +48,7 @@ export function buildBidPreview(
 			fields,
 			pct,
 			letterAtBid,
-			inccPct,
+			indexPct,
 			start,
 			targetMonth,
 		),
@@ -69,7 +69,7 @@ function previewAfterBid(
 	fields: ConsorcioFields,
 	pct: AmountRange,
 	letterAtBid: Cents,
-	inccPct: number,
+	indexPct: number,
 	start: Period,
 	targetMonth: Period,
 ): BidPreview["afterBid"] {
@@ -84,7 +84,7 @@ function previewAfterBid(
 	}
 	const atTarget = inflateToMonth(
 		monthlyInstallment,
-		inccPct,
+		indexPct,
 		start,
 		targetMonth,
 	);

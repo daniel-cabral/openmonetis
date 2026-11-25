@@ -7,6 +7,7 @@ import type {
 	AmountRange,
 	BidPoint,
 	Period,
+	PriceIndex,
 } from "@/features/planning/lib/engine";
 import {
 	formToPlanInput,
@@ -43,14 +44,14 @@ export function ConsorcioFields({
 	values,
 	patch,
 	bidHistory,
-	inccForecastPct,
+	indexForecastPct,
 	startMonth,
 	categoryIds,
 }: {
 	values: PlanFormValues;
 	patch: PatchPlanForm;
 	bidHistory: BidPoint[];
-	inccForecastPct: number;
+	indexForecastPct: Record<PriceIndex, number>;
 	startMonth: Period;
 	categoryIds: string[];
 }) {
@@ -60,7 +61,7 @@ export function ConsorcioFields({
 			? buildBidPreview(
 					planFields,
 					bidHistory,
-					inccForecastPct,
+					indexForecastPct[values.index],
 					startMonth,
 					values.targetMonth,
 					values.basis,
@@ -138,7 +139,7 @@ export function ConsorcioFields({
 			</div>
 
 			<div className="space-y-2">
-				<Label htmlFor="consorcio-post-bid-mode">Depois do lance</Label>
+				<Label htmlFor="consorcio-post-bid-mode">Após o lance</Label>
 				<Select
 					value={values.postBidMode}
 					onValueChange={(postBidMode) =>
