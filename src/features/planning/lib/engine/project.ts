@@ -64,9 +64,17 @@ export function projectScenario(
 				0,
 			);
 
+		const adhoc = (input.adhocEvents ?? [])
+			.filter((event) => event.month === month)
+			.reduce(
+				(total, event) =>
+					total + (event.direction === "inflow" ? event.amount : -event.amount),
+				0,
+			);
+
 		buckets = {
 			...buckets,
-			general: buckets.general + regular - irregular + inflows,
+			general: buckets.general + regular - irregular + inflows + adhoc,
 		};
 
 		const pots = { ...buckets.pots };

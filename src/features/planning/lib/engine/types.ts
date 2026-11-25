@@ -73,6 +73,12 @@ export type StressToggles = {
 	bidAtRangeMax?: boolean;
 	planCostPct?: number;
 };
+export type AdhocCashEvent = {
+	month: Period;
+	direction: Direction;
+	amount: Cents;
+	label: string;
+};
 export type EngineInput = {
 	startMonth: Period;
 	horizonEnd: Period | null;
@@ -86,6 +92,7 @@ export type EngineInput = {
 	plans: EnginePlan[];
 	stress: StressToggles;
 	extraMonthlySaving: Cents;
+	adhocEvents?: AdhocCashEvent[];
 };
 export type ExpandedEvent = {
 	planId: string;

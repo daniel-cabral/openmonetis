@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { projectScenario } from "./project";
+import { runProjection } from "./projection";
 import { engineInput, position } from "./test-fixtures";
 import type { EnginePlan, ExpandedEvent } from "./types";
 
@@ -115,5 +116,37 @@ describe("priority waterfall", () => {
 		);
 
 		expect(result.shortfallByPlan).toEqual({ C: 280_000 });
+	});
+});
+
+describe("ad-hoc cash events", () => {
+	it("adds ad-hoc cash to general in its month and lets an outflow go below the floor", () => {
+		const result = runProjection(
+			engineInput({
+				startMonth: "2027-01",
+				horizonEnd: "2027-03",
+				positions: [position({ amount: 100_000 })],
+				adhocEvents: [
+					{
+						month: "2027-02",
+						direction: "inflow",
+						amount: 50_000,
+						label: "bônus",
+					},
+					{
+						month: "2027-03",
+						direction: "outflow",
+						amount: 200_000,
+						label: "reforma",
+					},
+				],
+			}),
+		);
+
+		const slack = (scenario: "base" | "pessimistic") =>
+			result.scenarios[scenario].months.map((row) => row.slack);
+		expect(slack("base")).toEqual([100_000, 150_000, -50_000]);
+		expect(result.scenarios.base.months[2].reserveBreached).toBe(true);
+		expect(slack("pessimistic")).toEqual(slack("base"));
 	});
 });
