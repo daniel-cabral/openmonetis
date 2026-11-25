@@ -81,6 +81,25 @@ describe("runFinanceCalc", () => {
 			70_692_154,
 			"cents",
 		],
+		[
+			"arithmetic",
+			{
+				op: "arithmetic",
+				terms: [
+					{ value: 100_000, sign: "+" },
+					{ value: 25_050, sign: "-" },
+					{ value: 10, sign: "+" },
+				],
+			},
+			74_960,
+			"cents",
+		],
+		[
+			"percent_of (rounded to cents)",
+			{ op: "percent_of", base: 333_333, pct: 34 },
+			113_333,
+			"cents",
+		],
 	])("computes %s", (_name, request, value, unit) => {
 		expect(runFinanceCalc(request)).toEqual({
 			request,
@@ -120,6 +139,26 @@ describe("runFinanceCalc", () => {
 				mode: "drawdown",
 			},
 			"Informe em quantos meses o capital será consumido.",
+		],
+		[
+			"a zero installment at zero rate",
+			{ op: "term", principal: 1_000_000, installment: 0, annualRatePct: 0 },
+			"A parcela deve ser maior que zero.",
+		],
+		[
+			"a negative principal",
+			{ op: "installment", principal: -100, months: 12, annualRatePct: 0 },
+			"O saldo deve ser maior que zero.",
+		],
+		[
+			"a zero monthly income",
+			{
+				op: "capital_for_income",
+				monthlyIncome: 0,
+				annualRealRatePct: 6,
+				mode: "perpetuity",
+			},
+			"A renda mensal deve ser maior que zero.",
 		],
 	])("rejects %s", (_name, request, message) => {
 		expect(() => runFinanceCalc(request)).toThrow(FinanceError);

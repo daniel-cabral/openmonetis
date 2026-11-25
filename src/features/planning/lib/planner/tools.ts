@@ -186,7 +186,7 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 		}),
 		finance_calc: tool({
 			description:
-				"Cálculo financeiro fora da projeção do plano: parcela, prazo, valor presente e capital para renda. Não usa nem altera dados do plano. Valores em reais, taxas em % ao ano.",
+				"Cálculo financeiro fora da projeção do plano: parcela, prazo, valor presente, capital para renda, somas/subtrações (arithmetic) e percentual de um valor (percent_of). Não usa nem altera dados do plano. Valores em reais, taxas em % ao ano.",
 			inputSchema: llmFinanceCalcSchema,
 			execute: (input) => {
 				try {

@@ -44,6 +44,24 @@ export const llmFinanceCalcSchema = z.discriminatedUnion("op", [
 		mode: z.enum(["perpetuity", "drawdown"]),
 		months: z.number().int().min(1).max(600).optional(),
 	}),
+	z.object({
+		op: z.literal("arithmetic"),
+		terms: z
+			.array(
+				z.object({
+					value: reais,
+					sign: z.enum(["+", "-"]).default("+"),
+				}),
+			)
+			.min(1)
+			.max(20)
+			.describe("soma e subtração de valores"),
+	}),
+	z.object({
+		op: z.literal("percent_of"),
+		base: reais,
+		pct: z.number().describe("percentual, ex.: 34 para 34%"),
+	}),
 ]);
 
 export type LlmFinanceCalc = z.infer<typeof llmFinanceCalcSchema>;
@@ -71,6 +89,16 @@ export function toFinanceRequest(input: LlmFinanceCalc): FinanceRequest {
 			};
 		case "capital_for_income":
 			return { ...input, monthlyIncome: reaisToCents(input.monthlyIncome) };
+		case "arithmetic":
+			return {
+				op: "arithmetic",
+				terms: input.terms.map((term) => ({
+					value: reaisToCents(term.value),
+					sign: term.sign ?? "+",
+				})),
+			};
+		case "percent_of":
+			return { ...input, base: reaisToCents(input.base) };
 	}
 }
 
@@ -110,6 +138,14 @@ function assumptionsOf(
 				mode: request.mode,
 				...(request.months === undefined ? {} : { months: request.months }),
 			};
+		case "arithmetic":
+			return {
+				terms: request.terms
+					.map((term) => `${term.sign} ${formatCentsForLlm(term.value)}`)
+					.join(" "),
+			};
+		case "percent_of":
+			return { base: formatCentsForLlm(request.base), pct: request.pct };
 	}
 }
 

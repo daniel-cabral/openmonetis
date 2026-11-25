@@ -239,6 +239,69 @@ describe("buildPlannerTools", () => {
 		).toEqual({ error: "Plano não encontrado." });
 	});
 
+	it("simulate_lever measures the lever over the hypothetical scenario", async () => {
+		const input = engineInput({
+			startMonth: "2026-01",
+			horizonEnd: "2026-03",
+			positions: [position({ id: "conta-corrente", amount: 100_000 })],
+			plans: [
+				goalPlan(PLAN_ID, "2026-02", {
+					min: 100_000,
+					base: 100_000,
+					max: 100_000,
+				}),
+			],
+		});
+		const tools = buildPlannerTools(deps({ input }));
+
+		const output = await named(tools, "simulate_lever").execute(
+			{
+				lever: { kind: "contribution", deltaMonthly: 0 },
+				scenario: {
+					cashEvents: [
+						{
+							month: "2026-01",
+							direction: "out",
+							amount: 500,
+							label: "reforma",
+						},
+					],
+				},
+			},
+			{ toolCallId: "call-sl", messages: [] },
+		);
+
+		expect(output).toMatchObject({
+			coverage: [{ planId: PLAN_ID, shortfallBefore: 100_000 }],
+		});
+		expect(input.adhocEvents).toBeUndefined();
+	});
+
+	it("finance_calc sums signed reais terms and takes a percent of a value", async () => {
+		const tools = buildPlannerTools(deps());
+		const call = { toolCallId: "call-ar", messages: [] as [] };
+
+		expect(
+			await named(tools, "finance_calc").execute(
+				{
+					op: "arithmetic",
+					terms: [{ value: 1000 }, { value: 250.5, sign: "-" }],
+				},
+				call,
+			),
+		).toMatchObject({ value: 74_950, unit: "cents", outsideProjection: true });
+		expect(
+			await named(tools, "finance_calc").execute(
+				{ op: "percent_of", base: 100_000, pct: 34 },
+				call,
+			),
+		).toMatchObject({
+			value: 3_400_000,
+			unit: "cents",
+			outsideProjection: true,
+		});
+	});
+
 	it("exposes only the six planner tools when the model has no web search", () => {
 		expect(Object.keys(buildPlannerTools(deps())).sort()).toEqual([
 			"finance_calc",

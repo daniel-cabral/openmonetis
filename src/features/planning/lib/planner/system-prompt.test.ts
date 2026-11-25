@@ -43,6 +43,8 @@ describe("buildSystemPrompt", () => {
 			"marginPp",
 			"66% + margem 3 = 69%",
 			"finance_calc",
+			"op arithmetic",
+			"op percent_of",
 			"scenario",
 			"no máximo 2 perguntas",
 			"premissas",

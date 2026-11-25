@@ -2,6 +2,12 @@ import type { Cents } from "@/features/planning/lib/engine";
 
 export class FinanceError extends Error {}
 
+function requirePositive(value: number, label: string): void {
+	if (!(value > 0)) {
+		throw new FinanceError(`${label} deve ser maior que zero.`);
+	}
+}
+
 /** Converts a yearly rate in percent to the equivalent monthly rate (fraction). */
 export function monthlyRate(annualPct: number): number {
 	return (1 + annualPct / 100) ** (1 / 12) - 1;
@@ -13,6 +19,8 @@ export function installmentFor(
 	months: number,
 	annualPct: number,
 ): Cents {
+	requirePositive(principal, "O saldo");
+	requirePositive(months, "O prazo em meses");
 	const rate = monthlyRate(annualPct);
 	if (rate === 0) {
 		return Math.round(principal / months);
@@ -26,6 +34,8 @@ export function termFor(
 	installment: Cents,
 	annualPct: number,
 ): number {
+	requirePositive(principal, "O saldo");
+	requirePositive(installment, "A parcela");
 	const rate = monthlyRate(annualPct);
 	if (rate === 0) {
 		return Math.ceil(principal / installment - 1e-9);
@@ -44,11 +54,26 @@ export function presentValue(
 	months: number,
 	annualPct: number,
 ): Cents {
+	requirePositive(installment, "A parcela");
+	requirePositive(months, "O prazo em meses");
 	const rate = monthlyRate(annualPct);
 	if (rate === 0) {
 		return installment * months;
 	}
 	return Math.round((installment * (1 - (1 + rate) ** -months)) / rate);
+}
+
+/** Signed sum of `terms`. */
+export function sumTerms(terms: { value: Cents; sign: "+" | "-" }[]): Cents {
+	return terms.reduce(
+		(total, term) => total + (term.sign === "-" ? -term.value : term.value),
+		0,
+	);
+}
+
+/** `pct` percent of `base`, rounded to cents. */
+export function percentOf(base: Cents, pct: number): Cents {
+	return Math.round((base * pct) / 100);
 }
 
 /** Capital that sustains `monthlyIncome` forever, or until `months` run out. */
@@ -58,6 +83,7 @@ export function capitalForIncome(
 	mode: "perpetuity" | "drawdown",
 	months?: number,
 ): Cents {
+	requirePositive(monthlyIncome, "A renda mensal");
 	if (mode === "perpetuity") {
 		if (annualRealPct <= 0) {
 			throw new FinanceError("Perpetuidade exige taxa real maior que zero.");
@@ -92,7 +118,9 @@ export type FinanceRequest =
 			annualRealRatePct: number;
 			mode: "perpetuity" | "drawdown";
 			months?: number;
-	  };
+	  }
+	| { op: "arithmetic"; terms: { value: Cents; sign: "+" | "-" }[] }
+	| { op: "percent_of"; base: Cents; pct: number };
 
 export type FinanceResult = {
 	request: FinanceRequest;
@@ -145,6 +173,20 @@ export function runFinanceCalc(request: FinanceRequest): FinanceResult {
 					request.mode,
 					request.months,
 				),
+				unit: "cents",
+				outsideProjection: true,
+			};
+		case "arithmetic":
+			return {
+				request,
+				value: sumTerms(request.terms),
+				unit: "cents",
+				outsideProjection: true,
+			};
+		case "percent_of":
+			return {
+				request,
+				value: percentOf(request.base, request.pct),
 				unit: "cents",
 				outsideProjection: true,
 			};
