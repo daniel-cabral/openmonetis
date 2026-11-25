@@ -83,7 +83,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 📅 **Calendário financeiro** — Visualize todos os lançamentos em um calendário mensal.
 
-🧭 **Planejamento**: liquidez projetada mês a mês contra as metas e os planos futuros (objetivos e consórcios), com check-in mensal de aportes e saldos, cenários de estresse, alerta de desvio, registro de premissas e planejador em chat, com simulações de cenários hipotéticos e calculadora financeira, que só aplica mudanças depois da sua confirmação. Os dados financeiros da página são enviados ao provedor do modelo escolhido.
+🧭 **Planejamento**: liquidez projetada mês a mês contra as metas e os planos futuros (objetivos e consórcios, com as parcelas do consórcio antes e depois do lance), com check-in mensal de aportes e saldos, cenários de estresse, alerta de desvio, registro de premissas e planejador em chat, com simulações de cenários hipotéticos e calculadora financeira, que só aplica mudanças depois da sua confirmação. Os dados financeiros da página são enviados ao provedor do modelo escolhido.
 
 ✈️ **Viagens**: agrupe os gastos de uma viagem, de qualquer cartão ou conta, mesmo quando a fatura cai no mês seguinte. Sugestão automática pela data, vínculo em lote e custo líquido com reembolsos.
 

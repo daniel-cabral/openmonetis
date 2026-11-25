@@ -133,11 +133,11 @@ Test: new tests in `describe("expandConsorcioEvents")`, because distinct setup (
 
 Test: new `llm-input.test.ts::converts the consórcio installment from reais to cents`, because distinct field: `parseLlmProposal` with an `update-plan` patch whose consórcio `fields` carry `monthlyInstallment: 2000`, `lastInstallmentMonth: "2028-12"` → `proposal.changes[0].patch.fields.monthlyInstallment` `200_000`. New `describe-change.test.ts::lists the installment rows of a consórcio plan`, because distinct type branch (no existing describe-change test builds a consórcio): rows contain `["Parcela mensal (hoje)", "R$ 2.000,00"]` and `["Após o lance", "Reduzir o prazo"]`.
 
-- [ ] **Step 1: Write the failing tests**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/llm-input.test.ts src/features/planning/lib/planner/describe-change.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** the four paths; `git commit -m "feat(planejamento): parcela do consorcio nas propostas do planejador"`.
+- [x] **Step 1: Write the failing tests**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/llm-input.test.ts src/features/planning/lib/planner/describe-change.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** the four paths; `git commit -m "feat(planejamento): parcela do consorcio nas propostas do planejador"`.
 
 ### Task 6: Unmapped-installment flag and fields in the planner context
 
@@ -150,11 +150,11 @@ Test: new `llm-input.test.ts::converts the consórcio installment from reais to 
 
 Test: new `context.test.ts::carries the consórcio installment and flags it when no category is mapped`, because distinct setup (consórcio plans with and without mapping): two consórcio `PlanView`s with installment `200_000`, `categoryIds` `[]` and `["<uuid>"]` → `installmentUnmapped` `true` / `false`, `fields.monthlyInstallment` `"R$ 2.000,00"`. Extends `system-prompt.test.ts::prompt carries glossary, tool-number rules and the answer discipline` with literal `"installmentUnmapped"`.
 
-- [ ] **Step 1: Write the failing tests**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts src/features/planning/lib/planner/system-prompt.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** the five paths; `git commit -m "feat(planejamento): planejador ve a parcela do consorcio e o aviso de mapeamento"`.
+- [x] **Step 1: Write the failing tests**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts src/features/planning/lib/planner/system-prompt.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** the five paths; `git commit -m "feat(planejamento): planejador ve a parcela do consorcio e o aviso de mapeamento"`.
 
 ### Task 7: Plan form values
 
@@ -167,11 +167,11 @@ Test: new `context.test.ts::carries the consórcio installment and flags it when
 
 Test: extends `plan-form.test.ts::round-trips a goal and a consorcio back to the same plan input` (consórcio literal gains `monthlyInstallment: 200_000`, `lastInstallmentMonth: "2028-12"`, `postBidMode: "reduce-term"`); new `plan-form.test.ts::stores no installment when the field is empty`, because distinct branch (the existing `formToPlanInput` test is goal-only): consórcio form with `monthlyInstallment: ""` → fields `monthlyInstallment: null`, `lastInstallmentMonth: null`.
 
-- [ ] **Step 1: Write the failing tests**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): parcela do consorcio no formulario do plano"`.
+- [x] **Step 1: Write the failing tests**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/plan-form.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): parcela do consorcio no formulario do plano"`.
 
 ### Task 8: Installment after the bid in the preview
 
@@ -185,11 +185,11 @@ Test: extends `plan-form.test.ts::round-trips a goal and a consorcio back to the
 
 Test: new `consorcio-preview.test.ts::previews the installment after the bid`, because distinct output field: fields `bidBase: "letter"`, `marginPp: 0`, letter `10_000_000`, installment `200_000`, last `"2028-12"`, history `[{ month: "2027-02", winningBidPct: 30 }]`, `inccPct` 0, start `"2027-01"`, target `"2027-03"`, basis `"nominal"` → `afterBid.base` `{ amount: 57_143, months: 21 }`. Extends `consorcio-preview.test.ts::returns no preview without bid history` with `afterBid: null` in its expected object.
 
-- [ ] **Step 1: Write the failing tests**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/consorcio-preview.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): previa da parcela apos o lance"`.
+- [x] **Step 1: Write the failing tests**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/consorcio-preview.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): previa da parcela apos o lance"`.
 
 ### Task 9: Dialog fields, preview line and warning
 
@@ -202,9 +202,9 @@ Test: new `consorcio-preview.test.ts::previews the installment after the bid`, b
 
 Test: none, because UI wiring; preview math locked by Task 8, warning rule by Task 6, form values by Task 7.
 
-- [ ] **Step 1: Implement** both components.
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Commit** both paths; `git commit -m "feat(planejamento): campos de parcela e aviso no dialogo do consorcio"`.
+- [x] **Step 1: Implement** both components.
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 3: Commit** both paths; `git commit -m "feat(planejamento): campos de parcela e aviso no dialogo do consorcio"`.
 
 ### Task 10: Closing checks, changelog and production check
 
@@ -213,9 +213,9 @@ Test: none, because UI wiring; preview math locked by Task 8, warning rule by Ta
 
 Test: none, because no behaviour change.
 
-- [ ] **Step 1:** Edit `CHANGELOG.md` and `README.md`. No version bump, no tag (Grilling 14).
-- [ ] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
-- [ ] **Step 3: Run** biome on every touched `.ts`/`.tsx` file (not the generated SQL/JSON): `for f in <files>; do tr -d '\r' < "$f" | pnpm exec biome check --stdin-file-path="$f" || echo "FAIL $f"; done`. Expected: no `FAIL`.
-- [ ] **Step 4: Run** the full suite once: `pnpm test`. Expected: PASS.
-- [ ] **Step 5: Commit** `CHANGELOG.md` and `README.md`; `git commit -m "docs: changelog das parcelas do consorcio"`.
+- [x] **Step 1:** Edit `CHANGELOG.md` and `README.md`. No version bump, no tag (Grilling 14).
+- [x] **Step 2: Run** `pnpm exec tsc --noEmit`. Expected: exit 0.
+- [x] **Step 3: Run** biome on every touched `.ts`/`.tsx` file (not the generated SQL/JSON): `for f in <files>; do tr -d '\r' < "$f" | pnpm exec biome check --stdin-file-path="$f" || echo "FAIL $f"; done`. Expected: no `FAIL`.
+- [x] **Step 4: Run** the full suite once: `pnpm test`. Expected: PASS.
+- [x] **Step 5: Commit** `CHANGELOG.md` and `README.md`; `git commit -m "docs: changelog das parcelas do consorcio"`.
 - [ ] **Step 6: Production check (Chrome, after the deploy finished and serves this commit):** the entrypoint applied the migration (app loads `/planning` without error); edit the consórcio plan, fill installment, last month and mode, save, reopen: values persist (locks `toPlanColumns`); the preview shows "Parcela após o lance"; with no category mapped the warning appears; the liquidity chart shows the installments ending at the last month.

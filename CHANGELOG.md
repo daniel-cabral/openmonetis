@@ -15,6 +15,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Calculadora financeira `finance_calc` no planejador (parcela, prazo, valor presente e capital para renda por perpetuidade ou consumo em N meses), com resultado marcado como fora da projeção
 - Entradas e saídas avulsas fora de plano no motor de projeção, somadas ao caixa geral no mês (uma saída pode deixar a folga negativa)
 - Posições com id no contexto do planejador, para editar ou remover no cenário
+- Parcelas do consórcio na projeção: parcela mensal em valor de hoje, corrigida pelo índice do plano até o lance, e saldo remanescente depois dele com redução de parcela ou de prazo (linha "Parcela após o lance" na prévia do lance)
+- Aviso no plano e no contexto do planejador quando o consórcio tem parcela e nenhuma categoria mapeada, para a parcela não ser contada duas vezes
 
 ### Alterado
 
