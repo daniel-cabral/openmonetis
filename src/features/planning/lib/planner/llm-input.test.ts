@@ -101,6 +101,44 @@ describe("parseLlmProposal", () => {
 		});
 	});
 
+	it("converts the consórcio installment from reais to cents", () => {
+		const result = parseLlmProposal(
+			proposalWith({
+				op: "update-plan",
+				planId: PLAN_ID,
+				patch: {
+					fields: {
+						type: "consorcio",
+						letterValue: 100_000,
+						outstandingBalance: 80_000,
+						bidBase: "letter",
+						marginPp: 0,
+						embeddedBid: { enabled: false, pct: 0 },
+						monthlyInstallment: 2000,
+						lastInstallmentMonth: "2028-12",
+						postBidMode: "reduce-term",
+					},
+				},
+			}),
+		);
+
+		expect(result).toMatchObject({
+			proposal: {
+				changes: [
+					{
+						patch: {
+							fields: {
+								monthlyInstallment: 200_000,
+								lastInstallmentMonth: "2028-12",
+								postBidMode: "reduce-term",
+							},
+						},
+					},
+				],
+			},
+		});
+	});
+
 	it.each(
 		rejectedCases,
 	)("returns an error for %s", (_label, change, message) => {

@@ -110,4 +110,31 @@ describe("describeChange", () => {
 		expect(event.lines).toContain("Valor (base): R$\u00a020,00");
 		expect(event.lines).toContain("Fim: Em aberto");
 	});
+
+	it("lists the installment rows of a consórcio plan", () => {
+		const description = describeChange(
+			{
+				op: "update-plan",
+				planId: PLAN_ID,
+				patch: {
+					fields: {
+						type: "consorcio",
+						letterValue: 10_000_000,
+						outstandingBalance: 8_000_000,
+						bidBase: "letter",
+						marginPp: 0,
+						embeddedBid: { enabled: false, pct: 0 },
+						monthlyInstallment: 200_000,
+						lastInstallmentMonth: "2028-12",
+						postBidMode: "reduce-term",
+					},
+				},
+			},
+			baseline,
+		);
+
+		expect(description.lines).toContain("Parcela mensal (hoje): R$ 2.000,00");
+		expect(description.lines).toContain("Última parcela: Dez/2028");
+		expect(description.lines).toContain("Após o lance: Reduzir o prazo");
+	});
 });

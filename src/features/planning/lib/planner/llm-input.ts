@@ -39,6 +39,9 @@ const llmPlanFieldsSchema = planFieldsSchema.omit({ fields: true }).extend({
 			bidBase: z.enum(["letter", "outstanding", "both"]),
 			marginPp: z.number(),
 			embeddedBid: z.object({ enabled: z.boolean(), pct: z.number() }),
+			monthlyInstallment: reais.nullable().optional(),
+			lastInstallmentMonth: periodSchema.nullable().optional(),
+			postBidMode: z.enum(["reduce-installment", "reduce-term"]).optional(),
 		}),
 	]),
 });
@@ -215,10 +218,19 @@ function toPlanFields(
 	if (fields.type === "goal") {
 		return { ...fields, target: toRange(fields.target) };
 	}
+	const { monthlyInstallment, ...rest } = fields;
 	return {
-		...fields,
+		...rest,
 		letterValue: reaisToCents(fields.letterValue),
 		outstandingBalance: reaisToCents(fields.outstandingBalance),
+		...(monthlyInstallment === undefined
+			? {}
+			: {
+					monthlyInstallment:
+						monthlyInstallment === null
+							? null
+							: reaisToCents(monthlyInstallment),
+				}),
 	};
 }
 

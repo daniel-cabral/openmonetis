@@ -36,6 +36,10 @@ const BID_BASE_LABEL = {
 	outstanding: "Saldo devedor",
 	both: "Carta e saldo",
 } as const;
+const POST_BID_LABEL = {
+	"reduce-installment": "Reduzir a parcela",
+	"reduce-term": "Reduzir o prazo",
+} as const;
 const DIRECTION_LABEL = { outflow: "Saída", inflow: "Entrada" } as const;
 
 const yesNo = (value: boolean) => (value ? "Sim" : "Não");
@@ -59,6 +63,21 @@ function typeFieldRows(fields: PlanTypeFields): Row[] {
 			"Lance embutido",
 			fields.embeddedBid.enabled ? `${fields.embeddedBid.pct}%` : "Desligado",
 		],
+		...(fields.monthlyInstallment
+			? ([
+					["Parcela mensal (hoje)", formatCents(fields.monthlyInstallment)],
+					[
+						"Última parcela",
+						fields.lastInstallmentMonth
+							? formatShortPeriodLabel(fields.lastInstallmentMonth)
+							: "Não informada",
+					],
+					[
+						"Após o lance",
+						POST_BID_LABEL[fields.postBidMode ?? "reduce-installment"],
+					],
+				] satisfies Row[])
+			: []),
 	];
 }
 
