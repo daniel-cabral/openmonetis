@@ -5,6 +5,7 @@ import type {
 	Period,
 	PlanEventInput,
 	PlanLifecycle,
+	PostBidMode,
 	PriceIndex,
 } from "@/features/planning/lib/engine";
 import type {
@@ -36,6 +37,9 @@ export type PlanFormValues = {
 	marginPp: string;
 	embeddedBidEnabled: boolean;
 	embeddedBidPct: string;
+	monthlyInstallment: string;
+	lastInstallmentMonth: Period;
+	postBidMode: PostBidMode;
 };
 
 export function emptyPlanForm(
@@ -64,6 +68,9 @@ export function emptyPlanForm(
 		marginPp: "0",
 		embeddedBidEnabled: false,
 		embeddedBidPct: "0",
+		monthlyInstallment: "",
+		lastInstallmentMonth: currentMonth,
+		postBidMode: "reduce-installment",
 	};
 }
 
@@ -102,6 +109,11 @@ export function planToForm(plan: PlanView): PlanFormValues {
 		marginPp: String(fields.marginPp),
 		embeddedBidEnabled: fields.embeddedBid.enabled,
 		embeddedBidPct: String(fields.embeddedBid.pct),
+		monthlyInstallment: fields.monthlyInstallment
+			? centsToDecimal(fields.monthlyInstallment)
+			: "",
+		lastInstallmentMonth: fields.lastInstallmentMonth ?? plan.targetMonth,
+		postBidMode: fields.postBidMode ?? "reduce-installment",
 	};
 }
 
@@ -109,6 +121,7 @@ const toAmount = (value: string) => toCents(normalizeDecimalInput(value));
 const toNumber = (value: string) => Number(normalizeDecimalInput(value));
 
 export function formToPlanInput(values: PlanFormValues): PlanInput {
+	const installment = toAmount(values.monthlyInstallment);
 	const fields: PlanInput["fields"] =
 		values.type === "goal"
 			? {
@@ -135,6 +148,10 @@ export function formToPlanInput(values: PlanFormValues): PlanInput {
 						enabled: values.embeddedBidEnabled,
 						pct: toNumber(values.embeddedBidPct),
 					},
+					monthlyInstallment: installment > 0 ? installment : null,
+					lastInstallmentMonth:
+						installment > 0 ? values.lastInstallmentMonth : null,
+					postBidMode: values.postBidMode,
 				};
 
 	return {

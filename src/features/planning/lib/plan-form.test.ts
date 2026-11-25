@@ -27,6 +27,24 @@ describe("formToPlanInput", () => {
 	});
 });
 
+describe("formToPlanInput consorcio installment", () => {
+	it("stores no installment when the field is empty", () => {
+		const form = {
+			...emptyPlanForm("consorcio", "2027-01"),
+			monthlyInstallment: "",
+			lastInstallmentMonth: "2028-12",
+			postBidMode: "reduce-term" as const,
+		};
+
+		expect(formToPlanInput(form).fields).toMatchObject({
+			type: "consorcio",
+			monthlyInstallment: null,
+			lastInstallmentMonth: null,
+			postBidMode: "reduce-term",
+		});
+	});
+});
+
 describe("eventFormToInput", () => {
 	it("pins a one-off event's end to its start month", () => {
 		const form = {
@@ -110,6 +128,9 @@ describe("planToForm", () => {
 				bidBase: "both",
 				marginPp: 2.5,
 				embeddedBid: { enabled: true, pct: 15 },
+				monthlyInstallment: 200_000,
+				lastInstallmentMonth: "2028-12",
+				postBidMode: "reduce-term",
 			},
 			events: [],
 			bidHistory: [],
@@ -147,6 +168,9 @@ describe("planToForm", () => {
 				bidBase: "both",
 				marginPp: 2.5,
 				embeddedBid: { enabled: true, pct: 15 },
+				monthlyInstallment: 200_000,
+				lastInstallmentMonth: "2028-12",
+				postBidMode: "reduce-term",
 			},
 		});
 	});
