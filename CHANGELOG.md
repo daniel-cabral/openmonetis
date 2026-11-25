@@ -10,6 +10,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Adicionado
 
 - Campo "Retorno real % a.a." em cada posição do check-in (Saldos por conta); vazio mantém o padrão por liquidez
+- Logos de Bitcoin, Ethereum, Tether (USDT), USD Coin (USDC), Precatórios, Imóvel, Previdência, Ouro, Câmbio / Dólar, Consórcio e FGTS
+
+### Corrigido
+
+- Seletor de mês dentro de diálogos (planos do planejamento) ignorava cliques e fechava o diálogo ao trocar o ano: `@radix-ui/react-popover` fixado em 1.1.15 para usar a mesma camada de dismiss do diálogo
 
 ## [2.18.0] - 2026-11-23
 
