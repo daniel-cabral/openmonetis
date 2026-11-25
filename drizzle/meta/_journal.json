@@ -281,6 +281,13 @@
 			"when": 1795475333267,
 			"tag": "0040_flashy_prowler",
 			"breakpoints": true
+		},
+		{
+			"idx": 41,
+			"version": "7",
+			"when": 1795574682135,
+			"tag": "0041_unique_boomerang",
+			"breakpoints": true
 		}
 	]
 }

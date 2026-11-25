@@ -865,6 +865,12 @@ export const plans = pgTable(
 		embeddedBidPct: numeric("pct_lance_embutido", { precision: 5, scale: 2 })
 			.notNull()
 			.default("0"),
+		monthlyInstallment: numeric("parcela_mensal", {
+			precision: 12,
+			scale: 2,
+		}),
+		lastInstallmentMonth: text("ultima_parcela"),
+		postBidMode: text("modo_pos_lance"),
 		createdAt: timestamp("created_at", {
 			mode: "date",
 			withTimezone: true,

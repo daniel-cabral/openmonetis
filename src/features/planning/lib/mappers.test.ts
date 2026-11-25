@@ -61,6 +61,9 @@ function planRow(over: Partial<Plan>): Plan {
 		bidMarginPp: null,
 		embeddedBidEnabled: false,
 		embeddedBidPct: "0.00",
+		monthlyInstallment: null,
+		lastInstallmentMonth: null,
+		postBidMode: null,
 		createdAt: NOW,
 		updatedAt: NOW,
 		...over,
@@ -176,6 +179,9 @@ describe("toEnginePlan", () => {
 				bidMarginPp: "2.00",
 				embeddedBidEnabled: true,
 				embeddedBidPct: "10.00",
+				monthlyInstallment: "2000.00",
+				lastInstallmentMonth: "2028-12",
+				postBidMode: "reduce-term",
 			}),
 			[],
 			[],
@@ -191,6 +197,9 @@ describe("toEnginePlan", () => {
 			bidBase: "both",
 			marginPp: 2,
 			embeddedBid: { enabled: true, pct: 10 },
+			monthlyInstallment: 200_000,
+			lastInstallmentMonth: "2028-12",
+			postBidMode: "reduce-term",
 		});
 	});
 

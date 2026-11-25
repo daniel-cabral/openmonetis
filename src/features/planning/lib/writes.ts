@@ -78,6 +78,9 @@ function toPlanColumns(input: PlanInput) {
 			bidMarginPp: null,
 			embeddedBidEnabled: false,
 			embeddedBidPct: "0.00",
+			monthlyInstallment: null,
+			lastInstallmentMonth: null,
+			postBidMode: null,
 		};
 	}
 
@@ -94,6 +97,11 @@ function toPlanColumns(input: PlanInput) {
 		bidMarginPp: fields.marginPp.toFixed(2),
 		embeddedBidEnabled: fields.embeddedBid.enabled,
 		embeddedBidPct: fields.embeddedBid.pct.toFixed(2),
+		monthlyInstallment: fields.monthlyInstallment
+			? centsToDecimal(fields.monthlyInstallment)
+			: null,
+		lastInstallmentMonth: fields.lastInstallmentMonth ?? null,
+		postBidMode: fields.postBidMode ?? null,
 	};
 }
 

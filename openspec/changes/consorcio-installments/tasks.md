@@ -62,11 +62,11 @@ Test: extends `schemas.test.ts::planInputSchema rejects %s` (`it.each`: two new 
 
 Test: extends `mappers.test.ts::maps a consorcio row to cents fields and a null window when both bounds are null` (row with `monthlyInstallment: "2000.00"`, `lastInstallmentMonth: "2028-12"`, `postBidMode: "reduce-term"` → fields `200_000`, `"2028-12"`, `"reduce-term"`); the `planRow` fixture gains the three columns as `null`. `toPlanColumns`: none, because it is private and DB-bound; locked by `tsc` (the insert type requires the columns) and the manual check in Task 10.
 
-- [ ] **Step 1:** Edit `src/db/schema.ts`.
-- [ ] **Step 2: Run** `pnpm run db:generate` (if it requires `DATABASE_URL`, pass a dummy one: generate does not connect). Open the new SQL: Expected exactly three `ALTER TABLE "planejamento_planos" ADD COLUMN ...` statements (`"parcela_mensal" numeric(12, 2)`, `"ultima_parcela" text`, `"modo_pos_lance" text`), no `NOT NULL`, no `DEFAULT`, nothing else. Anything else: stop and report.
-- [ ] **Step 3: Write the failing assertion** in `mappers.test.ts`; run `pnpm exec vitest run src/features/planning/lib/mappers.test.ts`. Expected: FAIL.
-- [ ] **Step 4: Implement** `mappers.ts` and `writes.ts`; run the same command. Expected: PASS.
-- [ ] **Step 5: Commit** `src/db/schema.ts`, the generated `drizzle/` files, `mappers.ts`, `writes.ts`, `mappers.test.ts`; `git commit -m "feat(planejamento): colunas de parcela do consorcio"`.
+- [x] **Step 1:** Edit `src/db/schema.ts`.
+- [x] **Step 2: Run** `pnpm run db:generate` (if it requires `DATABASE_URL`, pass a dummy one: generate does not connect). Open the new SQL: Expected exactly three `ALTER TABLE "planejamento_planos" ADD COLUMN ...` statements (`"parcela_mensal" numeric(12, 2)`, `"ultima_parcela" text`, `"modo_pos_lance" text`), no `NOT NULL`, no `DEFAULT`, nothing else. Anything else: stop and report.
+- [x] **Step 3: Write the failing assertion** in `mappers.test.ts`; run `pnpm exec vitest run src/features/planning/lib/mappers.test.ts`. Expected: FAIL.
+- [x] **Step 4: Implement** `mappers.ts` and `writes.ts`; run the same command. Expected: PASS.
+- [x] **Step 5: Commit** `src/db/schema.ts`, the generated `drizzle/` files, `mappers.ts`, `writes.ts`, `mappers.test.ts`; `git commit -m "feat(planejamento): colunas de parcela do consorcio"`.
 
 ### Task 3: Post-bid helpers
 

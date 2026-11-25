@@ -10,6 +10,7 @@ import type {
 	BidPoint,
 	Cents,
 	ConsorcioFields,
+	PostBidMode,
 	Direction,
 	EnginePlan,
 	EnginePosition,
@@ -72,6 +73,10 @@ function toPlanFields(row: Plan): EnginePlan["fields"] {
 				enabled: row.embeddedBidEnabled,
 				pct: Number(row.embeddedBidPct),
 			},
+			monthlyInstallment:
+				row.monthlyInstallment === null ? null : toCents(row.monthlyInstallment),
+			lastInstallmentMonth: row.lastInstallmentMonth,
+			postBidMode: (row.postBidMode ?? "reduce-installment") as PostBidMode,
 		};
 	}
 	return {
