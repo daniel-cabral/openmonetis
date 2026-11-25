@@ -68,6 +68,27 @@ describe("buildBidPreview", () => {
 			pct: null,
 			letter: null,
 			outstanding: null,
+			afterBid: null,
 		});
+	});
+
+	it("previews the installment after the bid", () => {
+		const preview = buildBidPreview(
+			{
+				...fields,
+				bidBase: "letter",
+				marginPp: 0,
+				letterValue: 10_000_000,
+				monthlyInstallment: 200_000,
+				lastInstallmentMonth: "2028-12",
+			},
+			[{ month: "2027-02", winningBidPct: 30 }] as BidPoint[],
+			0,
+			"2027-01",
+			"2027-03",
+			"nominal",
+		);
+
+		expect(preview.afterBid?.base).toEqual({ amount: 57_143, months: 21 });
 	});
 });
