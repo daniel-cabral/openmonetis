@@ -45,7 +45,10 @@ vi.mock("@/features/planning/lib/queries/category-totals", () => ({
 	fetchCategoryTotals: mocks.fetchCategoryTotals,
 }));
 
-vi.mock("@/features/planning/lib/planner/stream", () => ({
+vi.mock("@/features/planning/lib/planner/stream", async (importOriginal) => ({
+	...(await importOriginal<
+		typeof import("@/features/planning/lib/planner/stream")
+	>()),
 	createPlannerResponse: mocks.createPlannerResponse,
 }));
 
