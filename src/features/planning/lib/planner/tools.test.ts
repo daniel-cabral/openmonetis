@@ -208,6 +208,37 @@ describe("buildPlannerTools", () => {
 		).toEqual({ error: "Perpetuidade exige taxa real maior que zero." });
 	});
 
+	it("run_projection applies a hypothetical cash outflow without touching the input, and errors on an unknown plan in the scenario", async () => {
+		const toolDeps = deps();
+		const tools = buildPlannerTools(toolDeps);
+		const call = { toolCallId: "call-sc", messages: [] as [] };
+
+		const output = await named(tools, "run_projection").execute(
+			{
+				scenario: {
+					cashEvents: [
+						{
+							month: "2026-02",
+							direction: "out",
+							amount: 3000,
+							label: "reforma",
+						},
+					],
+				},
+			},
+			call,
+		);
+
+		expect(output).toMatchObject({ minSlack: { base: -200_000 } });
+		expect(toolDeps.input.adhocEvents).toBeUndefined();
+		expect(
+			await named(tools, "run_projection").execute(
+				{ scenario: { winningBidPct: [{ planId: PLAN_ID, pct: 50 }] } },
+				call,
+			),
+		).toEqual({ error: "Plano não encontrado." });
+	});
+
 	it("exposes only the six planner tools when the model has no web search", () => {
 		expect(Object.keys(buildPlannerTools(deps())).sort()).toEqual([
 			"finance_calc",

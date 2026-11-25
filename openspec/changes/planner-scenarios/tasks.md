@@ -101,11 +101,11 @@ Test: extends `tools.test.ts::exposes only the five planner tools when the model
 
 Test: new `project.test.ts::adds ad-hoc cash to general in its month and lets an outflow go below the floor`, because distinct setup (no plans, ad-hoc events only).
 
-- [ ] **Step 1: Write the failing test**: `engineInput({ startMonth: "2027-01", horizonEnd: "2027-03", positions: [position({ amount: 100_000 })], adhocEvents: [{ month: "2027-02", direction: "inflow", amount: 50_000, label: "bônus" }, { month: "2027-03", direction: "outflow", amount: 200_000, label: "reforma" }] })`; `runProjection(...).scenarios.base.months` → `slack` `[100_000, 150_000, -50_000]`, last row `reserveBreached: true`; pessimistic `slack` equal to base.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/project.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** the three paths; `git commit -m "feat(planejamento): entradas e saidas avulsas no motor"`.
+- [x] **Step 1: Write the failing test**: `engineInput({ startMonth: "2027-01", horizonEnd: "2027-03", positions: [position({ amount: 100_000 })], adhocEvents: [{ month: "2027-02", direction: "inflow", amount: 50_000, label: "bônus" }, { month: "2027-03", direction: "outflow", amount: 200_000, label: "reforma" }] })`; `runProjection(...).scenarios.base.months` → `slack` `[100_000, 150_000, -50_000]`, last row `reserveBreached: true`; pessimistic `slack` equal to base.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/project.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** the three paths; `git commit -m "feat(planejamento): entradas e saidas avulsas no motor"`.
 
 ### Task 4: `applyScenario`
 
@@ -134,14 +134,14 @@ export function applyScenario(input: EngineInput, scenario: PlannerScenario): En
 
 Test: new, because distinct contract (new module). One `describe("applyScenario")` with three tests.
 
-- [ ] **Step 1: Write the failing tests**:
+- [x] **Step 1: Write the failing tests**:
   - "replaces the bid history with the hypothetical bid at the target month, keeping the margin": `engineInput({ startMonth: "2027-01", horizonEnd: "2027-06", plans: [...] })` with a consórcio plan (build with `goalPlan(id, "2027-03", ..., { fields: { type: "consorcio", letterValue: 10_000_000, outstandingBalance: 0, bidBase: "letter", marginPp: 3, embeddedBid: { enabled: false, pct: 0 } }, bidHistory: [{ month: "2026-12", winningBidPct: 40 }] })`), scenario `{ winningBidPct: [{ planId, pct: 66 }] }` → plan `bidHistory` `[{ month: "2027-03", winningBidPct: 66 }]`; `runProjection(applyStress(result, { bidAtRangeMax: true })).scenarios.pessimistic.requiredByPlan[planId]` is `6_900_000` (69% of the letter, Grilling 2); original input's `bidHistory` unchanged.
   - "removes, edits and adds positions": positions `p1` 100_000 daily, `p2` 50_000 daily; scenario remove `["p2"]`, edit `[{ id: "p1", amount: 30_000 }]`, add one `{ accountId: null, amount: 10_000, liquidity: "daily", maturityMonth: null, annualRealReturnPct: null }` → positions `toEqual` the literal array (p1 with 30_000, then `{ id: "scenario-position-0", accountId: "scenario", ... }`).
   - "rejects unknown references": `it.each` over unknown plan id, goal plan id with a bid, unknown position id in `edit` → `toThrow` with the exact messages above.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/scenario.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): cenario hipotetico aplicado ao motor"`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/scenario.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): cenario hipotetico aplicado ao motor"`.
 
 ### Task 5: LLM scenario schema
 
@@ -155,11 +155,11 @@ Test: new, because distinct contract (new module). One `describe("applyScenario"
 
 Test: new `llm-input.test.ts::converts a reais scenario to cents and maps cash directions`, because distinct contract (new converter). The 2-decimal rule is already locked for `reaisToCents` by the existing `parseLlmProposal` `it.each`; not re-asserted here.
 
-- [ ] **Step 1: Write the failing test**: `toScenario({ positions: { add: [{ accountId: null, amount: 1500.5, liquidity: "daily", maturityMonth: null, annualRealReturnPct: null }] }, cashEvents: [{ month: "2027-02", direction: "out", amount: 2000, label: "reforma" }] })` → `positions.add[0].amount` `150_050`, `cashEvents` `[{ month: "2027-02", direction: "outflow", amount: 200_000, label: "reforma" }]`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/llm-input.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): esquema do cenario hipotetico em reais"`.
+- [x] **Step 1: Write the failing test**: `toScenario({ positions: { add: [{ accountId: null, amount: 1500.5, liquidity: "daily", maturityMonth: null, annualRealReturnPct: null }] }, cashEvents: [{ month: "2027-02", direction: "out", amount: 2000, label: "reforma" }] })` → `positions.add[0].amount` `150_050`, `cashEvents` `[{ month: "2027-02", direction: "outflow", amount: 200_000, label: "reforma" }]`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/llm-input.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): esquema do cenario hipotetico em reais"`.
 
 ### Task 6: `scenario` on `run_projection` and `simulate_lever`
 
@@ -173,11 +173,11 @@ Test: new `llm-input.test.ts::converts a reais scenario to cents and maps cash d
 
 Test: new `tools.test.ts::run_projection applies a hypothetical cash outflow without touching the input, and errors on an unknown plan in the scenario`, because distinct contract (tool-level scenario wiring and error path). `simulate_lever` wiring: none, because same `applyScenario` call locked by this test and Task 4.
 
-- [ ] **Step 1: Write the failing test**: with `deps()` (daily 100_000 cents, horizon 2026-01..2026-03), execute `run_projection` `{ scenario: { cashEvents: [{ month: "2026-02", direction: "out", amount: 3000, label: "reforma" }] } }` → `minSlack.base` `-200_000`; then `deps().input.adhocEvents` still `undefined`; execute with `{ scenario: { winningBidPct: [{ planId: PLAN_ID, pct: 50 }] } }` → `{ error: "Plano não encontrado." }`.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planejamento): cenario em run_projection e simulate_lever"`.
+- [x] **Step 1: Write the failing test**: with `deps()` (daily 100_000 cents, horizon 2026-01..2026-03), execute `run_projection` `{ scenario: { cashEvents: [{ month: "2026-02", direction: "out", amount: 3000, label: "reforma" }] } }` → `minSlack.base` `-200_000`; then `deps().input.adhocEvents` still `undefined`; execute with `{ scenario: { winningBidPct: [{ planId: PLAN_ID, pct: 50 }] } }` → `{ error: "Plano não encontrado." }`.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/tools.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planejamento): cenario em run_projection e simulate_lever"`.
 
 ### Task 7: Positions with ids in the planner context
 
@@ -190,11 +190,11 @@ Test: new `tools.test.ts::run_projection applies a hypothetical cash outflow wit
 
 Test: extends `context.test.ts::formats maturities and pots in reais, keeps the 20 newest assumptions and reads plan health from the projection` (same snapshot) with one assertion: `context.patrimony.positions[0]` `toEqual` the literal entry with the amount in reais.
 
-- [ ] **Step 1: Add the failing assertion**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit**; `git commit -m "feat(planejamento): posicoes com id no contexto do planejador"`.
+- [x] **Step 1: Add the failing assertion**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/planner/context.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit**; `git commit -m "feat(planejamento): posicoes com id no contexto do planejador"`.
 
 ### Task 8: System prompt, glossary, step budget and web-search policy
 

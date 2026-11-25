@@ -30,12 +30,15 @@ import {
 	type LlmProposalChange,
 	llmLeverSchema,
 	llmProposalSchema,
+	llmScenarioSchema,
 	llmStressSchema,
 	parseLlmProposal,
 	toLever,
+	toScenario,
 	toStress,
 } from "./llm-input";
 import { applyChangesToInput, type Proposal, ProposalError } from "./proposal";
+import { applyScenario } from "./scenario";
 import {
 	diffSummaries,
 	type ProjectionSummary,
@@ -136,15 +139,19 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 		}),
 		run_projection: tool({
 			description:
-				"Projeção dos planos com mudanças e estresses hipotéticos. Não altera dados. Valores em reais.",
+				"Projeção dos planos com mudanças, cenário e estresses hipotéticos. O cenário é só uma hipótese: nada é salvo nem altera dados. Valores em reais.",
 			inputSchema: z.object({
 				changes: llmChangesSchema.optional(),
 				stress: llmStressSchema.optional(),
+				scenario: llmScenarioSchema.optional(),
 			}),
-			execute: ({ changes, stress }) => {
+			execute: ({ changes, stress, scenario }) => {
 				try {
 					return summarize(
-						applyStress(withChanges(changes), toStress(stress ?? {})),
+						applyStress(
+							applyScenario(withChanges(changes), toScenario(scenario ?? {})),
+							toStress(stress ?? {}),
+						),
 					);
 				} catch (error) {
 					return toErrorOutput(error);
@@ -157,11 +164,17 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 		}),
 		simulate_lever: tool({
 			description:
-				"Simula uma alavanca (corte, pote, aporte ou adiamento) e mostra o efeito. Valores em reais.",
-			inputSchema: z.object({ lever: llmLeverSchema }),
-			execute: ({ lever }) => {
+				"Simula uma alavanca (corte, pote, aporte ou adiamento) e mostra o efeito, opcionalmente sobre um cenário hipotético (nada é salvo). Valores em reais.",
+			inputSchema: z.object({
+				lever: llmLeverSchema,
+				scenario: llmScenarioSchema.optional(),
+			}),
+			execute: ({ lever, scenario }) => {
 				try {
-					return simulateLever(input, toLever(lever));
+					return simulateLever(
+						applyScenario(input, toScenario(scenario ?? {})),
+						toLever(lever),
+					);
 				} catch (error) {
 					return toErrorOutput(error);
 				}
