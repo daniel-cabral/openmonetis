@@ -7,6 +7,7 @@ import type {
 	ConsorcioFields,
 	EnginePlan,
 	ExpandedEvent,
+	PostBidMode,
 } from "../types";
 import type { ExpandContext } from "./context";
 
@@ -65,6 +66,39 @@ export function consorcioOwnCash(
 		base: Math.max(0, own.base - embedded),
 		max: Math.max(0, own.max - embedded),
 	};
+}
+
+/** Own cash plus embedded part: the full bid that reduces the balance. */
+export function consorcioTotalBid(
+	fields: ConsorcioFields,
+	pct: AmountRange,
+	letterAtBid: Cents,
+): AmountRange {
+	return consorcioOwnCash(
+		{ ...fields, embeddedBid: { enabled: false, pct: 0 } },
+		pct,
+		letterAtBid,
+	);
+}
+
+/** Installment after the bid: balance is installment x months left, minus the bid. */
+export function postBidInstallment(
+	installmentAtTarget: Cents,
+	monthsLeft: number,
+	totalBid: Cents,
+	mode: PostBidMode,
+): { amount: Cents; months: number } {
+	const left = Math.max(0, installmentAtTarget * monthsLeft - totalBid);
+	if (left === 0) {
+		return { amount: 0, months: 0 };
+	}
+	if (mode === "reduce-term") {
+		return {
+			amount: installmentAtTarget,
+			months: Math.ceil(left / installmentAtTarget),
+		};
+	}
+	return { amount: Math.round(left / monthsLeft), months: monthsLeft };
 }
 
 export function expandConsorcioEvents(

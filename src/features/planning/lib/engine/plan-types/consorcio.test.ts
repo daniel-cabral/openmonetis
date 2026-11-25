@@ -3,7 +3,9 @@ import type { BidPoint, ConsorcioFields, EnginePlan } from "../types";
 import {
 	bidPctRange,
 	consorcioOwnCash,
+	consorcioTotalBid,
 	expandConsorcioEvents,
+	postBidInstallment,
 } from "./consorcio";
 import type { ExpandContext } from "./context";
 
@@ -66,6 +68,41 @@ describe("consorcioOwnCash", () => {
 				1_000_000,
 			),
 		).toEqual({ min: 0, base: 0, max: 100_000 });
+	});
+});
+
+describe("consorcioTotalBid", () => {
+	it("includes the embedded part", () => {
+		const input = fields({
+			marginPp: 0,
+			embeddedBid: { enabled: true, pct: 10 },
+		});
+		const pct = { min: 30, base: 30, max: 30 };
+		expect(consorcioTotalBid(input, pct, 10_000_000)).toEqual({
+			min: 3_000_000,
+			base: 3_000_000,
+			max: 3_000_000,
+		});
+		expect(consorcioOwnCash(input, pct, 10_000_000).base).toBe(2_000_000);
+	});
+});
+
+describe("postBidInstallment", () => {
+	it.each([
+		[
+			200_000,
+			21,
+			3_000_000,
+			"reduce-installment",
+			{ amount: 57_143, months: 21 },
+		],
+		[200_000, 21, 3_000_000, "reduce-term", { amount: 200_000, months: 6 }],
+		[200_000, 21, 5_000_000, "reduce-installment", { amount: 0, months: 0 }],
+		[200_000, 21, 5_000_000, "reduce-term", { amount: 0, months: 0 }],
+	] as const)("installment %i over %i months with bid %i (%s)", (installment, monthsLeft, bid, mode, expected) => {
+		expect(postBidInstallment(installment, monthsLeft, bid, mode)).toEqual(
+			expected,
+		);
 	});
 });
 

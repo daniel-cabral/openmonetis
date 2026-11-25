@@ -89,11 +89,11 @@ export function postBidInstallment(installmentAtTarget: Cents, monthsLeft: numbe
 
 Test: new `consorcio.test.ts::postBidInstallment` `it.each`, because distinct contract: `(200_000, 21, 3_000_000, "reduce-installment")` → `{ amount: 57_143, months: 21 }`; same with `"reduce-term"` → `{ amount: 200_000, months: 6 }`; `(200_000, 21, 5_000_000, "reduce-installment")` → `{ amount: 0, months: 0 }`; same with `"reduce-term"` → `{ amount: 0, months: 0 }`. New `consorcio.test.ts::consorcioTotalBid includes the embedded part`, because distinct contract: `fields({ marginPp: 0, embeddedBid: { enabled: true, pct: 10 } })`, pct `{ min: 30, base: 30, max: 30 }`, letter `10_000_000` → all `3_000_000` (while `consorcioOwnCash` gives `2_000_000`, already locked by the existing embedded test).
 
-- [ ] **Step 1: Write the failing tests**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/consorcio.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): saldo e parcela apos o lance do consorcio"`.
+- [x] **Step 1: Write the failing tests**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/consorcio.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** the same command. Expected: PASS.
+- [x] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): saldo e parcela apos o lance do consorcio"`.
 
 ### Task 4: Installments in `expandConsorcioEvents`
 
