@@ -1,5 +1,6 @@
 import type { ToolSet } from "ai";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import {
 	engineInput,
 	goalPlan,
@@ -170,7 +171,9 @@ describe("buildPlannerTools", () => {
 
 	it("finance_calc returns a reais view marked outside the projection, and an error for a perpetuity at zero rate", async () => {
 		const tools = buildPlannerTools(deps());
-		const input = { op: "installment", principal: 1000, months: 4 } as const;
+		const input = {
+			calc: { op: "installment", principal: 1000, months: 4 },
+		} as const;
 
 		const output = await named(tools, "finance_calc").execute(input, {
 			toolCallId: "call-fc",
@@ -198,10 +201,12 @@ describe("buildPlannerTools", () => {
 		expect(
 			await named(tools, "finance_calc").execute(
 				{
-					op: "capital_for_income",
-					monthlyIncome: 5000,
-					annualRealRatePct: 0,
-					mode: "perpetuity",
+					calc: {
+						op: "capital_for_income",
+						monthlyIncome: 5000,
+						annualRealRatePct: 0,
+						mode: "perpetuity",
+					},
 				},
 				{ toolCallId: "call-fc2", messages: [] },
 			),
@@ -284,15 +289,17 @@ describe("buildPlannerTools", () => {
 		expect(
 			await named(tools, "finance_calc").execute(
 				{
-					op: "arithmetic",
-					terms: [{ value: 1000 }, { value: 250.5, sign: "-" }],
+					calc: {
+						op: "arithmetic",
+						terms: [{ value: 1000 }, { value: 250.5, sign: "-" }],
+					},
 				},
 				call,
 			),
 		).toMatchObject({ value: 74_950, unit: "cents", outsideProjection: true });
 		expect(
 			await named(tools, "finance_calc").execute(
-				{ op: "percent_of", base: 100_000, pct: 34 },
+				{ calc: { op: "percent_of", base: 100_000, pct: 34 } },
 				call,
 			),
 		).toMatchObject({
@@ -300,6 +307,17 @@ describe("buildPlannerTools", () => {
 			unit: "cents",
 			outsideProjection: true,
 		});
+	});
+
+	it("gives every tool an object input schema at the root, as providers require", () => {
+		const tools = buildPlannerTools(deps());
+
+		for (const [name, entry] of Object.entries(tools)) {
+			const schema = z.toJSONSchema(entry.inputSchema as z.ZodType) as {
+				type?: string;
+			};
+			expect({ name, type: schema.type }).toEqual({ name, type: "object" });
+		}
 	});
 
 	it("exposes only the six planner tools when the model has no web search", () => {
