@@ -9,11 +9,17 @@ import {
 	runProjection,
 	simulateLever,
 } from "@/features/planning/lib/engine";
+import { FinanceError, runFinanceCalc } from "@/features/planning/lib/finance";
 import type { CategoryTotal } from "@/features/planning/lib/queries/category-totals";
 import { periodSchema } from "@/features/planning/lib/schemas";
 import { addMonthsToPeriod } from "@/shared/utils/period";
 import { type CutCandidate, rankCutCandidates } from "./cut-candidates";
 import type { ChangeBaseline } from "./describe-change";
+import {
+	llmFinanceCalcSchema,
+	toFinanceRequest,
+	toLlmFinanceResult,
+} from "./finance-tool";
 import {
 	formatCentsForLlm,
 	toLlmDiff,
@@ -59,7 +65,11 @@ export type PlannerToolDeps = {
 const llmChangesSchema = llmProposalSchema.shape.changes;
 
 function toErrorOutput(error: unknown): { error: string } {
-	if (error instanceof ProposalError || error instanceof LeverError) {
+	if (
+		error instanceof ProposalError ||
+		error instanceof LeverError ||
+		error instanceof FinanceError
+	) {
 		return { error: error.message };
 	}
 	throw error;
@@ -159,6 +169,22 @@ export function buildPlannerTools(deps: PlannerToolDeps) {
 			toModelOutput: ({ output }) => ({
 				type: "json",
 				value: "error" in output ? output : toLlmLeverResult(output),
+			}),
+		}),
+		finance_calc: tool({
+			description:
+				"Cálculo financeiro fora da projeção do plano: parcela, prazo, valor presente e capital para renda. Não usa nem altera dados do plano. Valores em reais, taxas em % ao ano.",
+			inputSchema: llmFinanceCalcSchema,
+			execute: (input) => {
+				try {
+					return runFinanceCalc(toFinanceRequest(input));
+				} catch (error) {
+					return toErrorOutput(error);
+				}
+			},
+			toModelOutput: ({ output }) => ({
+				type: "json",
+				value: "error" in output ? output : toLlmFinanceResult(output),
 			}),
 		}),
 		propose_change: tool({

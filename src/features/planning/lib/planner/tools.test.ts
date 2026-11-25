@@ -168,8 +168,49 @@ describe("buildPlannerTools", () => {
 		expect(output).toEqual({ error: expect.any(String) });
 	});
 
-	it("exposes only the five planner tools when the model has no web search", () => {
+	it("finance_calc returns a reais view marked outside the projection, and an error for a perpetuity at zero rate", async () => {
+		const tools = buildPlannerTools(deps());
+		const input = { op: "installment", principal: 1000, months: 4 } as const;
+
+		const output = await named(tools, "finance_calc").execute(input, {
+			toolCallId: "call-fc",
+			messages: [],
+		});
+
+		expect(output).toMatchObject({
+			value: 25_000,
+			unit: "cents",
+			outsideProjection: true,
+		});
+		const view = await named(tools, "finance_calc").toModelOutput({
+			toolCallId: "call-fc",
+			input,
+			output,
+		});
+		expect(view).toMatchObject({
+			type: "json",
+			value: {
+				op: "installment",
+				result: "R$ 250,00",
+				outsideProjection: true,
+			},
+		});
+		expect(
+			await named(tools, "finance_calc").execute(
+				{
+					op: "capital_for_income",
+					monthlyIncome: 5000,
+					annualRealRatePct: 0,
+					mode: "perpetuity",
+				},
+				{ toolCallId: "call-fc2", messages: [] },
+			),
+		).toEqual({ error: "Perpetuidade exige taxa real maior que zero." });
+	});
+
+	it("exposes only the six planner tools when the model has no web search", () => {
 		expect(Object.keys(buildPlannerTools(deps())).sort()).toEqual([
+			"finance_calc",
 			"get_category_totals",
 			"list_cut_candidates",
 			"propose_change",
