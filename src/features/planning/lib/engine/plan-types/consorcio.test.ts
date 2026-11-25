@@ -180,4 +180,138 @@ describe("expandConsorcioEvents", () => {
 			})),
 		);
 	});
+
+	describe("with a monthly installment", () => {
+		const installmentCtx: ExpandContext = {
+			start: "2027-01",
+			end: "2028-12",
+			indexForecastPct: { IPCA: 0, INCC: 0 },
+			stress: {},
+		};
+		const installmentPlan = (
+			over: Partial<ConsorcioFields> = {},
+			plan: Partial<Omit<EnginePlan, "fields">> = {},
+		) => ({
+			...consorcioPlan({
+				basis: "nominal",
+				targetMonth: "2027-03",
+				mappedMonthlyOutflow: 99_999,
+				bidHistory: [{ month: "2027-02", winningBidPct: 30 }],
+				...plan,
+			}),
+			fields: fields({
+				letterValue: 10_000_000,
+				bidBase: "letter",
+				marginPp: 0,
+				monthlyInstallment: 200_000,
+				lastInstallmentMonth: "2028-12",
+				...over,
+			}),
+		});
+		const installments = (events: ReturnType<typeof expandConsorcioEvents>) =>
+			events.filter((event) => event.label === "installment");
+
+		it.each([
+			["embedded off", { enabled: false, pct: 0 }, 3_000_000],
+			["embedded on 10%", { enabled: true, pct: 10 }, 2_000_000],
+		])("replaces the mapped line with installments and reduces the installment after the bid (%s)", (_label, embeddedBid, bidAmount) => {
+			const events = expandConsorcioEvents(
+				installmentPlan({ embeddedBid }),
+				installmentCtx,
+			);
+			expect(events.some((event) => event.label === "mapped")).toBe(false);
+			const bid = events.filter((event) => event.label === "c");
+			expect(bid).toHaveLength(1);
+			expect(bid[0]?.month).toBe("2027-03");
+			expect(bid[0]?.amount.base).toBe(bidAmount);
+
+			const all = installments(events);
+			const before = all.filter((event) => event.month <= "2027-03");
+			const after = all.filter((event) => event.month > "2027-03");
+			expect(before.map((event) => event.month)).toEqual([
+				"2027-01",
+				"2027-02",
+				"2027-03",
+			]);
+			for (const event of before) {
+				expect(event.amount).toEqual({
+					min: 200_000,
+					base: 200_000,
+					max: 200_000,
+				});
+			}
+			expect(after).toHaveLength(21);
+			expect(after[0]?.month).toBe("2027-04");
+			expect(after[20]?.month).toBe("2028-12");
+			for (const event of after) {
+				expect(event.amount).toEqual({
+					min: 57_143,
+					base: 57_143,
+					max: 57_143,
+				});
+			}
+		});
+
+		it("reduce-term keeps the installment for fewer months", () => {
+			const after = installments(
+				expandConsorcioEvents(
+					installmentPlan({ postBidMode: "reduce-term" }),
+					installmentCtx,
+				),
+			).filter((event) => event.month > "2027-03");
+			expect(after.map((event) => event.month)).toEqual([
+				"2027-04",
+				"2027-05",
+				"2027-06",
+				"2027-07",
+				"2027-08",
+				"2027-09",
+			]);
+			for (const event of after) {
+				expect(event.amount.base).toBe(200_000);
+			}
+		});
+
+		it("corrects the installment by the plan index", () => {
+			const events = expandConsorcioEvents(installmentPlan(), {
+				...installmentCtx,
+				indexForecastPct: { IPCA: 0, INCC: 12 },
+			});
+			const february = installments(events).find(
+				(event) => event.month === "2027-02",
+			);
+			expect(february?.amount.base).toBe(201_898);
+		});
+
+		it("without bid history the installment runs unchanged to the last month", () => {
+			const events = expandConsorcioEvents(
+				installmentPlan({}, { bidHistory: [] }),
+				installmentCtx,
+			);
+			expect(events).toHaveLength(24);
+			expect(events.every((event) => event.label === "installment")).toBe(true);
+			expect(events.every((event) => event.amount.base === 200_000)).toBe(true);
+		});
+
+		it("emits no post-bid events when the bid covers the balance", () => {
+			const events = expandConsorcioEvents(
+				installmentPlan({ letterValue: 20_000_000 }),
+				installmentCtx,
+			);
+			expect(
+				installments(events).filter((event) => event.month > "2027-03"),
+			).toEqual([]);
+		});
+
+		it("falls back to the mapped line when the installment is null", () => {
+			const events = expandConsorcioEvents(
+				installmentPlan({ monthlyInstallment: null }),
+				installmentCtx,
+			);
+			expect(events.filter((event) => event.label === "mapped")).toHaveLength(
+				24,
+			);
+			expect(installments(events)).toEqual([]);
+		});
+	});
 });

@@ -116,11 +116,11 @@ Test: new tests in `describe("expandConsorcioEvents")`, because distinct setup (
   - "corrects the installment by the plan index": INCC 12 → `"installment"` in `2027-02` is `201_898`.
   - "without bid history the installment runs unchanged to the last month": `bidHistory: []` → 24 `"installment"` events of `200_000`, no bid event.
 
-- [ ] **Step 1: Write the failing tests**.
-- [ ] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/consorcio.test.ts`. Expected: FAIL (existing tests still PASS).
-- [ ] **Step 3: Implement**.
-- [ ] **Step 4: Run** `pnpm exec vitest run src/features/planning/lib/engine`. Expected: PASS.
-- [ ] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): parcelas do consorcio na projecao"`.
+- [x] **Step 1: Write the failing tests**.
+- [x] **Step 2: Run** `pnpm exec vitest run src/features/planning/lib/engine/plan-types/consorcio.test.ts`. Expected: FAIL (existing tests still PASS).
+- [x] **Step 3: Implement**.
+- [x] **Step 4: Run** `pnpm exec vitest run src/features/planning/lib/engine`. Expected: PASS.
+- [x] **Step 5: Commit** both paths; `git commit -m "feat(planejamento): parcelas do consorcio na projecao"`.
 
 ### Task 5: Installment fields at the LLM boundary and in proposal descriptions
 

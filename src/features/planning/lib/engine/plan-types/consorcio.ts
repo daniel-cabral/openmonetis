@@ -1,4 +1,8 @@
-import { buildPeriodRange, comparePeriods } from "@/shared/utils/period";
+import {
+	addMonthsToPeriod,
+	buildPeriodRange,
+	comparePeriods,
+} from "@/shared/utils/period";
 import { inflateToMonth } from "../money";
 import type {
 	AmountRange,
@@ -7,6 +11,7 @@ import type {
 	ConsorcioFields,
 	EnginePlan,
 	ExpandedEvent,
+	Period,
 	PostBidMode,
 } from "../types";
 import type { ExpandContext } from "./context";
@@ -101,13 +106,90 @@ export function postBidInstallment(
 	return { amount: Math.round(left / monthsLeft), months: monthsLeft };
 }
 
+function monthsBetween(from: Period, to: Period): number {
+	return buildPeriodRange(from, to).length - 1;
+}
+
+function sameAmount(amount: Cents): AmountRange {
+	return { min: amount, base: amount, max: amount };
+}
+
+/** Monthly installments up to the bid, then the reduced remainder up to the last installment. */
+function expandInstallmentEvents(
+	plan: EnginePlan & { fields: ConsorcioFields },
+	ctx: ExpandContext,
+	installment: Cents,
+	bidEvent: ExpandedEvent | null,
+	totalBid: AmountRange | null,
+): ExpandedEvent[] {
+	const { fields, targetMonth } = plan;
+	const index = ctx.indexForecastPct[plan.index];
+	const last = fields.lastInstallmentMonth ?? targetMonth;
+	const events: ExpandedEvent[] = [];
+	const push = (month: Period, amount: AmountRange) =>
+		events.push({
+			planId: plan.id,
+			month,
+			direction: "outflow",
+			amount,
+			label: "installment",
+		});
+
+	// Without a bid there is no reduction: the installment runs to the last month.
+	const lastBeforeBid = bidEvent ? targetMonth : last;
+	if (comparePeriods(ctx.start, lastBeforeBid) <= 0) {
+		for (const month of buildPeriodRange(ctx.start, lastBeforeBid)) {
+			push(
+				month,
+				sameAmount(inflateToMonth(installment, index, ctx.start, month)),
+			);
+		}
+	}
+	if (!bidEvent || !totalBid) {
+		return events;
+	}
+	events.push(bidEvent);
+
+	if (comparePeriods(last, targetMonth) <= 0) {
+		return events;
+	}
+	const monthsLeft = monthsBetween(targetMonth, last);
+	const installmentAtTarget = inflateToMonth(
+		installment,
+		index,
+		ctx.start,
+		targetMonth,
+	);
+	const after = (["min", "base", "max"] as const).map((slot) =>
+		postBidInstallment(
+			installmentAtTarget,
+			monthsLeft,
+			totalBid[slot],
+			fields.postBidMode ?? "reduce-installment",
+		),
+	);
+	for (let k = 1; k <= monthsLeft; k++) {
+		const month = addMonthsToPeriod(targetMonth, k);
+		const [min, base, max] = after.map((slot) =>
+			k <= slot.months
+				? inflateToMonth(slot.amount, index, targetMonth, month)
+				: 0,
+		);
+		if (min || base || max) {
+			push(month, { min: min ?? 0, base: base ?? 0, max: max ?? 0 });
+		}
+	}
+	return events;
+}
+
 export function expandConsorcioEvents(
 	plan: EnginePlan & { fields: ConsorcioFields },
 	ctx: ExpandContext,
 ): ExpandedEvent[] {
 	const events: ExpandedEvent[] = [];
+	const installment = plan.fields.monthlyInstallment ?? 0;
 
-	if (plan.mappedMonthlyOutflow > 0) {
+	if (installment <= 0 && plan.mappedMonthlyOutflow > 0) {
 		for (const month of buildPeriodRange(ctx.start, ctx.end)) {
 			events.push({
 				planId: plan.id,
@@ -137,13 +219,25 @@ export function expandConsorcioEvents(
 						plan.targetMonth,
 					)
 				: plan.fields.letterValue;
-		events.push({
+		const bidEvent: ExpandedEvent = {
 			planId: plan.id,
 			month: plan.targetMonth,
 			direction: "outflow",
 			amount: consorcioOwnCash(plan.fields, pct, letterAtBid),
 			label: plan.name,
-		});
+		};
+		if (installment > 0) {
+			return expandInstallmentEvents(
+				plan,
+				ctx,
+				installment,
+				bidEvent,
+				consorcioTotalBid(plan.fields, pct, letterAtBid),
+			);
+		}
+		events.push(bidEvent);
+	} else if (installment > 0) {
+		return expandInstallmentEvents(plan, ctx, installment, null, null);
 	}
 
 	return events;
